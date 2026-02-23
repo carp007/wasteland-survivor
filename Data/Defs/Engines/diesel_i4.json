@@ -1,0 +1,12 @@
+{
+  "Id": "eng_diesel_i4",
+  "DisplayName": "Diesel I4",
+  "FuelType": "Diesel",
+  "PowerKw": 120,
+  "TorqueNm": 360,
+  "Efficiency": 1.05,
+  "AllowedVehicleClasses": [
+    "Sedan",
+    "LightTruck"
+  ]
+}

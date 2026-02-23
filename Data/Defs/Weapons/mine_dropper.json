@@ -1,0 +1,14 @@
+{
+  "Id": "wpn_mine_dropper",
+  "DisplayName": "Mine Dropper",
+  "WeaponType": "MineDropper",
+  "FireMode": "DumbFire",
+  "ProjectileSpeed": 10,
+  "BaseDamage": 22,
+  "SplashRadius": 3.0,
+  "CooldownMs": 1100,
+  "MassKg": 80,
+  "AmmoTypeIds": [
+    "ammo_mine_std"
+  ]
+}

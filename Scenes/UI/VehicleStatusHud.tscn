@@ -1,0 +1,310 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scripts/UI/VehicleStatusHud.cs" id="1"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/ValueBar.tscn" id="2"]
+
+[node name="VehicleStatusHud" type="PanelContainer"]
+modulate = Color(1, 1, 1, 0.9)
+layout_mode = 1
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -276.0
+offset_top = 62.0
+offset_right = -36.0
+offset_bottom = 620.0
+script = ExtResource("1")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="LblVehicleName" type="Label" parent="VBox"]
+size_flags_horizontal = 3
+horizontal_alignment = 1
+text = "Vehicle: (none)"
+theme_override_font_sizes/font_size = 13
+
+[node name="LblVehicleMass" type="Label" parent="VBox"]
+size_flags_horizontal = 3
+horizontal_alignment = 1
+text = "Mass: 0 kg"
+theme_override_font_sizes/font_size = 11
+
+[node name="LblVehicleMassDetail" type="Label" parent="VBox"]
+size_flags_horizontal = 3
+horizontal_alignment = 1
+text = "V 0 kg  W 0 kg  A 0 kg"
+theme_override_font_sizes/font_size = 10
+
+
+[node name="FrontBox" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+
+
+[node name="FrontCenter" type="CenterContainer" parent="VBox/FrontBox"]
+layout_mode = 2
+
+[node name="VBoxBars" type="VBoxContainer" parent="VBox/FrontBox/FrontCenter"]
+layout_mode = 2
+
+[node name="FrontAp" parent="VBox/FrontBox/FrontCenter/VBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(80, 14)
+
+[node name="FrontHp" parent="VBox/FrontBox/FrontCenter/VBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(80, 14)
+
+[node name="MidRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 14
+
+[node name="LeftBox" type="VBoxContainer" parent="VBox/MidRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(44, 160)
+
+[node name="BarsCenter" type="CenterContainer" parent="VBox/MidRow/LeftBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxBars" type="HBoxContainer" parent="VBox/MidRow/LeftBox/BarsCenter"]
+layout_mode = 2
+
+[node name="LeftAp" parent="VBox/MidRow/LeftBox/BarsCenter/HBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(14, 110)
+
+[node name="LeftHp" parent="VBox/MidRow/LeftBox/BarsCenter/HBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(14, 110)
+
+[node name="CenterBox" type="PanelContainer" parent="VBox/MidRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 160)
+
+[node name="Center" type="CenterContainer" parent="VBox/MidRow/CenterBox"]
+layout_mode = 2
+
+[node name="VehiclePreview" type="SubViewportContainer" parent="VBox/MidRow/CenterBox/Center"]
+custom_minimum_size = Vector2(120, 140)
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="VBox/MidRow/CenterBox/Center/VehiclePreview"]
+size = Vector2i(120, 140)
+transparent_bg = true
+render_target_update_mode = 3
+
+[node name="PreviewRoot" type="Node3D" parent="VBox/MidRow/CenterBox/Center/VehiclePreview/Viewport"]
+
+[node name="Camera" type="Camera3D" parent="VBox/MidRow/CenterBox/Center/VehiclePreview/Viewport/PreviewRoot"]
+
+[node name="Light" type="DirectionalLight3D" parent="VBox/MidRow/CenterBox/Center/VehiclePreview/Viewport/PreviewRoot"]
+
+[node name="VehicleMesh" type="MeshInstance3D" parent="VBox/MidRow/CenterBox/Center/VehiclePreview/Viewport/PreviewRoot"]
+
+[node name="RightBox" type="VBoxContainer" parent="VBox/MidRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(44, 160)
+
+[node name="BarsCenter" type="CenterContainer" parent="VBox/MidRow/RightBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxBars" type="HBoxContainer" parent="VBox/MidRow/RightBox/BarsCenter"]
+layout_mode = 2
+
+[node name="RightAp" parent="VBox/MidRow/RightBox/BarsCenter/HBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(14, 110)
+
+[node name="RightHp" parent="VBox/MidRow/RightBox/BarsCenter/HBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(14, 110)
+
+[node name="RearBox" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+
+
+[node name="RearCenter" type="CenterContainer" parent="VBox/RearBox"]
+layout_mode = 2
+
+[node name="VBoxBars" type="VBoxContainer" parent="VBox/RearBox/RearCenter"]
+layout_mode = 2
+
+[node name="RearAp" parent="VBox/RearBox/RearCenter/VBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(80, 14)
+
+[node name="RearHp" parent="VBox/RearBox/RearCenter/VBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(80, 14)
+
+[node name="BottomVBox" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="VBox/BottomVBox"]
+custom_minimum_size = Vector2(0, 6)
+
+[node name="TopUnderCenter" type="CenterContainer" parent="VBox/BottomVBox"]
+layout_mode = 2
+
+[node name="TopUnderBox" type="VBoxContainer" parent="VBox/BottomVBox/TopUnderCenter"]
+layout_mode = 2
+
+[node name="TopRow" type="HBoxContainer" parent="VBox/BottomVBox/TopUnderCenter/TopUnderBox"]
+layout_mode = 2
+
+[node name="LblTop" type="Label" parent="VBox/BottomVBox/TopUnderCenter/TopUnderBox/TopRow"]
+custom_minimum_size = Vector2(40, 0)
+text = "Top"
+theme_override_font_sizes/font_size = 12
+
+[node name="TopHp" parent="VBox/BottomVBox/TopUnderCenter/TopUnderBox/TopRow" instance=ExtResource("2")]
+custom_minimum_size = Vector2(90, 14)
+
+[node name="TopAp" parent="VBox/BottomVBox/TopUnderCenter/TopUnderBox/TopRow" instance=ExtResource("2")]
+custom_minimum_size = Vector2(90, 14)
+
+[node name="UnderRow" type="HBoxContainer" parent="VBox/BottomVBox/TopUnderCenter/TopUnderBox"]
+layout_mode = 2
+
+[node name="LblUnder" type="Label" parent="VBox/BottomVBox/TopUnderCenter/TopUnderBox/UnderRow"]
+custom_minimum_size = Vector2(40, 0)
+text = "Under"
+theme_override_font_sizes/font_size = 12
+
+[node name="UnderHp" parent="VBox/BottomVBox/TopUnderCenter/TopUnderBox/UnderRow" instance=ExtResource("2")]
+custom_minimum_size = Vector2(90, 14)
+
+[node name="UnderAp" parent="VBox/BottomVBox/TopUnderCenter/TopUnderBox/UnderRow" instance=ExtResource("2")]
+custom_minimum_size = Vector2(90, 14)
+
+[node name="TiresSpacer" type="Control" parent="VBox/BottomVBox"]
+custom_minimum_size = Vector2(0, 10)
+
+[node name="Tires" type="VBoxContainer" parent="VBox/BottomVBox"]
+layout_mode = 2
+
+[node name="LblTires" type="Label" parent="VBox/BottomVBox/Tires"]
+size_flags_horizontal = 3
+horizontal_alignment = 1
+text = "Tires"
+theme_override_font_sizes/font_size = 12
+
+[node name="TiresCenter" type="CenterContainer" parent="VBox/BottomVBox/Tires"]
+layout_mode = 2
+
+[node name="Grid" type="GridContainer" parent="VBox/BottomVBox/Tires/TiresCenter"]
+layout_mode = 2
+columns = 2
+
+[node name="TireFL" type="VBoxContainer" parent="VBox/BottomVBox/Tires/TiresCenter/Grid"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireFL"]
+size_flags_horizontal = 3
+horizontal_alignment = 1
+text = "FL"
+theme_override_font_sizes/font_size = 11
+
+[node name="VBoxBars" type="VBoxContainer" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireFL"]
+layout_mode = 2
+
+[node name="Ap" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireFL/VBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(90, 12)
+
+[node name="Hp" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireFL/VBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(90, 12)
+
+[node name="TireFR" type="VBoxContainer" parent="VBox/BottomVBox/Tires/TiresCenter/Grid"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireFR"]
+size_flags_horizontal = 3
+horizontal_alignment = 1
+text = "FR"
+theme_override_font_sizes/font_size = 11
+
+[node name="VBoxBars" type="VBoxContainer" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireFR"]
+layout_mode = 2
+
+[node name="Ap" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireFR/VBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(90, 12)
+
+[node name="Hp" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireFR/VBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(90, 12)
+
+[node name="TireRL" type="VBoxContainer" parent="VBox/BottomVBox/Tires/TiresCenter/Grid"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireRL"]
+size_flags_horizontal = 3
+horizontal_alignment = 1
+text = "RL"
+theme_override_font_sizes/font_size = 11
+
+[node name="VBoxBars" type="VBoxContainer" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireRL"]
+layout_mode = 2
+
+[node name="Ap" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireRL/VBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(90, 12)
+
+[node name="Hp" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireRL/VBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(90, 12)
+
+[node name="TireRR" type="VBoxContainer" parent="VBox/BottomVBox/Tires/TiresCenter/Grid"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireRR"]
+size_flags_horizontal = 3
+horizontal_alignment = 1
+text = "RR"
+theme_override_font_sizes/font_size = 11
+
+[node name="VBoxBars" type="VBoxContainer" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireRR"]
+layout_mode = 2
+
+[node name="Ap" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireRR/VBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(90, 12)
+
+[node name="Hp" parent="VBox/BottomVBox/Tires/TiresCenter/Grid/TireRR/VBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(90, 12)
+
+[node name="WeaponsSpacer" type="Control" parent="VBox/BottomVBox"]
+custom_minimum_size = Vector2(0, 12)
+
+[node name="WeaponsBox" type="VBoxContainer" parent="VBox/BottomVBox"]
+layout_mode = 2
+
+[node name="LblWeapons" type="Label" parent="VBox/BottomVBox/WeaponsBox"]
+size_flags_horizontal = 3
+horizontal_alignment = 1
+text = "Weapons"
+theme_override_font_sizes/font_size = 12
+
+[node name="WeaponsListMargin" type="MarginContainer" parent="VBox/BottomVBox/WeaponsBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="LblWeaponsList" type="Label" parent="VBox/BottomVBox/WeaponsBox/WeaponsListMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 2
+text = "(none)"
+theme_override_font_sizes/font_size = 11
+
+[node name="SpeedSpacer" type="Control" parent="VBox/BottomVBox"]
+custom_minimum_size = Vector2(0, 10)
+
+[node name="SpeedBox" type="VBoxContainer" parent="VBox/BottomVBox"]
+layout_mode = 2
+
+[node name="LblSpeed" type="Label" parent="VBox/BottomVBox/SpeedBox"]
+size_flags_horizontal = 3
+horizontal_alignment = 1
+text = "Speed"
+theme_override_font_sizes/font_size = 12
+
+[node name="SpeedCenter" type="CenterContainer" parent="VBox/BottomVBox/SpeedBox"]
+layout_mode = 2
+
+[node name="SpeedBar" parent="VBox/BottomVBox/SpeedBox/SpeedCenter" instance=ExtResource("2")]
+custom_minimum_size = Vector2(190, 14)

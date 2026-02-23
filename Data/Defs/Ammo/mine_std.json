@@ -1,0 +1,9 @@
+{
+  "Id": "ammo_mine_std",
+  "DisplayName": "Standard Mine",
+  "AmmoKind": "Mine",
+  "UnitMassKg": 22.0,
+  "DamageMultiplier": 1.0,
+  "TrackingStrength": 0.0,
+  "ArmorPenetrationTag": ""
+}

@@ -1,0 +1,6 @@
+{
+  "Id": "armor_kevlar_basic",
+  "DisplayName": "Basic Kevlar",
+  "MaxArmorPoints": 50,
+  "RepairCostPerPointUsd": 3
+}

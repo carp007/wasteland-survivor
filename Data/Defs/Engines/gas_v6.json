@@ -1,0 +1,13 @@
+{
+  "Id": "eng_gas_v6",
+  "DisplayName": "Gas V6",
+  "FuelType": "Gas",
+  "PowerKw": 140,
+  "TorqueNm": 310,
+  "Efficiency": 1.0,
+  "AllowedVehicleClasses": [
+    "Sedan",
+    "Sports",
+    "LightTruck"
+  ]
+}

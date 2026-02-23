@@ -1,0 +1,54 @@
+{
+  "Id": "veh_sports",
+  "DisplayName": "Sports",
+  "Class": "Sports",
+  "BaseMassKg": 1250,
+  "StorageCapacityUnits": 10,
+  "TireCount": 4,
+  "SpareTireIncluded": false,
+  "BaseArmorBySection": {
+    "Front": 11,
+    "Rear": 9,
+    "Left": 9,
+    "Right": 9,
+    "Top": 7,
+    "Undercarriage": 7
+  },
+  "BaseTireArmor": 6,
+  "BaseHpBySection": {
+    "Front": 20,
+    "Rear": 18,
+    "Left": 18,
+    "Right": 18,
+    "Top": 16,
+    "Undercarriage": 16
+  },
+  "BaseTireHp": 11,
+  "MountPoints": [
+    {
+      "MountId": "F1",
+      "MountLocation": "Front",
+      "ArcDegrees": 0,
+      "CanAutoAim": false,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "F2",
+      "MountLocation": "Front",
+      "ArcDegrees": 0,
+      "CanAutoAim": false,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "T1",
+      "MountLocation": "Top",
+      "ArcDegrees": 60,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    }
+  ],
+  "AllowedEngineClasses": [
+    "Sedan",
+    "Sports"
+  ]
+}

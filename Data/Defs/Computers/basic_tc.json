@@ -1,0 +1,7 @@
+{
+  "Id": "tc_basic",
+  "DisplayName": "Basic Targeting Computer",
+  "MaxActiveWeaponGroups": 1,
+  "AutoAimSlots": 0,
+  "LockRange": 45
+}

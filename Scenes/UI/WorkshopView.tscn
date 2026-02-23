@@ -1,0 +1,83 @@
+[gd_scene load_steps=2 format=3 uid="uid://w0rk5h0p00001"]
+
+[ext_resource type="Script" path="res://Scripts/UI/WorkshopView.cs" id="1"]
+
+[node name="WorkshopView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+offset_left = 12.0
+offset_top = 60.0
+offset_right = 720.0
+offset_bottom = 620.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+
+[node name="LblTitle" type="Label" parent="Panel/VBox"]
+text = "Workshop / Loadout"
+
+[node name="LblActive" type="Label" parent="Panel/VBox"]
+text = "Active: (loading)"
+
+[node name="HBoxEngine" type="HBoxContainer" parent="Panel/VBox"]
+
+[node name="LblEngine" type="Label" parent="Panel/VBox/HBoxEngine"]
+text = "Engine:"
+custom_minimum_size = Vector2(90, 0)
+
+[node name="OptEngine" type="OptionButton" parent="Panel/VBox/HBoxEngine"]
+custom_minimum_size = Vector2(0, 0)
+
+[node name="HBoxComputer" type="HBoxContainer" parent="Panel/VBox"]
+
+[node name="LblComputer" type="Label" parent="Panel/VBox/HBoxComputer"]
+text = "Computer:"
+custom_minimum_size = Vector2(90, 0)
+
+[node name="OptComputer" type="OptionButton" parent="Panel/VBox/HBoxComputer"]
+
+[node name="Spacer" type="Control" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 8)
+
+[node name="LblMounts" type="Label" parent="Panel/VBox"]
+text = "Weapon Mounts"
+
+[node name="Scroll" type="ScrollContainer" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 320)
+
+[node name="VBoxMounts" type="VBoxContainer" parent="Panel/VBox/Scroll"]
+
+
+[node name="SpacerAmmo" type="Control" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 8)
+
+[node name="LblAmmoTitle" type="Label" parent="Panel/VBox"]
+text = "Ammo"
+
+[node name="HBoxAmmo" type="HBoxContainer" parent="Panel/VBox"]
+
+[node name="LblAmmo" type="Label" parent="Panel/VBox/HBoxAmmo"]
+text = "9mm Rounds: 0    Money: $0"
+custom_minimum_size = Vector2(260, 0)
+
+[node name="BtnBuy10" type="Button" parent="Panel/VBox/HBoxAmmo"]
+text = "Buy +10"
+
+[node name="BtnBuy50" type="Button" parent="Panel/VBox/HBoxAmmo"]
+text = "Buy +50"
+
+[node name="BtnBuy200" type="Button" parent="Panel/VBox/HBoxAmmo"]
+text = "Buy +200"
+
+[node name="HBoxButtons" type="HBoxContainer" parent="Panel/VBox"]
+
+[node name="BtnApply" type="Button" parent="Panel/VBox/HBoxButtons"]
+text = "Apply & Save"
+
+[node name="BtnBack" type="Button" parent="Panel/VBox/HBoxButtons"]
+text = "Back"

@@ -1,0 +1,3 @@
+Wasteland Survivor
+Build: 2026-02-23-10
+Notes: Salvage merge: restored driving realism + mass-based handling, tire smoke/skid VFX, hit marker + SFX, and driver HP soft-lock safeguards; updated docs and zip rules (exclude .godot/ and Assets/).

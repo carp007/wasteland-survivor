@@ -1,0 +1,55 @@
+{
+  "Id": "veh_sedan",
+  "DisplayName": "Sedan",
+  "Class": "Sedan",
+  "BaseMassKg": 1350,
+  "StorageCapacityUnits": 12,
+  "TireCount": 4,
+  "SpareTireIncluded": true,
+  "BaseArmorBySection": {
+    "Front": 12,
+    "Rear": 10,
+    "Left": 10,
+    "Right": 10,
+    "Top": 8,
+    "Undercarriage": 8
+  },
+  "BaseTireArmor": 6,
+  "BaseHpBySection": {
+    "Front": 22,
+    "Rear": 20,
+    "Left": 20,
+    "Right": 20,
+    "Top": 18,
+    "Undercarriage": 18
+  },
+  "BaseTireHp": 12,
+  "MountPoints": [
+    {
+      "MountId": "F1",
+      "MountLocation": "Front",
+      "ArcDegrees": 10,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "L1",
+      "MountLocation": "Left",
+      "ArcDegrees": 30,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "R1",
+      "MountLocation": "Right",
+      "ArcDegrees": 30,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    }
+  ],
+  "AllowedEngineClasses": [
+    "Compact",
+    "Sedan",
+    "Sports"
+  ]
+}

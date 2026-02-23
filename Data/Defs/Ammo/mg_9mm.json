@@ -1,0 +1,9 @@
+{
+  "Id": "ammo_mg_9mm",
+  "DisplayName": "9mm Rounds",
+  "AmmoKind": "Ballistic",
+  "UnitMassKg": 0.012,
+  "DamageMultiplier": 1.0,
+  "TrackingStrength": 0.0,
+  "ArmorPenetrationTag": ""
+}

@@ -1,0 +1,9 @@
+{
+  "Id": "ammo_missile_std",
+  "DisplayName": "Standard Missile",
+  "AmmoKind": "Guided",
+  "UnitMassKg": 14.0,
+  "DamageMultiplier": 1.0,
+  "TrackingStrength": 0.55,
+  "ArmorPenetrationTag": ""
+}

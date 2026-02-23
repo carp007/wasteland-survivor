@@ -1,0 +1,98 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://Scripts/UI/ArenaRealtimeView.cs" id="1"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/PlayerStatusHud.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/VehicleStatusHud.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/TargetStatusHud.tscn" id="4"]
+
+[node name="ArenaRealtimeView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+
+[node name="HudPanel" type="PanelContainer" parent="."]
+modulate = Color(1, 1, 1, 0.85)
+layout_mode = 1
+anchors_preset = 0
+offset_left = 12.0
+offset_top = 56.0
+offset_right = 380.0
+offset_bottom = 240.0
+
+[node name="VBox" type="VBoxContainer" parent="HudPanel"]
+
+[node name="LblTitle" type="Label" parent="HudPanel/VBox"]
+text = "Arena (Real-time)"
+
+[node name="LblStatus" type="Label" parent="HudPanel/VBox"]
+text = "Status: (loading...)"
+
+[node name="LblStats" type="Label" parent="HudPanel/VBox"]
+text = ""
+
+[node name="HBoxTiers" type="HBoxContainer" parent="HudPanel/VBox"]
+
+[node name="BtnTier1" type="Button" parent="HudPanel/VBox/HBoxTiers"]
+text = "Tier 1"
+
+[node name="BtnTier2" type="Button" parent="HudPanel/VBox/HBoxTiers"]
+text = "Tier 2"
+
+[node name="BtnTier3" type="Button" parent="HudPanel/VBox/HBoxTiers"]
+text = "Tier 3"
+
+[node name="HBoxActions" type="HBoxContainer" parent="HudPanel/VBox"]
+
+[node name="BtnStart" type="Button" parent="HudPanel/VBox/HBoxActions"]
+text = "Start"
+
+[node name="BtnFlee" type="Button" parent="HudPanel/VBox/HBoxActions"]
+text = "Flee"
+
+[node name="BtnBack" type="Button" parent="HudPanel/VBox/HBoxActions"]
+text = "Back"
+
+[node name="PostPanel" type="PanelContainer" parent="."]
+modulate = Color(1, 1, 1, 0.85)
+visible = false
+layout_mode = 1
+anchors_preset = 0
+offset_left = 460.0
+offset_top = 12.0
+offset_right = 980.0
+offset_bottom = 260.0
+
+[node name="PostVBox" type="VBoxContainer" parent="PostPanel"]
+
+[node name="LblPostTitle" type="Label" parent="PostPanel/PostVBox"]
+text = "Post-Encounter"
+
+[node name="LblRewards" type="Label" parent="PostPanel/PostVBox"]
+text = ""
+
+[node name="HBoxPost" type="HBoxContainer" parent="PostPanel/PostVBox"]
+
+[node name="BtnRepair" type="Button" parent="PostPanel/PostVBox/HBoxPost"]
+text = "Quick Repair ($)"
+
+[node name="BtnRepairDriverArmor" type="Button" parent="PostPanel/PostVBox/HBoxPost"]
+text = "Repair Armor ($)"
+
+[node name="BtnReturn" type="Button" parent="PostPanel/PostVBox/HBoxPost"]
+text = "Return to City"
+
+[node name="HBoxScrap" type="HBoxContainer" parent="PostPanel/PostVBox"]
+
+[node name="BtnPatchArmor" type="Button" parent="PostPanel/PostVBox/HBoxScrap"]
+text = "Patch Hull (-1 scrap)"
+
+[node name="BtnPatchTire" type="Button" parent="PostPanel/PostVBox/HBoxScrap"]
+text = "Patch Tire (-1 scrap)"
+
+[node name="PlayerStatusHud" parent="." instance=ExtResource("2")]
+
+[node name="VehicleStatusHud" parent="." instance=ExtResource("3")]
+
+[node name="TargetStatusHud" parent="." instance=ExtResource("4")]

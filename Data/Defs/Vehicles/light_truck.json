@@ -1,0 +1,55 @@
+{
+  "Id": "veh_light_truck",
+  "DisplayName": "Light Truck",
+  "Class": "LightTruck",
+  "BaseMassKg": 1850,
+  "StorageCapacityUnits": 20,
+  "TireCount": 4,
+  "SpareTireIncluded": true,
+  "BaseArmorBySection": {
+    "Front": 14,
+    "Rear": 12,
+    "Left": 12,
+    "Right": 12,
+    "Top": 10,
+    "Undercarriage": 10
+  },
+  "BaseTireArmor": 7,
+  "BaseHpBySection": {
+    "Front": 28,
+    "Rear": 26,
+    "Left": 26,
+    "Right": 26,
+    "Top": 22,
+    "Undercarriage": 22
+  },
+  "BaseTireHp": 15,
+  "MountPoints": [
+    {
+      "MountId": "F1",
+      "MountLocation": "Front",
+      "ArcDegrees": 10,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "R1",
+      "MountLocation": "Rear",
+      "ArcDegrees": 10,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "T1",
+      "MountLocation": "Top",
+      "ArcDegrees": 90,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    }
+  ],
+  "AllowedEngineClasses": [
+    "Sedan",
+    "Sports",
+    "LightTruck"
+  ]
+}

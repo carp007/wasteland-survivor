@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://51up6bytrc3a"]
+
+[ext_resource type="Script" uid="uid://bfumsf2o6yp3h" path="res://Scripts/App/AppRoot.cs" id="1"]
+[ext_resource type="Script" path="res://Scripts/UI/ConsoleOverlay.cs" id="2"]
+
+[node name="Main" type="Node" unique_id=588771437]
+
+[node name="AppRoot" type="Node" parent="." unique_id=1904318895]
+script = ExtResource("1")
+
+[node name="WorldRoot" type="Node3D" parent="AppRoot" unique_id=898156162]
+
+[node name="UIRoot" type="CanvasLayer" parent="AppRoot" unique_id=1686985727]
+
+[node name="OverlayRoot" type="CanvasLayer" parent="AppRoot"]
+layer = 100
+
+[node name="ConsoleOverlay" type="Control" parent="AppRoot/OverlayRoot"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("2")

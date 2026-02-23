@@ -1,0 +1,14 @@
+{
+  "Id": "wpn_missile",
+  "DisplayName": "Guided Missile",
+  "WeaponType": "Missile",
+  "FireMode": "LockOptional",
+  "ProjectileSpeed": 55,
+  "BaseDamage": 16,
+  "SplashRadius": 2.0,
+  "CooldownMs": 900,
+  "MassKg": 95,
+  "AmmoTypeIds": [
+    "ammo_missile_std"
+  ]
+}

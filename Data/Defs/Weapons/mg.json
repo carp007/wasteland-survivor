@@ -1,0 +1,14 @@
+{
+  "Id": "wpn_mg",
+  "DisplayName": "Machine Gun",
+  "WeaponType": "MG",
+  "FireMode": "DumbFire",
+  "ProjectileSpeed": 0,
+  "BaseDamage": 4,
+  "SplashRadius": null,
+  "CooldownMs": 120,
+  "MassKg": 18,
+  "AmmoTypeIds": [
+    "ammo_mg_9mm"
+  ]
+}

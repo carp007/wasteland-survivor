@@ -1,0 +1,14 @@
+{
+  "Id": "wpn_rocket",
+  "DisplayName": "Rocket Launcher",
+  "WeaponType": "Rocket",
+  "FireMode": "DumbFire",
+  "ProjectileSpeed": 45,
+  "BaseDamage": 18,
+  "SplashRadius": 2.5,
+  "CooldownMs": 700,
+  "MassKg": 70,
+  "AmmoTypeIds": [
+    "ammo_rocket_std"
+  ]
+}

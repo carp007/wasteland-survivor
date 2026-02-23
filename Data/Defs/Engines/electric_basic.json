@@ -1,0 +1,12 @@
+{
+  "Id": "eng_electric_basic",
+  "DisplayName": "Basic Electric",
+  "FuelType": "Electric",
+  "PowerKw": 90,
+  "TorqueNm": 220,
+  "Efficiency": 1.15,
+  "AllowedVehicleClasses": [
+    "Compact",
+    "Sedan"
+  ]
+}

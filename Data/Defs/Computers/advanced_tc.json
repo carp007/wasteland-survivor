@@ -1,0 +1,7 @@
+{
+  "Id": "tc_advanced",
+  "DisplayName": "Advanced Targeting Computer",
+  "MaxActiveWeaponGroups": 2,
+  "AutoAimSlots": 2,
+  "LockRange": 80
+}

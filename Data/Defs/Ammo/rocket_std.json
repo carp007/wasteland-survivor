@@ -1,0 +1,9 @@
+{
+  "Id": "ammo_rocket_std",
+  "DisplayName": "Standard Rocket",
+  "AmmoKind": "Explosive",
+  "UnitMassKg": 9.0,
+  "DamageMultiplier": 1.0,
+  "TrackingStrength": 0.0,
+  "ArmorPenetrationTag": ""
+}
