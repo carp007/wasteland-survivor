@@ -11,6 +11,7 @@
 
 ## Packaging rules (important)
 - Do **not** commit/ship `.godot/`.
+- For downloadable zips, also exclude: `Assets/` and `.git/`.
 - If you replace the project by unzipping over an existing folder, prefer deleting the target folder first.
   - If you must unzip over an existing folder, be careful of stale `.cs` files that can cause duplicate-type compile errors.
 

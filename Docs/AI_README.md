@@ -21,6 +21,7 @@ Then read:
 ## 4) How we work (rules for the AI + thread handoffs)
 Then read:
 - `Docs/AI_WORKFLOW.md`
+- `Docs/REPO_WORKFLOW.md`
 - `Docs/THREAD_HANDOFF_PROMPT.md`
 
 ## 5) What to do next
@@ -33,7 +34,7 @@ Finally read:
 - Save/state changes must be backward compatible (or include a small migration).
 - Turn-based arena is deprecated/removed. Don’t reintroduce it.
 - The project is now uses a **3D world with a fixed top-down/RTS camera** (2.5D). Arena entry point is `Scenes/UI/ArenaRealtimeView.tscn` and world is `Scenes/Arena/ArenaWorld.tscn`. Legacy 2D arena has been removed.
-- Packaging rule: never include/compile `.godot/`. When generating downloadable zips, also exclude `Assets/` to keep downloads small (assume the user keeps Assets locally).
+- Packaging rule: never include/compile `.godot/`. When generating downloadable zips, also exclude `Assets/` and `.git/` to keep downloads small (assume the user keeps Assets locally).
 
 ## Zip / versioning policy
 Every time the AI generates a new project zip, it must also update:

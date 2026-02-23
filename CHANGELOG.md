@@ -8,6 +8,18 @@ Conventions:
 
 ---
 
+## 2026-02-23 (Build: 2026-02-23-11)
+
+### Docs / workflow
+- Updated iteration workflow to be **repo-first** (baseline = GitHub `main`) instead of “upload latest zip”.
+- Added `Docs/REPO_WORKFLOW.md` (canonical step-by-step process).
+- Updated packaging rules so AI zips exclude: `.git/`, `.godot/`, `Assets/`.
+- Refreshed `README.md`, `Docs/AI_README.md`, `Docs/AI_WORKFLOW.md`, and `Docs/BUILD_RUN.md` to reference the new process.
+
+Verification notes
+- Open `Docs/REPO_WORKFLOW.md` and confirm it matches the agreed iteration loop.
+- Confirm updated packaging rules appear in `Docs/AI_WORKFLOW.md` and `Docs/AI_README.md`.
+
 ## 2026-02-23 (Build: 2026-02-23-10)
 
 ### Salvage merge (recover lost features)
