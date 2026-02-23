@@ -42,6 +42,12 @@ This makes new threads resilient even if chat context is slow/limited.
 
 For the full step-by-step workflow and conventions, see `Docs/REPO_WORKFLOW.md`.
 
+## Assistant “what works” notes
+To avoid repeating the same repo/packaging dead-ends across iterations, the assistant maintains a small internal playbook:
+- `Docs/ASSISTANT_PLAYBOOK.md`
+
+If something fails (repo access method, packaging, build assumptions), the assistant should update that playbook at the end of the iteration.
+
 
 ## What to include in every assistant response (contract)
 - What changed / propose

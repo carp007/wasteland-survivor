@@ -69,3 +69,9 @@ Before creating the downloadable zip, the AI should ensure:
   - `.godot/`
   - `.git/`
 - Changelog/version/docs updated as needed.
+
+## Assistant process notes (to avoid repeat mistakes)
+The assistant should keep a short, living “what works / what doesn’t” list here:
+- `Docs/ASSISTANT_PLAYBOOK.md`
+
+If the assistant hits friction accessing the repo, packaging zips, or re-learning the workflow, it should update that playbook at the end of the iteration so the next iteration doesn’t repeat the same dead-ends.

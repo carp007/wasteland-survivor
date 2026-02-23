@@ -8,6 +8,15 @@ Conventions:
 
 ---
 
+## 2026-02-23 (Build: 2026-02-23-12)
+
+### Docs / workflow
+- Added `Docs/ASSISTANT_PLAYBOOK.md` (internal “what works / what doesn’t” notes) so the assistant stops repeating the same failed repo/packaging attempts.
+- Updated `Docs/REPO_WORKFLOW.md`, `Docs/AI_WORKFLOW.md`, `Docs/AI_README.md`, and `README.md` to reference the playbook.
+
+Verification notes
+- Open `Docs/ASSISTANT_PLAYBOOK.md` and confirm it documents how to fetch latest `main` and how to package the deliverable zip.
+
 ## 2026-02-23 (Build: 2026-02-23-11)
 
 ### Docs / workflow

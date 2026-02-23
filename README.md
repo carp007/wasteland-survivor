@@ -27,5 +27,6 @@ Notes:
 - `Docs/AI_WORKFLOW.md` – how to keep ChatGPT threads fast/clean
 - `Docs/REPO_WORKFLOW.md` – repo-based iteration + zip packaging rules
 - `Docs/THREAD_HANDOFF_PROMPT.md` – copy/paste prompt for new threads
+- `Docs/ASSISTANT_PLAYBOOK.md` – internal “what works / what doesn’t” notes to prevent repeated workflow dead-ends
 - `Docs/NEXT_TASK.md` – the next small step
 - `CHANGELOG.md` + `VERSION.txt` – track what changed and current build id

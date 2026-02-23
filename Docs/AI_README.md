@@ -23,6 +23,7 @@ Then read:
 - `Docs/AI_WORKFLOW.md`
 - `Docs/REPO_WORKFLOW.md`
 - `Docs/THREAD_HANDOFF_PROMPT.md`
+- `Docs/ASSISTANT_PLAYBOOK.md` (internal “what works / what doesn’t” notes)
 
 ## 5) What to do next
 Finally read:
