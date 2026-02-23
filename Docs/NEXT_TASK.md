@@ -159,3 +159,8 @@
 7) Start the **weight / capacity** foundation:
    - add engine objects + compute max capacity
    - show a weight bar in VehicleStatusHud
+
+8) Audio foundation (asset sourcing):
+   - Use `Docs/Audio/AUDIO_CHECKLIST.md` as the canonical list.
+   - Start by sourcing 3 engine archetypes (V8 muscle, I4 compact, diesel truck) with idle/low/mid/high loops.
+   - Keep licensing clean by tracking every source in `Docs/Audio/ATTRIBUTION_AND_LICENSES.md`.

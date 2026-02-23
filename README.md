@@ -28,5 +28,6 @@ Notes:
 - `Docs/REPO_WORKFLOW.md` – repo-based iteration + zip packaging rules
 - `Docs/THREAD_HANDOFF_PROMPT.md` – copy/paste prompt for new threads
 - `Docs/ASSISTANT_PLAYBOOK.md` – internal “what works / what doesn’t” notes to prevent repeated workflow dead-ends
+- `Docs/Audio/AUDIO_CHECKLIST.md` – audio sourcing + organization checklist (plus license templates)
 - `Docs/NEXT_TASK.md` – the next small step
 - `CHANGELOG.md` + `VERSION.txt` – track what changed and current build id

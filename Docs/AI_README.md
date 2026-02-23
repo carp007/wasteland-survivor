@@ -24,6 +24,7 @@ Then read:
 - `Docs/REPO_WORKFLOW.md`
 - `Docs/THREAD_HANDOFF_PROMPT.md`
 - `Docs/ASSISTANT_PLAYBOOK.md` (internal “what works / what doesn’t” notes)
+- `Docs/Audio/AUDIO_CHECKLIST.md` (audio checklist + licensing templates)
 
 ## 5) What to do next
 Finally read:

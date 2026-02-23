@@ -8,6 +8,17 @@ Conventions:
 
 ---
 
+## 2026-02-23 (Build: 2026-02-23-13)
+
+### Audio docs / workflow
+- Added `Docs/Audio/` docs (audio checklist + sourcing notes + licensing/credits templates).
+- Added missing `Docs/ASSISTANT_PLAYBOOK.md` file to match the docs references.
+- Updated `README.md`, `Docs/AI_README.md`, and `Docs/NEXT_TASK.md` to reference the new audio docs.
+
+Verification notes
+- Open `Docs/Audio/AUDIO_CHECKLIST.md` and confirm the folder plan + MVP list.
+- Confirm `Docs/ASSISTANT_PLAYBOOK.md` exists and documents repo/zip rules.
+
 ## 2026-02-23 (Build: 2026-02-23-12)
 
 ### Docs / workflow
