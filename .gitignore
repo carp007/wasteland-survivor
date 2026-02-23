@@ -1,16 +1,121 @@
-# Godot 4+ specific ignores
+################################################################################
+# Godot 4.x
+################################################################################
 .godot/
 .nomedia
 
-# Godot-specific ignores
+# Godot 3 legacy (harmless to keep)
 .import/
+
+# Export credentials / local export configs (do not commit secrets)
 export.cfg
 export_credentials.cfg
 
-# Imported translations (automatically generated from CSV files)
+# Godot-generated translations (if you ever generate from CSV)
 *.translation
 
-# Mono-specific ignores
+################################################################################
+# Godot C# / .NET
+################################################################################
 .mono/
 data_*/
 mono_crash.*.json
+
+# .NET build outputs
+**/bin/
+**/obj/
+**/*.user
+**/*.userosscache
+**/*.suo
+**/*.cache
+**/*.log
+
+################################################################################
+# Visual Studio / Rider / VS Code
+################################################################################
+.vs/
+.idea/
+.vscode/
+*.sln.iml
+
+################################################################################
+# OS cruft
+################################################################################
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+################################################################################
+# Large media assets (keep repo light)
+# NOTE: Scoped to Assets/ so things like root icon.svg can still be tracked.
+################################################################################
+
+# Audio
+Assets/**/*.wav
+Assets/**/*.ogg
+Assets/**/*.mp3
+Assets/**/*.flac
+Assets/**/*.m4a
+Assets/**/*.aiff
+Assets/**/*.aif
+Assets/**/*.xm
+Assets/**/*.mod
+Assets/**/*.it
+Assets/**/*.s3m
+
+# Images / textures
+Assets/**/*.png
+Assets/**/*.jpg
+Assets/**/*.jpeg
+Assets/**/*.webp
+Assets/**/*.tga
+Assets/**/*.bmp
+Assets/**/*.gif
+Assets/**/*.svg
+Assets/**/*.psd
+Assets/**/*.kra
+Assets/**/*.exr
+Assets/**/*.ase
+Assets/**/*.aseprite
+
+# Video
+Assets/**/*.mp4
+Assets/**/*.mov
+Assets/**/*.webm
+Assets/**/*.mkv
+Assets/**/*.avi
+
+# Godot import sidecars for ignored media (e.g. foo.png.import)
+Assets/**/*.wav.import
+Assets/**/*.ogg.import
+Assets/**/*.mp3.import
+Assets/**/*.flac.import
+Assets/**/*.m4a.import
+Assets/**/*.aiff.import
+Assets/**/*.aif.import
+
+Assets/**/*.png.import
+Assets/**/*.jpg.import
+Assets/**/*.jpeg.import
+Assets/**/*.webp.import
+Assets/**/*.tga.import
+Assets/**/*.bmp.import
+Assets/**/*.gif.import
+Assets/**/*.svg.import
+
+Assets/**/*.mp4.import
+Assets/**/*.mov.import
+Assets/**/*.webm.import
+Assets/**/*.mkv.import
+Assets/**/*.avi.import
+
+################################################################################
+# Optional: ignore common 3D/source art formats (uncomment if desired)
+################################################################################
+# Assets/**/*.blend
+# Assets/**/*.fbx
+# Assets/**/*.glb
+# Assets/**/*.gltf
+# Assets/**/*.obj
+# Assets/**/*.dae
