@@ -1,21 +1,20 @@
 # Audio Attribution & Licenses
 
-This file is required for shipping.
+## Car Engines Sound Pack Vol. 1 (Magic Sound Effects)
+- Source: itch.io listing (Magic Sound Effects)
+- Product: **Car Engines Sound Pack Vol. 1**
+- Notes: Pack includes city/sport/diesel/off-road vehicle engine sounds, including seamless RPM loops.
 
-**Rule:** Nothing goes into `Assets/Audio/_PROCESSED/` without an entry here.
+### License summary (per the product page)
+- Non-exclusive, non-transferable license for personal & commercial use.
+- You may edit/modify the assets.
+- You may not repackage/resell/sublicense/redistribute the assets (or derivative works) as standalone audio files or sound libraries.
+- You may not claim ownership of the audio assets themselves.
 
-## Packs / sources
+### Files used (initial export)
+| Our folder | Our file prefix | Source prefix |
+|---|---|---|
+| `Assets/Audio/Vehicles/Engines/` | `veh_engine_i4_compact_*` | `car_city_a_*` |
+| `Assets/Audio/Vehicles/Engines/` | `veh_engine_v8_muscle_*` | `car_sport_b_*` |
+| `Assets/Audio/Vehicles/Engines/` | `veh_engine_diesel_truck_*` | `car_diesel_a_*` |
 
-### <Pack or Source Name>
-- Source: <URL>
-- License: <CC0 / CC-BY 4.0 / Royalty-Free Commercial / etc>
-- Attribution required: <Yes/No>
-- Attribution text (if required):
-  - "<Exact attribution text>"
-
-## Files (optional but recommended)
-
-| File Prefix / Folder | Pack/Source | License | Attribution? | Notes |
-|---|---|---|---|---|
-| `Assets/Audio/_PROCESSED/Vehicles/Engines/veh_engine_v8_*` | <Pack Name> | <License> | No | layered RPM system |
-| `Assets/Audio/_PROCESSED/Weapons/wpn_mg_*` | <Pack Name> | <License> | Yes | include in credits |
