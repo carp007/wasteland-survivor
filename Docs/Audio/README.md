@@ -11,3 +11,6 @@ Licensing / attribution:
 
 Sources + guidance:
 - `Docs/Audio/AUDIO_SOURCING_SOURCES.md`
+
+Implementation notes:
+- `Docs/Audio/ENGINE_AUDIO_INTEGRATION.md`

@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/App/GameServices.cs
+// Purpose: Tiny service registry (singleton DI). Used to avoid threading service references throughout the node tree.
+// -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 

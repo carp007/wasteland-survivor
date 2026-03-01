@@ -1,5 +1,13 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Core/Defs/AmmoDefinition.cs
+// Purpose: Data definition model loaded from JSON under Data/Defs (stable, Godot-independent).
+// -------------------------------------------------------------------------------------------------
 namespace WastelandSurvivor.Core.Defs;
 
+/// <summary>
+/// Definition for an ammo type (loaded from Data/Defs/Ammo). Referenced by WeaponDefinition and stored as counts on VehicleInstanceState.
+/// </summary>
 public sealed record AmmoDefinition : IHasId
 {
 	public string Id { get; init; } = "";

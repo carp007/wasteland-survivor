@@ -1,7 +1,15 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Core/Defs/VehicleDefinition.cs
+// Purpose: Data definition model loaded from JSON under Data/Defs (stable, Godot-independent).
+// -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
 
 namespace WastelandSurvivor.Core.Defs;
 
+/// <summary>
+/// Definition for a single weapon mount point on a vehicle (location, turret/fixed behavior, yaw constraints).
+/// </summary>
 public sealed record WeaponMountDefinition
 {
     public string MountId { get; init; } = "";
@@ -26,6 +34,9 @@ public sealed record WeaponMountDefinition
     public string[] AllowedWeaponTags { get; init; } = System.Array.Empty<string>(); // future
 }
 
+/// <summary>
+/// Definition for a vehicle archetype (loaded from Data/Defs/Vehicles). Contains base mass/storage, armor/HP by section, tires, and weapon mount points.
+/// </summary>
 public sealed record VehicleDefinition : IHasId
 {
     public string Id { get; init; } = "";

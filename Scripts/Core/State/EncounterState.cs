@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Core/State/EncounterState.cs
+// Purpose: Serializable runtime/persisted state records (SaveGameState and related sub-records).
+// -------------------------------------------------------------------------------------------------
 using System;
 
 namespace WastelandSurvivor.Core.State;
@@ -8,6 +13,9 @@ public sealed record RewardAmmoState
 	public int Count { get; init; } = 0;
 }
 
+/// <summary>
+/// Persisted encounter state for the current/last encounter (tier, outcome, rewards, runtime log).
+/// </summary>
 public sealed record EncounterState
 {
 	public string EncounterId { get; init; } = Guid.NewGuid().ToString("N");

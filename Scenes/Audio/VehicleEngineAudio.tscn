@@ -1,0 +1,30 @@
+[gd_scene load_steps=2 format=3 uid="uid://vehicle_engine_audio_000001"]
+
+[ext_resource type="Script" path="res://Scripts/Audio/VehicleEngineAudio.cs" id="1"]
+
+[node name="VehicleEngineAudio" type="Node3D"]
+script = ExtResource("1")
+
+[node name="LayerIdle" type="AudioStreamPlayer3D" parent="."]
+bus = &"Engines"
+volume_db = -80.0
+
+[node name="LayerLow" type="AudioStreamPlayer3D" parent="."]
+bus = &"Engines"
+volume_db = -80.0
+
+[node name="LayerMid" type="AudioStreamPlayer3D" parent="."]
+bus = &"Engines"
+volume_db = -80.0
+
+[node name="LayerHigh" type="AudioStreamPlayer3D" parent="."]
+bus = &"Engines"
+volume_db = -80.0
+
+[node name="LayerVeryHigh" type="AudioStreamPlayer3D" parent="."]
+bus = &"Engines"
+volume_db = -80.0
+
+[node name="Skid" type="AudioStreamPlayer3D" parent="."]
+bus = &"Tires"
+volume_db = -10.0

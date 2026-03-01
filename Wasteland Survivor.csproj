@@ -18,7 +18,13 @@
   -->
   <ItemGroup>
     <!-- Support both / and \\ separators for globbing across platforms/tooling -->
+    <Compile Remove="UiKit/**" />
+    <Compile Remove="UiKit\\**" />
     <Compile Remove=".godot/**" />
     <Compile Remove=".godot\\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="UiKit/WastelandSurvivor.UiKit.csproj" />
   </ItemGroup>
 </Project>

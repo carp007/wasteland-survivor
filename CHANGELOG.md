@@ -1,5 +1,221 @@
 # Changelog (Project-local)
 
+## Build: 2026-03-01-11
+- Refactor Step 13: Added a new `WastelandSurvivor.UiKit` project (shared UI/dialog toolkit) and referenced it from the main Godot project.
+- Refactor Step 13: Moved reusable UI framework code into UiKit (`SceneBinder`, `ScreenRouter`, modal/dialog infrastructure, `UiNav`).
+- Refactor Step 13: Decoupled UiKit dialogs from `GameUiTheme` via `ModalDialogStyle` (style injected at service registration time).
+- Refactor Step 13: Added `Wasteland Survivor.sln` so the solution contains both projects.
+
+## Build: 2026-03-01-10
+- Fix: Prevent `App` from overwriting `App.Services` during boot (keeps UI navigation services registered).
+- Refactor Step 12: `PauseMenuOverlay` binds `IModalService` immediately (with deferred retry as a safety net).
+- Docs: Added a lifecycle note to `ASSISTANT_PLAYBOOK.md` to avoid future “service registry reset” regressions.
+
+## Build: 2026-03-01-09
+- Fix: Added missing `Scripts/Framework/UI/DialogCard.cs` (step 10 file) so `ModalService` compiles.
+- Refactor Step 11: Register core services in `AppRoot._EnterTree()` (router, modal service, game navigator) so they are available before any child `_Ready()` runs.
+
+## Build: 2026-03-01-08
+- Refactor Step 10: Added `DialogCard` (reusable dialog layout shell) and migrated `ModalService` to build dialogs from it (no intended behavior change).
+
+## Build: 2026-03-01-07
+- Refactor Step 09: `PauseMenuOverlay` now uses `IModalService` for Settings and Exit confirmation dialogs (no intended behavior change).
+- Refactor Step 09: `IModalService.ShowMessage` / `ShowConfirm` now accept optional `ModalOptions` (e.g., suppress modal dim when the pause menu already dims the background).
+
+## Build: 2026-03-01-06
+- Refactor Step 08: Added `ModalHost` + `IModalService` (generic modal/dialog infrastructure; no intended behavior change).
+- Refactor Step 08: `AppRoot` now creates/hosts a `ModalHost` under `OverlayRoot` and registers `IModalService` in `App.Services`.
+
+## Build: 2026-03-01-05
+- Fix: `ValueBar.ApplyLabelRotation()` no longer throws during scene instantiation/layout (guards resize notifications that can occur before `_Ready`).
+- Refactor Step 07: Hardened `ValueBar` lifecycle and made bindings idempotent (no intended behavior change).
+
+## Build: 2026-03-01-04
+- Fix: Removed a stray legacy navigation block in `WorkshopView` that could break compilation.
+- Refactor Step 06: Added `IGameNavigator` + `GameNavigator`, registered it in `AppRoot`, and migrated UI screens to call the navigator instead of calling `UiNav` directly (no intended behavior change).
+
+## Build: 2026-03-01-03
+- Refactor Step 05: Added `GameScenes` (central UI scene path catalog) and `UiNav` (router-first navigation helper), and migrated menu/arena navigation call sites to remove hard-coded UI scene strings (no intended behavior change).
+
+## Build: 2026-03-01-02
+- Refactor Step 04: Added `ScreenRouter` (centralized UI navigation helper) and migrated primary screen transitions to use it (with a safe fallback to legacy parent-swap navigation).
+
+## Build: 2026-03-01-01
+- Refactor Step 03: Migrated menu views (`BootSplashView`, `CityShell`, `GarageView`, `WorkshopView`) to `SceneBinder` for consistent node bindings.
+- Refactor Step 03: Migrated shared UI controls (`ValueBar`, `ActionPromptOverlay`) to `SceneBinder` (no intended behavior change).
+
+## Build: 2026-02-28-12
+- Refactor Step 02: Migrated `ArenaRealtimeView` UI bindings to `SceneBinder` (no intended behavior change).
+- Refactor Step 02: Migrated `PlayerStatusHud` and `TargetStatusHud` bindings to `SceneBinder` (no intended behavior change).
+
+## Build: 2026-02-28-11
+- Refactor Step 01: Added `SceneBinder` (typed node binding helper with better error messages).
+- Refactor Step 01: Migrated `VehicleStatusHud` bindings to `SceneBinder` (no intended behavior change).
+- Docs: Added `Docs/REFRACTORING_PROGRESS.md` to track completed refactor steps.
+
+## Build: 2026-02-28-10
+- Docs: Added `Docs/CODEMAP.md` (quick onboarding), `Docs/REFRACTORING_PLAN.md` (proposal), and `Docs/Assets/*` setup docs (Mixamo + Poly Haven).
+- Docs: Updated `AI_README`, `BUILD_RUN`, `THREAD_HANDOFF_PROMPT`, `PROJECT_STATE`, and simplified `NEXT_TASK` to point to the changelog for history.
+- Code: Added standardized file headers across all C# scripts; added/expanded XML summaries for core defs/state records; added navigation notes in the largest runtime files.
+
+## Build: 2026-02-28-09
+- Fix: VehicleStatusHud live preview camera now consistently targets the **current** player vehicle (clears stale group entries on match restart; HUD resolves Player vehicle node more robustly) and uses a stable top-down pose update (LookAtFromPosition + MakeCurrent).
+
+## Build: 2026-02-28-08
+- Fix: VehicleStatusHud live preview camera is now centered directly above the active vehicle and uses vehicle-forward as screen-up (vehicle always faces "up" in the HUD view).
+
+## Build: 2026-02-28-07
+- Fix: Build error in `ArenaRealtimeView` (remove reliance on short-circuit `&&` for vehicle definition resolution; null-safe post-panel visibility).
+
+## Build: 2026-02-28-06
+- Fix: Vehicle HUD no longer throws cast/replacement errors; ArenaRealtimeView uses a safe fallback binder when the managed `VehicleStatusHud` script isn't bound.
+- Fix: Vehicle HUD is hidden in the pre-fight dialog and only appears during match/post-match when real vehicle data is available.
+
+## Build: 2026-02-28-04
+- Fix: VehicleStatusHud values no longer stuck at 0/0. ArenaRealtimeView now force-replaces the HUD with a typed `VehicleStatusHud` instance if Godot left it as a plain PanelContainer after a prior C# compile failure.
+
+## Build: 2026-02-28-02
+- Fix: Prevent runtime crash when resolving `VehicleStatusHud` (safe lookup + best-effort repair if the script is missing).
+
+## Build: 2026-02-28-01
+- Audio: Reverse engine sound is now forced to remain audible when backing up (reverse command contributes to drive intent / RPM mapping).
+- UI: VehicleStatusHud width reduced while keeping its right edge aligned with PlayerStatusHud + RadarHud.
+- UX: Added Escape pause menu overlay with Settings (stub dialog) and Exit (with confirmation).
+
+## Build: 2026-02-27-07
+- UI: VehicleStatusHud now reserves enough width so it doesn't expand past the right edge (right edge stays aligned with PlayerStatusHud and RadarHud).
+- Audio: Reverse engine audio no longer goes silent (brake intent contributes to drive blend; RPM uses blended speed so drift/reverse stays audible).
+
+## Build: 2026-02-27-06
+- UI: Fixed VehicleStatusHud alignment so its right edge lines up with PlayerStatusHud and RadarHud (adds safe margin from screen edge).
+
+## Build: 2026-02-27-05
+- Fix: `RadarHud` no longer uses `StyleBox.GetContentRect()` (not available in C#). Content rect is computed from content margins.
+
+## Build: 2026-02-27-04
+- UI theme expanded across the whole UI (menus + HUD + overlays). Palette is configurable via `Data/Config/ui_theme.json`.
+- Console overlay now starts hidden/closed (toggle with tilde/backtick).
+- Arena: pre-fight dialog hides during combat and during post-match; added a **Close** button on the results panel to return to pre-fight without leaving the arena view.
+- Audio: reverse engine sound now behaves like 1st gear (no gear progression while reversing).
+- Arena walls: auto-detect and prefer a Poly Haven *brick* wall pack (folder contains `brick`); fall back to rock wall/metal if not found.
+
+## Build: 2026-02-27-03
+- On-foot death: when the driver is killed while outside the vehicle, DriverPawn plays a non-looping death animation (configurable) and stays on the ground.
+- Added `deathAnim` to `Data/Config/driver_pawn.json` and updated Mixamo setup docs.
+
+## Build: 2026-02-27-02
+- UI: Action prompt now only appears while on-foot (driver mode). It no longer shows while inside a vehicle.
+
+## Build: 2026-02-27-01
+- UI: Action prompt key badge has more left/right padding.
+- Radar: Stabilized enemy dots by using a flat (yaw-only) heading basis and fixed controlled-entity switching on driver enter/exit.
+
+## Build: 2026-02-26-11
+- Fix: Resolved a Godot runtime parse error when loading `Scenes/Arena/VehiclePawn.tscn` by using `position = Vector3(...)` for `InteractPromptAnchor` instead of a serialized `Transform3D(...)`.
+
+## Build: 2026-02-26-10
+- Fix: Added missing `ActionPromptOverlay` scene + script that were referenced by `ArenaRealtimeView` (restores successful builds).
+
+## Build: 2026-02-26-09
+- Added a styled, world-anchored **Action Prompt** overlay that floats above interactable entities (vehicle enter/exit) and fades in/out.
+- Added `InteractPromptAnchor` to `VehiclePawn.tscn` to provide a stable world anchor point for prompts.
+- Mixamo driver polish: defaulted avatar yaw offset to 180° and force-loop idle/walk/run clips at runtime.
+
+## Build: 2026-02-26-06
+- Build fix: resolved a C# compile error in `DriverPawn` animation logging (use array `Length` instead of LINQ `Count`).
+
+## Build: 2026-02-26-05
+- Fixed arena shader compilation by using built-in `INV_VIEW_MATRIX` (removes invalid `MAIN_CAM_INV_VIEW_MATRIX` reference).
+- Prevented Poly Haven EXR runtime error spam by treating EXR maps as optional; prefer PNG normal/roughness when present.
+- Added `Docs/Assets/POLYHAVEN_PBR_TEXTURES.md` describing the Poly Haven floor/wall texture workflow and EXR caveats.
+
+## Build: 2026-02-26-04
+- DriverPawn now supports a Mixamo avatar scene (`.glb` or `.tscn`) loaded at runtime (falls back to capsule placeholder if missing).
+- DriverPawn locomotion now uses acceleration/deceleration smoothing and plays idle/walk/run via AnimationPlayer (configurable names).
+- Added `Docs/Assets/MIXAMO_DRIVER_SETUP.md` describing the expected local Assets path and a simple conversion workflow.
+
+## Build: 2026-02-26-03
+- Enemy AI now targets the on-foot driver when outside the vehicle.
+- Vehicle HUD (VehicleStatusHud) is hidden while on-foot.
+- On-foot driver takes damage from vehicle collisions (run-over/ram).
+- Radar now follows the currently controlled entity via the `player_controlled` group.
+
+
+## Build: 2026-02-26-02
+- Added Phase-1 **Driver Exit / On-Foot** prototype: **E** to exit (when stopped/slow), **WASD** to walk, **E** near vehicle to re-enter.
+- Camera follow switches between vehicle and driver automatically.
+- Radar/minimap now tracks the currently controlled entity (vehicle or driver).
+
+## Build: 2026-02-26-01
+- Vehicle HUD mini-view: live overhead camera now rotates with the player vehicle so the vehicle stays facing up.
+- Added a bottom-right **RadarHud** that appears when a vehicle is active and shows enemy positions.
+- Vehicle controls: player/enemy inputs are disabled immediately when their driver HP reaches 0.
+
+## Build: 2026-02-25-03
+- Added new weapon + ammo defs: **50 cal Machine Gun** (`wpn_mg_50cal`) and **50 cal rounds** (`ammo_mg_50cal`).
+- Starter compact loadout: front mount now uses **50 cal MG** (keeps 9mm MG defs available for workshop/testing).
+- Weapon visuals: added `Data/Config/weapon_visuals.json` and runtime loader to render configured weapon models (fallback is proxy box).
+- Implemented automatic weapon-model alignment (mount origin + yaw auto-align + muzzle estimation) to reduce per-model tweaking.
+
+## Build: 2026-02-25-02
+- Engine RPM response: added **throttle-to-RPM smoothing** (separate up/down rates) and a **stall RPM cap** at (near) zero speed, preventing RPM from jumping to redline instantly when tapping W.
+- HUD: RPM bar text color changed to **white**.
+- HUD: added a small spacer under the RPM row for better vertical breathing room.
+
+## Build: 2026-02-25-01
+- Tuned automatic transmission feel: gears now shift by **normalized speed bands** (default 4 gears: 0.18 / 0.40 / 0.68) with downshift hysteresis to prevent gear hunting.
+- RPM model adjusted so throttle slip tapers off as wheel RPM rises, making **upshift RPM drops** more noticeable and keeping the RPM bar stable.
+- HUD: gear display now shows **R** when backing up (or commanding reverse from a stop).
+
+## Build: 2026-02-24-12
+- Fixed Vehicle HUD scene wiring: left/right side HP/AP bars were mis-parented in `VehicleStatusHud.tscn`, causing the HUD to render incorrectly and throwing a NullReferenceException during arena start.
+- Added a defensive bind/guard in `VehicleStatusHud` so missing/mismatched UI nodes fail soft instead of crashing the encounter.
+
+## Build: 2026-02-24-11
+- Build fix: resolved a C# compile error (CS0111) caused by a duplicate `ApplyLabelStyle` method in `ValueBar`.
+
+## Build: 2026-02-24-10
+- Reduced vehicle acceleration (slower ramp to max speed).
+- Vehicle HUD polish: side bar padding/centering, Speed label moved beside bar, new RPM+Gear bar, weapon list tightened and ammo ids hidden.
+
+## 2026-02-24 (Build: 2026-02-24-08)
+
+### Boot splash
+- Added `gapSeconds` (fade-to-black gap between items) and `defaultOpenSound`/per-item `openSound` support (play a sound as each splash appears).
+
+### Vehicle handling
+- Reduced coasting slowdown by lowering default `CoastDecel` and drag values on `VehiclePawn`.
+
+### Engine audio
+- Added an optional automatic transmission RPM model (4-gear default) so holding W revs up and shifts; can be disabled via `UseAutomaticTransmission`.
+
+
+## 2026-02-24 (Build: 2026-02-24-07)
+
+### Boot splash
+- Added a configurable boot splash sequence shown on launch (image list + timings loaded from `Data/Config/boot_splash.json`).
+- Press **Enter** or **Escape** to skip the entire splash sequence.
+
+
+## 2026-02-24 (Build: 2026-02-24-06)
+
+### Mines
+- Fixed mine visuals spawning far away: mine marker mesh no longer double-applies world position. Mines are grouped under a `Vfx/Mines` node ("mine layer").
+
+### Workshop / Garage ammo
+- Added **Refill All** button that refills ammo for **all installed weapons** (based on each weapon's selected ammo type) using simple per-ammo-kind refill targets and costs.
+- Ammo UI now shows a multi-weapon ammo summary and the computed refill-all cost.
+
+
+## 2026-02-24-05
+- Build fix: fixed C# compile error in `ArenaRealtimeView` mine explosion logic (nullable `SplashRadius`).
+
+
+## 2026-02-24-04
+- Weapon slot 3: mine dropper now places a persistent mine behind the vehicle (arms after a short delay), triggers on proximity, and explodes with splash damage (tire + undercarriage) and VFX.
+- Added VehiclePawn.GetTireWorldPosition() helper used for mine explosion tire targeting.
+
+
 This is a lightweight, human-written log meant to help new ChatGPT threads (and humans) pick up quickly.
 
 Conventions:
@@ -7,6 +223,75 @@ Conventions:
 - Keep entries short: what changed, why, and any verification notes.
 
 ---
+
+## 2026-02-24 (Build: 2026-02-24-03)
+
+### Arena controls + weapon slots (v1)
+- Added input actions: `ws_fire_1` (Space), `ws_fire_2` (Shift), `ws_fire_3` (Ctrl). (Godot doesn’t reliably distinguish left/right modifiers across platforms; Shift/Ctrl act as the requested RightShift/RightCtrl for now.)
+- Arena firing now resolves the weapon installed on the corresponding mount (slot 1 = Front, slot 2 = Top turret, slot 3 = Rear) and fires from that mount’s muzzle.
+- Ammo consumption is now per-weapon based on the installed weapon’s `SelectedAmmoId` (or the weapon’s first `AmmoTypeIds` entry).
+- Added a rear mount `B1` to starter chassis defs and updated starter loadout to include a `Mine Dropper` on `B1` with starting mine ammo.
+
+Verification notes
+- Start an arena encounter:
+  - Space fires the front MG (consumes `ammo_mg_9mm`).
+  - Shift fires the top mount missile (consumes `ammo_missile_std`).
+  - Ctrl fires the rear mine dropper mount (consumes `ammo_mine_std`).
+
+
+## 2026-02-24 (Build: 2026-02-24-02)
+
+### Audio mix
+- Boosted engine audibility: set default bus gain for **Engines** (+8 dB) and **Tires** (+3 dB), and increased `VehicleEngineAudio` default volume/3D attenuation settings so engines are clearly audible from the top-down camera.
+
+Verification notes
+- Start an arena encounter: engine idle should be noticeably louder than in Build 2026-02-24-01.
+- Fire weapons: weapon SFX should still be audible without completely masking engine sound.
+
+## 2026-02-24 (Build: 2026-02-24-01)
+
+### Engine audio hotfix
+- Fixed layered engine audio being silent: engine audio now **starts deferred** (after the parent sets archetype/telemetry) and **restarts all layers** when the archetype changes.
+- Enforced 3D audibility settings on all engine layer players (even when they come from the .tscn): increased MaxDistance/UnitSize so the top-down camera can hear engines reliably.
+
+### Camera warning spam hotfix
+- Fixed repeated Godot warnings `Condition "!is_inside_tree()" is true` from the follow camera: camera rig now ignores targets that are not yet inside the tree and defers its initial snap until safe.
+
+Verification notes
+- Start an arena encounter: you should hear engine idle immediately.
+- Accelerate/brake: engine intensity crossfades smoothly; no silent engine after spawning.
+- No more repeated `!is_inside_tree()` warnings during normal arena play.
+
+
+## 2026-02-23 (Build: 2026-02-23-15)
+
+### Engine audio (layered RPM v1)
+- Added `VehicleEngineAudio` component (5 looping layers with RPM crossfade + subtle pitch), routed to an `Engines` audio bus.
+- `VehiclePawn` now spawns `EngineAudio` at runtime and drives it via `IVehicleAudioTelemetry`.
+- Added runtime audio buses (`SFX`, `Engines`, `Tires`) on boot; arena UI SFX now routes through `SFX`.
+- Added a hard-brake-at-speed **tire skid** hook with a temporary placeholder stream path (replace later with real skid audio).
+
+Verification notes
+- Start an arena encounter: you should hear engine idle immediately.
+- Hold W to accelerate: engine intensity should increase smoothly (no hard steps).
+- Hold brake hard at speed: you should hear the placeholder skid trigger repeatedly.
+- If engine loop assets are missing locally, the game should continue running and log warnings (no crash).
+
+
+## 2026-02-23 (Build: 2026-02-23-14)
+
+### Workflow (zip-based baseline restored)
+- Reverted iteration baseline back to **Project source zips** (`wasteland-survivor.zip`) because remote repo pulls (and remote repo snapshot downloads) are unreliable across threads.
+- Updated workflow docs to remove “baseline-first (deprecated)” guidance and make the zip flow canonical:
+  - `Docs/REPO_WORKFLOW.md` (now describes zip-based iteration)
+  - `Docs/AI_WORKFLOW.md`
+  - `Docs/ASSISTANT_PLAYBOOK.md`
+  - `Docs/Audio/AUDIO_CHECKLIST.md`
+  - `README.md`
+
+Verification notes
+- Open `Docs/REPO_WORKFLOW.md` and confirm it describes the Project-zip baseline (not remote repo).
+- Open `Docs/ASSISTANT_PLAYBOOK.md` and confirm it explicitly says “use the uploaded project zip; don’t loop on remote repo pulls”.
 
 ## 2026-02-23 (Build: 2026-02-23-13)
 
@@ -17,7 +302,7 @@ Conventions:
 
 Verification notes
 - Open `Docs/Audio/AUDIO_CHECKLIST.md` and confirm the folder plan + MVP list.
-- Confirm `Docs/ASSISTANT_PLAYBOOK.md` exists and documents repo/zip rules.
+- Confirm `Docs/ASSISTANT_PLAYBOOK.md` exists and documents zip packaging rules.
 
 ## 2026-02-23 (Build: 2026-02-23-12)
 
@@ -26,12 +311,12 @@ Verification notes
 - Updated `Docs/REPO_WORKFLOW.md`, `Docs/AI_WORKFLOW.md`, `Docs/AI_README.md`, and `README.md` to reference the playbook.
 
 Verification notes
-- Open `Docs/ASSISTANT_PLAYBOOK.md` and confirm it documents how to fetch latest `main` and how to package the deliverable zip.
+- Open `Docs/ASSISTANT_PLAYBOOK.md` and confirm it documents how to use the Project zip baseline and how to package the deliverable zip.
 
 ## 2026-02-23 (Build: 2026-02-23-11)
 
 ### Docs / workflow
-- Updated iteration workflow to be **repo-first** (baseline = GitHub `main`) instead of “upload latest zip”.
+- Updated iteration workflow to be **baseline-first (deprecated)** (baseline = latest build) instead of “upload latest zip”.
 - Added `Docs/REPO_WORKFLOW.md` (canonical step-by-step process).
 - Updated packaging rules so AI zips exclude: `.git/`, `.godot/`, `Assets/`.
 - Refreshed `README.md`, `Docs/AI_README.md`, `Docs/AI_WORKFLOW.md`, and `Docs/BUILD_RUN.md` to reference the new process.
@@ -633,3 +918,42 @@ Verification notes
 - Fixed "shots go through enemy" when firing straight from raised weapon mounts:
   - Vehicle hitbox Areas now extend upward so flat-plane bullet rays intersect the target.
   - Raycast now explicitly uses an all-layers collision mask (damage is still gated to the intended pawn).
+
+## 2026-02-25 (Build: 2026-02-25-04)
+
+### Arena floor texture
+- Arena floor now uses the tiled concrete texture (when present): `Assets/Images/Textures/Ground/concrete_1.png`.
+
+### Weapon polish
+- Removed the loud "miss" SFX (no sound is played when shots miss).
+- Weapon visual scaling: `Scale` is now applied *after* `DesiredLength` normalization so per-weapon scaling works.
+- Added per-weapon audio volume knobs in `Data/Config/weapon_visuals.json` (starting with `FireVolumeDb`).
+
+## 2026-02-25 (Build: 2026-02-25-05)
+
+### Arena environment
+- Arena bounds walls + obstacles now use the same tiled concrete texture (triplanar) as the floor.
+- Added several additional interior wall obstacles (deterministic "random" placement).
+
+### Arena flow
+- Post-match no longer instantly shows the post-encounter panel.
+- After win/lose, a large gold message appears: **"hold G to exit"**.
+- Holding **G** for ~3 seconds exits the arena salvage phase and shows the post-encounter panel.
+
+### Enemy AI
+- Improved enemy driving slightly (target leading + alignment-aware throttle) to reduce circling/spinning.
+
+## 2026-02-25 (Build: 2026-02-25-06)
+
+### Arena visuals
+- Switched arena floor to a Poly Haven PBR texture set (clean_asphalt): albedo + normal + roughness.
+- Added `Docs/Assets/POLYHAVEN_CLEAN_ASPHALT.md` with the expected local unzip path for texture files (Assets are not shipped in AI zips).
+
+## 2026-02-25 (Build: 2026-02-25-07)
+
+### Fixes
+- Fixed arena shader compilation errors by reconstructing per-fragment world position from view-space `VERTEX` using `MAIN_CAM_INV_VIEW_MATRIX` (Godot 4 spatial shaders don’t expose `WORLD_POSITION`).
+- Fixed runtime error in `ConsoleOverlay` by using snake_case when calling engine methods via `CallDeferred`.
+
+### Arena visuals
+- Arena floor now prefers the Poly Haven **clean_asphalt** PBR set when present at the expected Assets path; otherwise falls back to the legacy concrete floor material.

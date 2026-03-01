@@ -8,7 +8,9 @@ This is a ChatGPT **Project**. Treat the Project files as the single source of t
 1) `Docs/AI_README.md` — onboarding + what to read next.
 2) `Docs/MASTER_GAME_SPEC.md` — authoritative north star.
 3) `Docs/PROJECT_STATE.md` — current implementation state + constraints.
-4) `CHANGELOG.md` and `VERSION.txt` — latest build id and recent changes.
+4) `Docs/CODEMAP.md` — quick “where to look” map.
+5) `Docs/REFRACTORING_PLAN.md` — refactor opportunities plan (proposal only).
+6) `CHANGELOG.md` and `VERSION.txt` — latest build id and recent changes.
 
 ## Working rules
 - Incremental, minimal-risk changes; compile-safe at every step.

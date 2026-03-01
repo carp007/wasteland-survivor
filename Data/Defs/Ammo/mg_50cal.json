@@ -1,0 +1,9 @@
+{
+  "Id": "ammo_mg_50cal",
+  "DisplayName": "50 cal Rounds",
+  "AmmoKind": "Ballistic",
+  "UnitMassKg": 0.045,
+  "DamageMultiplier": 1.75,
+  "TrackingStrength": 0.0,
+  "ArmorPenetrationTag": ""
+}

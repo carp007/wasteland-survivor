@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Game/GameBalance.cs
+// Purpose: Game-layer services and facades (session, balance, logging).
+// -------------------------------------------------------------------------------------------------
 using System;
 
 namespace WastelandSurvivor.Game;
@@ -13,6 +18,27 @@ public static class GameBalance
 
     // Prototype economy: dollars per round.
     public const int PrimaryAmmoUnitCostUsd = 2;
+
+	// Prototype ammo refill policy used by the Workshop UI.
+	public const int BallisticAmmoRefillTarget = 200;
+	public const int GuidedAmmoRefillTarget = 8;
+	public const int ExplosiveAmmoRefillTarget = 12;
+	public const int MineAmmoRefillTarget = 6;
+
+	public const int GuidedAmmoUnitCostUsd = 35;
+	public const int ExplosiveAmmoUnitCostUsd = 25;
+	public const int MineAmmoUnitCostUsd = 45;
+
+	public static (int target, int unitCostUsd) GetAmmoRefillPolicy(Core.Defs.AmmoKind kind)
+	{
+		return kind switch
+		{
+			Core.Defs.AmmoKind.Guided => (GuidedAmmoRefillTarget, GuidedAmmoUnitCostUsd),
+			Core.Defs.AmmoKind.Explosive => (ExplosiveAmmoRefillTarget, ExplosiveAmmoUnitCostUsd),
+			Core.Defs.AmmoKind.Mine => (MineAmmoRefillTarget, MineAmmoUnitCostUsd),
+			_ => (BallisticAmmoRefillTarget, PrimaryAmmoUnitCostUsd),
+		};
+	}
 
     // Prototype: 1 scrap repairs 1 point of armor/tire.
     public const int ScrapRepairCostPerPoint = 1;

@@ -10,10 +10,13 @@ anchor_left = 1.0
 anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 0.0
-offset_left = -276.0
+offset_left = -440.0
 offset_top = 62.0
-offset_right = -36.0
+offset_right = -20.0
 offset_bottom = 620.0
+
+# Keep the right edge aligned with other right-side HUD panels, but keep this panel
+# a bit narrower so it doesn't dominate the playfield.
 script = ExtResource("1")
 
 [node name="VBox" type="VBoxContainer" parent="."]
@@ -62,20 +65,24 @@ theme_override_constants/separation = 14
 
 [node name="LeftBox" type="VBoxContainer" parent="VBox/MidRow"]
 layout_mode = 2
-custom_minimum_size = Vector2(44, 160)
+custom_minimum_size = Vector2(56, 160)
 
-[node name="BarsCenter" type="CenterContainer" parent="VBox/MidRow/LeftBox"]
+[node name="LeftMargin" type="MarginContainer" parent="VBox/MidRow/LeftBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+
+[node name="BarsCenter" type="CenterContainer" parent="VBox/MidRow/LeftBox/LeftMargin"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxBars" type="HBoxContainer" parent="VBox/MidRow/LeftBox/BarsCenter"]
+[node name="HBoxBars" type="HBoxContainer" parent="VBox/MidRow/LeftBox/LeftMargin/BarsCenter"]
 layout_mode = 2
 
-[node name="LeftAp" parent="VBox/MidRow/LeftBox/BarsCenter/HBoxBars" instance=ExtResource("2")]
-custom_minimum_size = Vector2(14, 110)
+[node name="LeftAp" parent="VBox/MidRow/LeftBox/LeftMargin/BarsCenter/HBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(18, 110)
 
-[node name="LeftHp" parent="VBox/MidRow/LeftBox/BarsCenter/HBoxBars" instance=ExtResource("2")]
-custom_minimum_size = Vector2(14, 110)
+[node name="LeftHp" parent="VBox/MidRow/LeftBox/LeftMargin/BarsCenter/HBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(18, 110)
 
 [node name="CenterBox" type="PanelContainer" parent="VBox/MidRow"]
 layout_mode = 2
@@ -103,20 +110,24 @@ render_target_update_mode = 3
 
 [node name="RightBox" type="VBoxContainer" parent="VBox/MidRow"]
 layout_mode = 2
-custom_minimum_size = Vector2(44, 160)
+custom_minimum_size = Vector2(56, 160)
 
-[node name="BarsCenter" type="CenterContainer" parent="VBox/MidRow/RightBox"]
+[node name="RightMargin" type="MarginContainer" parent="VBox/MidRow/RightBox"]
+layout_mode = 2
+theme_override_constants/margin_right = 10
+
+[node name="BarsCenter" type="CenterContainer" parent="VBox/MidRow/RightBox/RightMargin"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxBars" type="HBoxContainer" parent="VBox/MidRow/RightBox/BarsCenter"]
+[node name="HBoxBars" type="HBoxContainer" parent="VBox/MidRow/RightBox/RightMargin/BarsCenter"]
 layout_mode = 2
 
-[node name="RightAp" parent="VBox/MidRow/RightBox/BarsCenter/HBoxBars" instance=ExtResource("2")]
-custom_minimum_size = Vector2(14, 110)
+[node name="RightAp" parent="VBox/MidRow/RightBox/RightMargin/BarsCenter/HBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(18, 110)
 
-[node name="RightHp" parent="VBox/MidRow/RightBox/BarsCenter/HBoxBars" instance=ExtResource("2")]
-custom_minimum_size = Vector2(14, 110)
+[node name="RightHp" parent="VBox/MidRow/RightBox/RightMargin/BarsCenter/HBoxBars" instance=ExtResource("2")]
+custom_minimum_size = Vector2(18, 110)
 
 [node name="RearBox" type="VBoxContainer" parent="VBox"]
 layout_mode = 2
@@ -296,15 +307,33 @@ custom_minimum_size = Vector2(0, 10)
 
 [node name="SpeedBox" type="VBoxContainer" parent="VBox/BottomVBox"]
 layout_mode = 2
+theme_override_constants/separation = 4
 
-[node name="LblSpeed" type="Label" parent="VBox/BottomVBox/SpeedBox"]
-size_flags_horizontal = 3
-horizontal_alignment = 1
+[node name="SpeedRow" type="HBoxContainer" parent="VBox/BottomVBox/SpeedBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LblSpeed" type="Label" parent="VBox/BottomVBox/SpeedBox/SpeedRow"]
+custom_minimum_size = Vector2(44, 0)
 text = "Speed"
 theme_override_font_sizes/font_size = 12
 
-[node name="SpeedCenter" type="CenterContainer" parent="VBox/BottomVBox/SpeedBox"]
-layout_mode = 2
-
-[node name="SpeedBar" parent="VBox/BottomVBox/SpeedBox/SpeedCenter" instance=ExtResource("2")]
+[node name="SpeedBar" parent="VBox/BottomVBox/SpeedBox/SpeedRow" instance=ExtResource("2")]
 custom_minimum_size = Vector2(190, 14)
+size_flags_horizontal = 3
+
+[node name="RpmRow" type="HBoxContainer" parent="VBox/BottomVBox/SpeedBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LblRpm" type="Label" parent="VBox/BottomVBox/SpeedBox/RpmRow"]
+custom_minimum_size = Vector2(44, 0)
+text = "RPM"
+theme_override_font_sizes/font_size = 12
+
+[node name="RpmBar" parent="VBox/BottomVBox/SpeedBox/RpmRow" instance=ExtResource("2")]
+custom_minimum_size = Vector2(190, 14)
+size_flags_horizontal = 3
+
+[node name="RpmBottomSpacer" type="Control" parent="VBox/BottomVBox/SpeedBox"]
+custom_minimum_size = Vector2(0, 6)

@@ -1,7 +1,13 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/App/App.cs
+// Purpose: Autoload singleton. Boots defs + save, sets up service registry, and manages display/fullscreen behavior.
+// -------------------------------------------------------------------------------------------------
 using System;
 using Godot;
 using WastelandSurvivor.Core.IO;
 using WastelandSurvivor.Core.State;
+using WastelandSurvivor.Game.Audio;
 
 namespace WastelandSurvivor.Game;
 
@@ -167,11 +173,17 @@ public partial class App : Node
 	{
 		try
 		{
-			Services = new GameServices();
+				// IMPORTANT:
+				// Do NOT replace the GameServices instance at runtime.
+				// AppRoot registers UI services (router/modals/navigation) early in its lifecycle.
+				// Replacing Services here would discard those registrations and break UI navigation.
+				//
+				// Services is created once (property initializer) and persists for the app lifetime.
 
 			// Global in-memory console (UI overlay consumes this).
 			var console = new GameConsole();
 			Services.AddSingleton(console);
+			AudioBusUtil.EnsureBuses();
 			console.Debug($"Boot: starting (v{GetVersionString()})");
 
 			var loader = new DefLoader();

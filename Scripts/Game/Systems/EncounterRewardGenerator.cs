@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Game/Systems/EncounterRewardGenerator.cs
+// Purpose: Pure or near-pure gameplay math/logic (no Godot nodes), called by session/UI.
+// -------------------------------------------------------------------------------------------------
 using System;
 
 namespace WastelandSurvivor.Game.Systems;

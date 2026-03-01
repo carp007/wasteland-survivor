@@ -1,0 +1,19 @@
+{
+  "Weapons": {
+    "wpn_mg_50cal": {
+      "ScenePath": "res://Assets/Models/Weapons/VehicleMounted/50CalMachineGun/scene.gltf",
+      "Scale": 3.0,
+      "DesiredLength": 1.15,
+      "AutoAlignYaw": true,
+      "DebugAlignment": false,
+      "MountPointNodeName": null,
+      "MuzzleNodeName": null,
+
+      "FireSoundPath": "res://Assets/Audio/Weapons/VehicleMounted/50CalMachineGun/fire.wav",
+      "FireVolumeDb": 0.0,
+      "HitVehicleSoundPath": "res://Assets/Audio/Vehicles/Impacts/50calhit.mp3",
+      "HitVehicleVolumeDb": -3.0,
+      "HitWorldSoundPath": null
+    }
+  }
+}

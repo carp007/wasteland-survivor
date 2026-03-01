@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Arena/TargetIndicator3D.cs
+// Purpose: Arena gameplay/runtime support (3D world, pawns, VFX).
+// -------------------------------------------------------------------------------------------------
 using Godot;
 
 namespace WastelandSurvivor.Game.Arena;

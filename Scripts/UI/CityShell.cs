@@ -1,165 +1,163 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/UI/CityShell.cs
+// Purpose: City “main menu” view. Lets the player pick a city, open Garage/Workshop/Arena, save, create a starter vehicle, or exit.
+// -------------------------------------------------------------------------------------------------
 using Godot;
 using WastelandSurvivor.Core.IO;
+using WastelandSurvivor.Framework.SceneBinding;
+using WastelandSurvivor.Game.Navigation;
 
 namespace WastelandSurvivor.Game.UI;
 
 public partial class CityShell : Control
 {
-    private Label? _lblCity;
-    private Button? _btnDetroit;
-    private Button? _btnCleveland;
-    private Button? _btnGarage;
-    private Button? _btnWorkshop;
-    private Button? _btnArena;
-    private Button? _btnCreateStarter;
-    private Button? _btnSave;
-    private Button? _btnExit;
+	private ColorRect? _bg;
+	private Label _lblCity = null!;
+	private Button _btnDetroit = null!;
+	private Button _btnCleveland = null!;
+	private Button _btnGarage = null!;
+	private Button _btnWorkshop = null!;
+	private Button _btnArena = null!;
+	private Button _btnCreateStarter = null!;
+	private Button _btnSave = null!;
+	private Button _btnExit = null!;
 
-    public override void _Ready()
-    {
-        _lblCity = GetNodeOrNull<Label>("Panel/VBox/LblCity");
-        _btnDetroit = GetNodeOrNull<Button>("Panel/VBox/HBoxCities/BtnDetroit");
-        _btnCleveland = GetNodeOrNull<Button>("Panel/VBox/HBoxCities/BtnCleveland");
-        _btnGarage = GetNodeOrNull<Button>("Panel/VBox/BtnGarage");
-        _btnWorkshop = GetNodeOrNull<Button>("Panel/VBox/BtnWorkshop");
-        _btnArena = GetNodeOrNull<Button>("Panel/VBox/BtnArena");
-        _btnCreateStarter = GetNodeOrNull<Button>("Panel/VBox/BtnCreateStarter");
-        _btnSave = GetNodeOrNull<Button>("Panel/VBox/BtnSave");
-        _btnExit = GetNodeOrNull<Button>("Panel/VBox/BtnExit");
+	private void EnsureBound()
+	{
+		var b = new SceneBinder(this, nameof(CityShell));
+		_bg = b.Opt<ColorRect>("Bg");
+		_lblCity = b.Req<Label>("Panel/VBox/LblCity");
+		_btnDetroit = b.Req<Button>("Panel/VBox/HBoxCities/BtnDetroit");
+		_btnCleveland = b.Req<Button>("Panel/VBox/HBoxCities/BtnCleveland");
+		_btnGarage = b.Req<Button>("Panel/VBox/BtnGarage");
+		_btnWorkshop = b.Req<Button>("Panel/VBox/BtnWorkshop");
+		_btnArena = b.Req<Button>("Panel/VBox/BtnArena");
+		_btnCreateStarter = b.Req<Button>("Panel/VBox/BtnCreateStarter");
+		_btnSave = b.Req<Button>("Panel/VBox/BtnSave");
+		_btnExit = b.Req<Button>("Panel/VBox/BtnExit");
+	}
 
-        if (_btnDetroit != null) _btnDetroit.Pressed += () => SetCity("detroit");
-        if (_btnCleveland != null) _btnCleveland.Pressed += () => SetCity("cleveland");
-        if (_btnSave != null) _btnSave.Pressed += SaveNow;
-        if (_btnCreateStarter != null) _btnCreateStarter.Pressed += CreateStarter;
-        if (_btnGarage != null) _btnGarage.Pressed += OpenGarage;
-        if (_btnWorkshop != null) _btnWorkshop.Pressed += OpenWorkshop;
-        if (_btnArena != null) _btnArena.Pressed += OpenArena;
-        if (_btnExit != null) _btnExit.Pressed += ExitGame;
+	public override void _Ready()
+	{
+		GameUiTheme.ApplyToTree(this);
+		EnsureBound();
 
-        Refresh();
-    }
+		if (_bg != null)
+			_bg.Color = GameUiTheme.BackgroundColor;
 
-    private void Refresh()
-    {
-        var app = App.Instance;
-        if (app == null)
-        {
-            if (_lblCity != null) _lblCity.Text = "Current: (App missing)";
-            return;
-        }
+		_btnDetroit.Pressed += () => SetCity("detroit");
+		_btnCleveland.Pressed += () => SetCity("cleveland");
+		_btnSave.Pressed += SaveNow;
+		_btnCreateStarter.Pressed += CreateStarter;
+		_btnGarage.Pressed += OpenGarage;
+		_btnWorkshop.Pressed += OpenWorkshop;
+		_btnArena.Pressed += OpenArena;
+		_btnExit.Pressed += ExitGame;
 
-        var session = app.Services.Get<GameSession>();
-        var city = session.Save.Player.CurrentCityId;
-        var active = session.GetActiveVehicle();
-        var activeText = active == null ? "none" : active.DefinitionId;
+		Refresh();
+	}
 
-        if (_lblCity != null)
-            _lblCity.Text = $"Current: {city}   |   Active vehicle: {activeText}";
-    }
-
-    private void SetCity(string cityId)
-    {
-        var app = App.Instance;
-        if (app == null) return;
-
-        var session = app.Services.Get<GameSession>();
-        session.SetCurrentCity(cityId);
-        Refresh();
-    }
-
-    private void SaveNow()
-    {
-        var app = App.Instance;
-        if (app == null) return;
-
-        var session = app.Services.Get<GameSession>();
-        session.Persist();
-        GD.Print("[CityShell] Saved.");
-    }
-
-    private void CreateStarter()
-    {
-        var app = App.Instance;
-        if (app == null) return;
-
-        var session = app.Services.Get<GameSession>();
-        var defs = app.Services.Get<DefDatabase>();
-
-        // Only create if the player has no owned vehicles yet.
-        if (session.Save.Player.OwnedVehicleIds.Count == 0)
-            session.CreateStarterVehicle(defs);
-        else
-            GD.Print("[CityShell] Starter already exists; skipping.");
-
-        Refresh();
-    }
-
-    private void OpenWorkshop()
-    {
-        var parent = GetParent();
-        if (parent == null) return;
-
-        var scene = GD.Load<PackedScene>("res://Scenes/UI/WorkshopView.tscn");
-        var ui = scene.Instantiate();
-        parent.AddChild(ui);
-        QueueFree();
-    }
-
-    private void OpenArena()
-    {
-        var parent = GetParent();
-        if (parent == null) return;
-
-        // Prefer the real-time arena UI wrapper (Control-based) because it's the most robust
-        // when swapping screens under a CanvasLayer. Fall back to other scenes if needed.
-		var candidates = new[]
+	private void Refresh()
+	{
+		var app = App.Instance;
+		if (app == null)
 		{
-			"res://Scenes/UI/ArenaRealtimeView.tscn",
-		};
+			_lblCity.Text = "Current: (App missing)";
+			return;
+		}
 
-        string? chosen = null;
-        foreach (var p in candidates)
-        {
-            if (ResourceLoader.Exists(p))
-            {
-                chosen = p;
-                break;
-            }
-        }
+		var session = app.Services.Get<GameSession>();
+		var city = session.Save.Player.CurrentCityId;
+		var active = session.GetActiveVehicle();
+		var activeText = active == null ? "none" : active.DefinitionId;
 
-        if (chosen == null)
-        {
-            GD.PrintErr("[CityShell] No arena scene found. Expected one of: " + string.Join(", ", candidates));
-            return;
-        }
+		_lblCity.Text = $"Current: {city}   |   Active vehicle: {activeText}";
+	}
 
-        var scene = GD.Load<PackedScene>(chosen);
-        if (scene == null)
-        {
-            GD.PrintErr($"[CityShell] Failed to load arena scene: {chosen}");
-            return;
-        }
+	private void SetCity(string cityId)
+	{
+		var app = App.Instance;
+		if (app == null) return;
 
-        GD.Print($"[CityShell] Opening arena: {chosen}");
-        var ui = scene.Instantiate();
-        parent.AddChild(ui);
-        QueueFree();
-    }
+		var session = app.Services.Get<GameSession>();
+		session.SetCurrentCity(cityId);
+		Refresh();
+	}
 
-    private void OpenGarage()
-    {
-        var parent = GetParent();
-        if (parent == null) return;
+	private void SaveNow()
+	{
+		var app = App.Instance;
+		if (app == null) return;
 
-        var scene = GD.Load<PackedScene>("res://Scenes/UI/GarageView.tscn");
-        var ui = scene.Instantiate();
-        parent.AddChild(ui);
-        QueueFree();
-    }
+		var session = app.Services.Get<GameSession>();
+		session.Persist();
+		GD.Print("[CityShell] Saved.");
+	}
 
-    private void ExitGame()
-    {
-        // Allow quitting directly from the City shell (main menu).
-        GetTree().Quit();
-    }
+	private void CreateStarter()
+	{
+		var app = App.Instance;
+		if (app == null) return;
+
+		var session = app.Services.Get<GameSession>();
+		var defs = app.Services.Get<DefDatabase>();
+
+		// Only create if the player has no owned vehicles yet.
+		if (session.Save.Player.OwnedVehicleIds.Count == 0)
+			session.CreateStarterVehicle(defs);
+		else
+			GD.Print("[CityShell] Starter already exists; skipping.");
+
+		Refresh();
+	}
+
+
+
+	private void OpenWorkshop()
+	{
+		var app = App.Instance;
+		if (app == null) return;
+		if (!app.Services.TryGet<IGameNavigator>(out var nav) || nav == null)
+		{
+			GD.PrintErr("[CityShell] IGameNavigator not registered (cannot navigate to Workshop).");
+			return;
+		}
+
+		nav.ToWorkshop(this);
+	}
+
+
+	private void OpenArena()
+	{
+		var app = App.Instance;
+		if (app == null) return;
+		if (!app.Services.TryGet<IGameNavigator>(out var nav) || nav == null)
+		{
+			GD.PrintErr("[CityShell] IGameNavigator not registered (cannot navigate to Arena).");
+			return;
+		}
+
+		nav.ToArena(this);
+	}
+
+
+	private void OpenGarage()
+	{
+		var app = App.Instance;
+		if (app == null) return;
+		if (!app.Services.TryGet<IGameNavigator>(out var nav) || nav == null)
+		{
+			GD.PrintErr("[CityShell] IGameNavigator not registered (cannot navigate to Garage).");
+			return;
+		}
+
+		nav.ToGarage(this);
+	}
+
+	private void ExitGame()
+	{
+		// Allow quitting directly from the City shell (main menu).
+		GetTree().Quit();
+	}
 }

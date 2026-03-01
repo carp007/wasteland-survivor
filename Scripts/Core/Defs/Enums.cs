@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Core/Defs/Enums.cs
+// Purpose: Data definition model loaded from JSON under Data/Defs (stable, Godot-independent).
+// -------------------------------------------------------------------------------------------------
 namespace WastelandSurvivor.Core.Defs;
 
 public enum VehicleClass

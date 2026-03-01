@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Game/GameConsole.cs
+// Purpose: Game-layer services and facades (session, balance, logging).
+// -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 

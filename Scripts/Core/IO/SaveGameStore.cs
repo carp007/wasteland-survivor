@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Core/IO/SaveGameStore.cs
+// Purpose: Loads/saves SaveGameState to user://savegame.json using System.Text.Json (Godot-independent save format).
+// -------------------------------------------------------------------------------------------------
 using System;
 using System.Text.Json;
 using Godot;

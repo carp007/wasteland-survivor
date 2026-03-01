@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/UI/WorkshopView.cs
+// Purpose: Workshop screen where the player installs engines/computers/weapons and buys/refills ammo.
+// -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,59 +10,79 @@ using Godot;
 using WastelandSurvivor.Core.Defs;
 using WastelandSurvivor.Core.IO;
 using WastelandSurvivor.Core.State;
+using WastelandSurvivor.Framework.SceneBinding;
+using WastelandSurvivor.Game;
+using WastelandSurvivor.Game.Navigation;
 
 namespace WastelandSurvivor.Game.UI;
 
 public partial class WorkshopView : Control
 {
-    private Label? _lblActive;
-    private OptionButton? _optEngine;
-    private OptionButton? _optComputer;
-    private VBoxContainer? _vboxMounts;
-    private Button? _btnApply;
-    private Button? _btnBack;
+	private ColorRect? _bg;
 
-    private Label? _lblAmmo;
-    private Button? _btnBuy10;
-    private Button? _btnBuy50;
-    private Button? _btnBuy200;
+	private Label _lblActive = null!;
+	private OptionButton _optEngine = null!;
+	private OptionButton _optComputer = null!;
+	private VBoxContainer _vboxMounts = null!;
+	private Button _btnApply = null!;
+	private Button _btnBack = null!;
 
-    private VehicleInstanceState? _vehicle;
-    private VehicleDefinition? _vdef;
+	private Label _lblAmmo = null!;
+	private Button _btnBuy10 = null!;
+	private Button _btnBuy50 = null!;
+	private Button _btnBuy200 = null!;
+	private Button _btnRefillAll = null!;
 
-    // mountId -> (weaponOpt, ammoOpt)
-    private readonly Dictionary<string, (OptionButton weapon, OptionButton ammo)> _mountControls = new();
+	private VehicleInstanceState? _vehicle;
+	private VehicleDefinition? _vdef;
 
-    public override void _Ready()
-    {
-        _lblActive = GetNodeOrNull<Label>("Panel/VBox/LblActive");
-        _optEngine = GetNodeOrNull<OptionButton>("Panel/VBox/HBoxEngine/OptEngine");
-        _optComputer = GetNodeOrNull<OptionButton>("Panel/VBox/HBoxComputer/OptComputer");
-        _vboxMounts = GetNodeOrNull<VBoxContainer>("Panel/VBox/Scroll/VBoxMounts");
-        _btnApply = GetNodeOrNull<Button>("Panel/VBox/HBoxButtons/BtnApply");
-        _btnBack = GetNodeOrNull<Button>("Panel/VBox/HBoxButtons/BtnBack");
+	// mountId -> (weaponOpt, ammoOpt)
+	private readonly Dictionary<string, (OptionButton weapon, OptionButton ammo)> _mountControls = new();
 
-        _lblAmmo = GetNodeOrNull<Label>("Panel/VBox/HBoxAmmo/LblAmmo");
-        _btnBuy10 = GetNodeOrNull<Button>("Panel/VBox/HBoxAmmo/BtnBuy10");
-        _btnBuy50 = GetNodeOrNull<Button>("Panel/VBox/HBoxAmmo/BtnBuy50");
-        _btnBuy200 = GetNodeOrNull<Button>("Panel/VBox/HBoxAmmo/BtnBuy200");
+	private void EnsureBound()
+	{
+		var b = new SceneBinder(this, nameof(WorkshopView));
+		_bg = b.Opt<ColorRect>("Bg");
 
-        _btnApply!.Pressed += ApplyAndSave;
-        _btnBack!.Pressed += Back;
+		_lblActive = b.Req<Label>("Panel/VBox/LblActive");
+		_optEngine = b.Req<OptionButton>("Panel/VBox/HBoxEngine/OptEngine");
+		_optComputer = b.Req<OptionButton>("Panel/VBox/HBoxComputer/OptComputer");
+		_vboxMounts = b.Req<VBoxContainer>("Panel/VBox/Scroll/VBoxMounts");
+		_btnApply = b.Req<Button>("Panel/VBox/HBoxButtons/BtnApply");
+		_btnBack = b.Req<Button>("Panel/VBox/HBoxButtons/BtnBack");
 
-        if (_btnBuy10 != null) _btnBuy10.Pressed += () => BuyAmmo(10);
-        if (_btnBuy50 != null) _btnBuy50.Pressed += () => BuyAmmo(50);
-        if (_btnBuy200 != null) _btnBuy200.Pressed += () => BuyAmmo(200);
+		_lblAmmo = b.Req<Label>("Panel/VBox/HBoxAmmo/LblAmmo");
+		_btnBuy10 = b.Req<Button>("Panel/VBox/HBoxAmmo/BtnBuy10");
+		_btnBuy50 = b.Req<Button>("Panel/VBox/HBoxAmmo/BtnBuy50");
+		_btnBuy200 = b.Req<Button>("Panel/VBox/HBoxAmmo/BtnBuy200");
+		_btnRefillAll = b.Req<Button>("Panel/VBox/HBoxAmmo/BtnRefillAll");
+	}
 
-        LoadActiveVehicleAndBuildUi();
-    }
+	public override void _Ready()
+	{
+		GameUiTheme.ApplyToTree(this);
+		EnsureBound();
 
-    private void LoadActiveVehicleAndBuildUi()
+		if (_bg != null)
+			_bg.Color = GameUiTheme.BackgroundColor;
+
+		_btnApply.Pressed += ApplyAndSave;
+		_btnBack.Pressed += Back;
+
+		_btnBuy10.Pressed += () => BuyAmmo(10);
+		_btnBuy50.Pressed += () => BuyAmmo(50);
+		_btnBuy200.Pressed += () => BuyAmmo(200);
+		_btnRefillAll.Pressed += RefillAllAmmo;
+
+		LoadActiveVehicleAndBuildUi();
+	}
+
+	private void LoadActiveVehicleAndBuildUi()
     {
         var app = App.Instance;
         if (app == null)
         {
-            _lblActive!.Text = "Active: (App missing)";
+            _lblActive.Text = "Active: (App missing)";
             DisableAll();
             return;
         }
@@ -68,19 +93,19 @@ public partial class WorkshopView : Control
         _vehicle = session.GetActiveVehicle();
         if (_vehicle == null)
         {
-            _lblActive!.Text = "Active: (none). Go to Garage and set an active vehicle.";
+            _lblActive.Text = "Active: (none). Go to Garage and set an active vehicle.";
             DisableAll();
             return;
         }
 
         if (!defs.Vehicles.TryGetValue(_vehicle.DefinitionId, out _vdef))
         {
-            _lblActive!.Text = $"Active: (missing def '{_vehicle.DefinitionId}')";
+            _lblActive.Text = $"Active: (missing def '{_vehicle.DefinitionId}')";
             DisableAll();
             return;
         }
 
-        _lblActive!.Text = $"Active: {_vdef.DisplayName}  ({_vdef.Id})  Class={_vdef.Class}";
+        _lblActive.Text = $"Active: {_vdef.DisplayName}  ({_vdef.Id})  Class={_vdef.Class}";
 
         BuildEngineOptions(defs);
         BuildComputerOptions(defs);
@@ -90,14 +115,51 @@ public partial class WorkshopView : Control
 
     private void DisableAll()
     {
-        _optEngine!.Disabled = true;
-        _optComputer!.Disabled = true;
-        _btnApply!.Disabled = true;
+        _optEngine.Disabled = true;
+		_optComputer.Disabled = true;
+		_btnApply.Disabled = true;
 
-        if (_btnBuy10 != null) _btnBuy10.Disabled = true;
-        if (_btnBuy50 != null) _btnBuy50.Disabled = true;
-        if (_btnBuy200 != null) _btnBuy200.Disabled = true;
+		_btnBuy10.Disabled = true;
+		_btnBuy50.Disabled = true;
+		_btnBuy200.Disabled = true;
+		_btnRefillAll.Disabled = true;
     }
+
+	    private sealed record AmmoNeed(string AmmoId, string DisplayName, AmmoKind Kind, int Current, int Target, int Need, int UnitCostUsd)
+	    {
+	        public int CostUsd => checked(Need * UnitCostUsd);
+	    }
+
+	    private List<AmmoNeed> ComputeAmmoNeedsForInstalledWeapons(DefDatabase defs, VehicleInstanceState vehicle)
+	    {
+	        var needs = new List<AmmoNeed>();
+	        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+	        var inv = vehicle.AmmoInventory ?? new Dictionary<string, int>();
+
+	        foreach (var kv in vehicle.InstalledWeaponsByMountId)
+	        {
+	            var inst = kv.Value;
+	            if (inst == null || string.IsNullOrWhiteSpace(inst.WeaponId)) continue;
+	            if (!defs.Weapons.TryGetValue(inst.WeaponId, out var wdef)) continue;
+	            var ammoIds = wdef.AmmoTypeIds ?? Array.Empty<string>();
+	            if (ammoIds.Length == 0) continue; // energy/beam weapons etc.
+	
+	            var ammoId = inst.SelectedAmmoId;
+	            if (string.IsNullOrWhiteSpace(ammoId)) ammoId = ammoIds[0];
+	            if (string.IsNullOrWhiteSpace(ammoId)) continue;
+	            if (!seen.Add(ammoId!)) continue;
+
+	            var kind = defs.Ammo.TryGetValue(ammoId!, out var adef) ? adef.AmmoKind : AmmoKind.Ballistic;
+	            var (target, unitCost) = GameBalance.GetAmmoRefillPolicy(kind);
+	            inv.TryGetValue(ammoId!, out var cur);
+	            var need = Math.Max(0, target - cur);
+	            var name = defs.Ammo.TryGetValue(ammoId!, out var adef2) ? adef2.DisplayName : ammoId!;
+	            needs.Add(new AmmoNeed(ammoId!, name, kind, cur, target, need, unitCost));
+	        }
+
+	        // Stable ordering for UI.
+	        return needs.OrderBy(n => n.Kind).ThenBy(n => n.DisplayName).ToList();
+	    }
 
     private void BuildEngineOptions(DefDatabase defs)
     {
@@ -265,32 +327,94 @@ public partial class WorkshopView : Control
             if (_btnBuy10 != null) _btnBuy10.Disabled = true;
             if (_btnBuy50 != null) _btnBuy50.Disabled = true;
             if (_btnBuy200 != null) _btnBuy200.Disabled = true;
+	            if (_btnRefillAll != null) _btnRefillAll.Disabled = true;
             return;
         }
 
-        var ammoId = GameSession.PrimaryAmmoId;
-        var ammoCount = _vehicle.AmmoInventory != null && _vehicle.AmmoInventory.TryGetValue(ammoId, out var c) ? c : 0;
-        var money = session.Save.Player.MoneyUsd;
+	        // Primary ammo quick-buy buttons remain (ballistic convenience).
+	        var ammoId = GameSession.PrimaryAmmoId;
+	        var ammoCount = _vehicle.AmmoInventory != null && _vehicle.AmmoInventory.TryGetValue(ammoId, out var c) ? c : 0;
+	        var money = session.Save.Player.MoneyUsd;
 
-        var unit = GameSession.PrimaryAmmoUnitCostUsd;
-        var cost10 = 10 * unit;
-        var cost50 = 50 * unit;
-        var cost200 = 200 * unit;
+	        var unit = GameSession.PrimaryAmmoUnitCostUsd;
+	        var cost10 = 10 * unit;
+	        var cost50 = 50 * unit;
+	        var cost200 = 200 * unit;
 
-        var ammoName = defs.Ammo.TryGetValue(ammoId, out var adef) ? adef.DisplayName : ammoId;
-        _lblAmmo.Text = $"{ammoName}: {ammoCount}    Money: ${money}";
+	        if (_btnBuy10 != null) _btnBuy10.Text = $"Buy +10 (${cost10})";
+	        if (_btnBuy50 != null) _btnBuy50.Text = $"Buy +50 (${cost50})";
+	        if (_btnBuy200 != null) _btnBuy200.Text = $"Buy +200 (${cost200})";
 
-        if (_btnBuy10 != null) _btnBuy10.Text = $"Buy +10 (${cost10})";
-        if (_btnBuy50 != null) _btnBuy50.Text = $"Buy +50 (${cost50})";
-        if (_btnBuy200 != null) _btnBuy200.Text = $"Buy +200 (${cost200})";
+	        var can10 = money >= cost10;
+	        var can50 = money >= cost50;
+	        var can200 = money >= cost200;
+	        if (_btnBuy10 != null) _btnBuy10.Disabled = !can10;
+	        if (_btnBuy50 != null) _btnBuy50.Disabled = !can50;
+	        if (_btnBuy200 != null) _btnBuy200.Disabled = !can200;
 
-        var can10 = money >= cost10;
-        var can50 = money >= cost50;
-        var can200 = money >= cost200;
-        if (_btnBuy10 != null) _btnBuy10.Disabled = !can10;
-        if (_btnBuy50 != null) _btnBuy50.Disabled = !can50;
-        if (_btnBuy200 != null) _btnBuy200.Disabled = !can200;
+	        // New: refill all ammo for currently installed weapons.
+	        var needs = ComputeAmmoNeedsForInstalledWeapons(defs, _vehicle);
+	        var totalNeed = needs.Sum(n => n.Need);
+	        var totalCost = needs.Sum(n => n.CostUsd);
+
+	        var ammoName = defs.Ammo.TryGetValue(ammoId, out var adef) ? adef.DisplayName : ammoId;
+	        var summaryParts = new List<string> { $"{ammoName}: {ammoCount}" };
+	        foreach (var n in needs)
+	        {
+	            // Skip primary ammo since we already show it first.
+	            if (string.Equals(n.AmmoId, ammoId, StringComparison.OrdinalIgnoreCase)) continue;
+	            summaryParts.Add($"{n.DisplayName}: {n.Current}/{n.Target}");
+	        }
+
+	        var summary = string.Join("   |   ", summaryParts);
+	        _lblAmmo.Text = $"{summary}\nRefill cost (all weapons): ${totalCost}    Money: ${money}";
+
+	        if (_btnRefillAll != null)
+	        {
+	            _btnRefillAll.Text = totalNeed > 0 ? $"Refill All (${totalCost})" : "Refill All";
+	            _btnRefillAll.Disabled = totalNeed <= 0 || money < totalCost;
+	        }
     }
+
+	    private void RefillAllAmmo()
+	    {
+	        var app = App.Instance;
+	        if (app == null || _vehicle == null) return;
+
+	        var session = app.Services.Get<GameSession>();
+	        var defs = app.Services.Get<DefDatabase>();
+	
+	        var needs = ComputeAmmoNeedsForInstalledWeapons(defs, _vehicle)
+	            .Where(n => n.Need > 0)
+	            .ToList();
+	        if (needs.Count == 0)
+	        {
+	            RefreshAmmoUi(session, defs);
+	            return;
+	        }
+
+	        var totalCost = needs.Sum(n => n.CostUsd);
+	        var money = session.Save.Player.MoneyUsd;
+	        if (money < totalCost)
+	        {
+	            GD.Print($"[Workshop] Refill all ammo failed: need ${totalCost}.");
+	            RefreshAmmoUi(session, defs);
+	            return;
+	        }
+
+	        foreach (var n in needs)
+	        {
+	            if (!session.TryBuyAmmoForActiveVehicle(n.AmmoId, n.Need, n.UnitCostUsd, out var err))
+	            {
+	                GD.Print($"[Workshop] Refill all ammo failed on {n.AmmoId}: {err}");
+	                break;
+	            }
+	        }
+
+	        _vehicle = session.GetActiveVehicle();
+	        GD.Print("[Workshop] Refilled ammo for all installed weapons.");
+	        RefreshAmmoUi(session, defs);
+	    }
 
     private void BuyAmmo(int count)
     {
@@ -358,16 +482,17 @@ public partial class WorkshopView : Control
         _vehicle = updated;
         GD.Print("[Workshop] Applied changes to active vehicle.");
     }
-
     private void Back()
     {
-        var parent = GetParent();
-        if (parent == null) return;
+		var app = App.Instance;
+		if (app == null) return;
+			if (!app.Services.TryGet<IGameNavigator>(out var nav) || nav == null)
+			{
+				GD.PrintErr("[WorkshopView] IGameNavigator not registered (cannot navigate back to CityShell).");
+				return;
+			}
 
-        var scene = GD.Load<PackedScene>("res://Scenes/UI/CityShell.tscn");
-        var ui = scene.Instantiate();
-        parent.AddChild(ui);
-        QueueFree();
+			nav.ToCityShell(this);
     }
 
     private static void SelectByMetadata(OptionButton opt, string desired)

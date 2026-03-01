@@ -2,7 +2,7 @@
 
 This is the canonical checklist for sourcing + organizing audio for the project.
 
-## Folder plan (inside the repo)
+## Folder plan (inside the project)
 Audio lives under `Assets/Audio/`.
 
 - `Assets/Audio/_INBOX/` *(raw downloads; never referenced by the game)*
@@ -17,7 +17,7 @@ Audio lives under `Assets/Audio/`.
 - `Assets/Audio/Ambience/`
 - `Assets/Audio/Music/` *(optional later)*
 
-> Repo workflow note: our standard AI-delivered project zip excludes `Assets/` to keep downloads small.
+> Workflow note: our standard AI-delivered project zip excludes `Assets/` to keep downloads small.
 > If we need to add/adjust files under `Assets/Audio/`, we do it via a separate small “asset bundle” zip.
 
 ## Licensing gate (non-negotiable)

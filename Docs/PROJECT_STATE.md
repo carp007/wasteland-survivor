@@ -1,7 +1,9 @@
 # Project State (Canonical “where we are”)
 
 ## North star
-See **Master Game Design Prompt** (project file). That document is authoritative even if early prototypes are simplified.
+See `Docs/MASTER_GAME_SPEC.md` (authoritative design north star). It mirrors the longer “Master Game Design Prompt” used to seed new threads.
+
+See also `Docs/CODEMAP.md` for a quick “where to look” map.
 
 ## Engine / tech
 - Godot 4.6.1 Mono
@@ -20,13 +22,15 @@ See **Master Game Design Prompt** (project file). That document is authoritative
 - Arena uses `Scenes/UI/ArenaRealtimeView.tscn`, which instantiates `Scenes/Arena/ArenaWorld.tscn` into `WorldRoot`.
 - `Scenes/Arena/ArenaWorld.tscn` and `Scenes/Arena/VehiclePawn.tscn` are intentionally **minimal**; the arena floor/walls and pawn collision/visuals are generated procedurally in code for robustness.
 - VehiclePawn now supports **weapon mount points** (fixed + turret) driven by vehicle defs and can render **mounted weapon visuals** (proxy boxes for now).
-- Camera is locked to the active pawn (currently the vehicle; later: driver on-foot).
+- Camera is locked to the active pawn (vehicle or driver on-foot).
 
 ## Controls (arena)
-- W/S = throttle forward / brake-reverse
-- A/D = steering
+- W/S = throttle forward / brake-reverse (in vehicle)
+- A/D = steering (in vehicle)
 - Space = fire
 - Tab = cycle targets
+- **E** = exit/enter vehicle (contextual; exit only when stopped/slow; enter when close to vehicle)
+- On-foot: WASD to move (top-down); **Shift** to sprint
 - If no target selected, closest target auto-selects
 - F11 = toggle fullscreen/windowed
 
@@ -40,6 +44,8 @@ See **Master Game Design Prompt** (project file). That document is authoritative
   - weight + tire condition impact effective speed/traction
 - VehicleStatusHud also shows **Mass** (vehicle + weapons + ammo + towing).
 - Player gets immediate feedback on shots: **center hit marker** + hit/miss SFX; tire-pop SFX plays when a tire is destroyed.
+- Vehicles now play **layered positional engine audio** (5 RPM layers crossfaded + subtle pitch) via the `Engines` audio bus.
+- Hard braking at speed triggers a temporary **tire skid** placeholder SFX (replace with real skid audio later).
 
 - Target HUD is a dedicated **TargetStatusHud** (upper-left): single-line, centered layout with HP/AP **bars** (values inside the bars).
 - A simple **3D target indicator** (procedural glowing ring + marker) follows the selected target so Tab targeting is readable without relying solely on HUD text.
@@ -107,6 +113,8 @@ B) Realtime combat playability (after A is stable)
 - Simple handling/traction tuning
 
 ## Screen overlays
+- Active UI *screens* under `UIRoot` are swapped via `ScreenRouter` (registered in `App.Services` by `AppRoot`).
+
 - Overlays live under `Scenes/Main.tscn` → `OverlayRoot` (CanvasLayer layer=100) so they always stay above active UI.
 - `ConsoleOverlay`: bottom-left overlay (~60% screen width), toggled with tilde (~).
   - Expanded: shaded header + scrollable history + command input.
@@ -142,3 +150,6 @@ Notes:
 
 - Build 2026-02-23-09: Fixed bullet hit registration when firing straight by extending vehicle hitboxes upward (mounts sit higher than the pawn's movement collider) and making raycasts explicitly test all collision layers.
 
+
+- Driver Exit / On-foot: E to exit/enter; enemy AI targets driver while on-foot; VehicleStatusHud hides while on-foot; driver takes damage from vehicle collisions.
+  - DriverPawn supports a Mixamo avatar scene loaded at runtime (see `Docs/Assets/MIXAMO_DRIVER_SETUP.md`).

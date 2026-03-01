@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Game/Session/SessionWorld.cs
+// Purpose: Focused session service that mutates SaveGameState via SessionContext.
+// -------------------------------------------------------------------------------------------------
 using System;
 
 namespace WastelandSurvivor.Game.Session;

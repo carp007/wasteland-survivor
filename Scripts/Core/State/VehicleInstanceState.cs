@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Core/State/VehicleInstanceState.cs
+// Purpose: Serializable runtime/persisted state records (SaveGameState and related sub-records).
+// -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using WastelandSurvivor.Core.Defs;
@@ -17,6 +22,9 @@ public sealed record TowingState
     public float TotalTowedMassKgCached { get; init; } = 0f;
 }
 
+/// <summary>
+/// Persisted per-vehicle instance state (section/tire HP/AP, ammo inventory, upgrades, and installed parts).
+/// </summary>
 public sealed record VehicleInstanceState
 {
     public string InstanceId { get; init; } = Guid.NewGuid().ToString("N");

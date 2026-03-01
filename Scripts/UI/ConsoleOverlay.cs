@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/UI/ConsoleOverlay.cs
+// Purpose: In-game console overlay. Displays GameConsole history, supports command input, and provides a collapsed one-line mode.
+// -------------------------------------------------------------------------------------------------
 using System;
 using Godot;
 
@@ -37,6 +42,7 @@ public partial class ConsoleOverlay : Control
 
 	public override void _Ready()
 	{
+		GameUiTheme.ApplyToTree(this);
 		// Ensure this overlay is clickable/interactive and renders above other UI.
 		MouseFilter = MouseFilterEnum.Stop;
 		FocusMode = FocusModeEnum.All;
@@ -55,7 +61,7 @@ public partial class ConsoleOverlay : Control
 		OffsetBottom = -BottomMargin;
 		OffsetTop = OffsetBottom - ExpandedHeight;
 
-		Visible = true;
+		Visible = false;
 		_expanded = true;
 
 		_panel = new PanelContainer
@@ -114,8 +120,11 @@ public partial class ConsoleOverlay : Control
 		}
 
 		ApplyExpandedState();
-		CallDeferred(nameof(MoveToFront));
-		CallDeferred(nameof(FocusInputIfVisible));
+		// When calling engine methods by string (deferred/Call), use snake_case.
+		// ("MoveToFront" would look for a C# method and fail.)
+		CallDeferred("move_to_front");
+		if (Visible)
+			CallDeferred(nameof(FocusInputIfVisible));
 	}
 
 	public override void _ExitTree()
@@ -142,7 +151,8 @@ public partial class ConsoleOverlay : Control
 		{
 			Visible = !Visible;
 			if (Visible)
-				CallDeferred(nameof(FocusInputIfVisible));
+				if (Visible)
+			CallDeferred(nameof(FocusInputIfVisible));
 			GetViewport().SetInputAsHandled();
 		}
 	}
@@ -326,6 +336,7 @@ public partial class ConsoleOverlay : Control
 		_expanded = expanded;
 		ApplyExpandedState();
 		if (Visible)
+			if (Visible)
 			CallDeferred(nameof(FocusInputIfVisible));
 	}
 

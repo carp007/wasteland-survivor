@@ -1,0 +1,11 @@
+Model Information:
+* title:	M2 .50cal machinegun (CC0)
+* source:	https://sketchfab.com/3d-models/m2-50cal-machinegun-cc0-cbd897c1e1554fae9a5302a79ed59640
+* author:	britdawgmasterfunk (https://sketchfab.com/britdawgmasterfunk)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "M2 .50cal machinegun (CC0)" (https://sketchfab.com/3d-models/m2-50cal-machinegun-cc0-cbd897c1e1554fae9a5302a79ed59640) by britdawgmasterfunk (https://sketchfab.com/britdawgmasterfunk) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

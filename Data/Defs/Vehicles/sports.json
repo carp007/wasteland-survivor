@@ -45,6 +45,13 @@
       "ArcDegrees": 60,
       "CanAutoAim": true,
       "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "B1",
+      "MountLocation": "Rear",
+      "ArcDegrees": 0,
+      "CanAutoAim": false,
+      "MaxWeaponSize": 1
     }
   ],
   "AllowedEngineClasses": [

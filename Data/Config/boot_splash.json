@@ -1,0 +1,20 @@
+{
+  "defaultSeconds": 2.5,
+  "fadeInSeconds": 0.2,
+  "fadeOutSeconds": 0.2,
+  "gapSeconds": 0.12,
+  "background": "#000000",
+  "defaultOpenSound": "",
+  "items": [
+    {
+      "path": "res://Assets/Images/studio.png",
+      "seconds": 3.5,
+      "openSound": ""
+    },
+    {
+      "path": "res://Assets/Images/title.png",
+      "seconds": 2.5,
+      "openSound": ""
+    }
+  ]
+}

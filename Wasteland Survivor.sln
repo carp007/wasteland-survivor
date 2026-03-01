@@ -1,19 +1,30 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wasteland Survivor", "Wasteland Survivor.csproj", "{15F35F69-E81E-4D4F-97C4-37C957E639C7}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wasteland Survivor", "Wasteland Survivor.csproj", "{1042FCB4-BF52-41CB-B99E-8810C0EDEAAF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WastelandSurvivor.UiKit", "UiKit/WastelandSurvivor.UiKit.csproj", "{CA5812D1-3E5F-4419-85DF-397E2FED771C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-	Debug|Any CPU = Debug|Any CPU
-	ExportDebug|Any CPU = ExportDebug|Any CPU
-	ExportRelease|Any CPU = ExportRelease|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{15F35F69-E81E-4D4F-97C4-37C957E639C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{15F35F69-E81E-4D4F-97C4-37C957E639C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{15F35F69-E81E-4D4F-97C4-37C957E639C7}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
-		{15F35F69-E81E-4D4F-97C4-37C957E639C7}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
-		{15F35F69-E81E-4D4F-97C4-37C957E639C7}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
-		{15F35F69-E81E-4D4F-97C4-37C957E639C7}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{1042FCB4-BF52-41CB-B99E-8810C0EDEAAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1042FCB4-BF52-41CB-B99E-8810C0EDEAAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1042FCB4-BF52-41CB-B99E-8810C0EDEAAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1042FCB4-BF52-41CB-B99E-8810C0EDEAAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA5812D1-3E5F-4419-85DF-397E2FED771C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA5812D1-3E5F-4419-85DF-397E2FED771C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA5812D1-3E5F-4419-85DF-397E2FED771C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA5812D1-3E5F-4419-85DF-397E2FED771C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	ExtensibilityGlobals
+		SolutionGuid = {10E1B0A3-AEA3-4AB5-BC58-78F7BA720DEC}
+	EndExtensibilityGlobals
 EndGlobal

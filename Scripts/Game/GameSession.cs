@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Game/GameSession.cs
+// Purpose: Facade over the current SaveGameState plus focused session services (World/Garage/Encounters). UI should call into this, not mutate save state directly.
+// -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using WastelandSurvivor.Core.Defs;
@@ -15,7 +20,7 @@ namespace WastelandSurvivor.Game;
 public sealed class GameSession
 {
 	// Bump this when we introduce backward-compatible save migrations.
-	private const int CurrentSaveVersion = 6;
+	private const int CurrentSaveVersion = 7;
 
 	private readonly SessionContext _ctx;
 

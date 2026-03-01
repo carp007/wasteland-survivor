@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Game/Systems/EncounterLogUtil.cs
+// Purpose: Pure or near-pure gameplay math/logic (no Godot nodes), called by session/UI.
+// -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
 
 namespace WastelandSurvivor.Game.Systems;

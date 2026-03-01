@@ -15,6 +15,12 @@
 - If you replace the project by unzipping over an existing folder, prefer deleting the target folder first.
   - If you must unzip over an existing folder, be careful of stale `.cs` files that can cause duplicate-type compile errors.
 
+
+## IDE / solution
+- Open `Wasteland Survivor.sln` to see both projects:
+  - `Wasteland Survivor` (main game)
+  - `WastelandSurvivor.UiKit` (shared UI/dialog toolkit)
+
 ## Smoke tests
 - City shell opens
 - Garage renders vehicles
@@ -25,4 +31,6 @@
 
 ## Overlay sanity
 - `~` toggles the Console overlay.
-- Console defaults to visible/open and sits at the bottom-center (~60% screen width).
+- Console defaults to hidden/closed and sits near the bottom-left (~60% screen width).
+
+- Esc opens the pause menu overlay.

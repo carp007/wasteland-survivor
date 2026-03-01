@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/UI/HitMarkerOverlay.cs
+// Purpose: UI view/controller code for scenes under Scenes/UI.
+// -------------------------------------------------------------------------------------------------
 using Godot;
 
 namespace WastelandSurvivor.Game.UI;
@@ -11,6 +16,7 @@ public partial class HitMarkerOverlay : Control
 	private float _tRemaining = 0f;
 	private float _tTotal = 0.12f;
 	private Color _color = Colors.White;
+	private Vector2? _screenPos;
 
 	public override void _Ready()
 	{
@@ -24,6 +30,21 @@ public partial class HitMarkerOverlay : Control
 		_color = color;
 		_tTotal = Mathf.Max(0.05f, durationSeconds);
 		_tRemaining = _tTotal;
+		_screenPos = null;
+		Visible = true;
+		QueueRedraw();
+	}
+
+	/// <summary>
+	/// Flash the marker at a specific screen position (in viewport pixels).
+	/// Useful for showing hit confirmation at the actual impact location.
+	/// </summary>
+	public void FlashAt(Vector2 screenPos, Color color, float durationSeconds = 0.12f)
+	{
+		_color = color;
+		_tTotal = Mathf.Max(0.05f, durationSeconds);
+		_tRemaining = _tTotal;
+		_screenPos = screenPos;
 		Visible = true;
 		QueueRedraw();
 	}
@@ -52,8 +73,9 @@ public partial class HitMarkerOverlay : Control
 		var alpha = Mathf.Clamp(_tRemaining / _tTotal, 0f, 1f);
 		var c = new Color(_color.R, _color.G, _color.B, alpha);
 
-		// Center of the viewport.
-		var center = Size * 0.5f;
+		// Default: center of the viewport (classic FPS-style hit marker).
+		// If a screen position is provided, draw at that location.
+		var center = _screenPos ?? (Size * 0.5f);
 		// Marker geometry (pixels)
 		const float gap = 7f;
 		const float len = 10f;

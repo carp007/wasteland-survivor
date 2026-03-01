@@ -1,5 +1,11 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/UI/TargetStatusHud.cs
+// Purpose: UI view/controller code for scenes under Scenes/UI.
+// -------------------------------------------------------------------------------------------------
 using System;
 using Godot;
+using WastelandSurvivor.Framework.SceneBinding;
 
 namespace WastelandSurvivor.Game.UI;
 
@@ -16,21 +22,29 @@ public partial class TargetStatusHud : PanelContainer
 	// Everything except the "Target:" prefix and name.
 	private CanvasItem[] _hpApItems = Array.Empty<CanvasItem>();
 
-	public override void _Ready()
+	private void EnsureBound()
 	{
-		_lblTargetName = GetNode<Label>("Center/HBox/LblTargetName");
-		_hpBar = GetNode<ValueBar>("Center/HBox/HpBar");
-		_apBar = GetNode<ValueBar>("Center/HBox/ApBar");
+		var b = new SceneBinder(this, nameof(TargetStatusHud));
+		_lblTargetName = b.Req<Label>("Center/HBox/LblTargetName");
+		_hpBar = b.Req<ValueBar>("Center/HBox/HpBar");
+		_apBar = b.Req<ValueBar>("Center/HBox/ApBar");
 
 		_hpApItems = new CanvasItem[]
 		{
-			GetNode<CanvasItem>("Center/HBox/Spacer1"),
-			GetNode<CanvasItem>("Center/HBox/LblHp"),
-			GetNode<CanvasItem>("Center/HBox/HpBar"),
-			GetNode<CanvasItem>("Center/HBox/Spacer2"),
-			GetNode<CanvasItem>("Center/HBox/LblAp"),
-			GetNode<CanvasItem>("Center/HBox/ApBar"),
+			b.Req<CanvasItem>("Center/HBox/Spacer1"),
+			b.Req<CanvasItem>("Center/HBox/LblHp"),
+			b.Req<CanvasItem>("Center/HBox/HpBar"),
+			b.Req<CanvasItem>("Center/HBox/Spacer2"),
+			b.Req<CanvasItem>("Center/HBox/LblAp"),
+			b.Req<CanvasItem>("Center/HBox/ApBar"),
 		};
+	}
+
+	public override void _Ready()
+	{
+
+		GameUiTheme.ApplyToTree(this);
+		EnsureBound();
 	}
 
 	public void SetTarget(string? targetName, int hpCur, int hpMax, int apCur, int apMax)

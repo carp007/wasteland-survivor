@@ -1,7 +1,15 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Core/State/PlayerProfileState.cs
+// Purpose: Serializable runtime/persisted state records (SaveGameState and related sub-records).
+// -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
 
 namespace WastelandSurvivor.Core.State;
 
+/// <summary>
+/// Persisted player profile/progression (money, city, owned/active vehicles, driver HP/AP and equipped armor).
+/// </summary>
 public sealed record PlayerProfileState
 {
     public int MoneyUsd { get; init; } = 1000;

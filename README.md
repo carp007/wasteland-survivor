@@ -23,11 +23,14 @@ Notes:
 - `Docs/AI_README.md` – canonical onboarding for new ChatGPT threads
 - `Docs/MASTER_GAME_SPEC.md` – authoritative design north star
 - `Docs/PROJECT_STATE.md` – canonical current state
+- `Docs/CODEMAP.md` – quick “where to look” map
+- `Docs/REFRACTORING_PLAN.md` – refactor opportunities + reusable component plan (proposal)
 - `Docs/BUILD_RUN.md` – wiring + smoke tests
 - `Docs/AI_WORKFLOW.md` – how to keep ChatGPT threads fast/clean
-- `Docs/REPO_WORKFLOW.md` – repo-based iteration + zip packaging rules
+- `Docs/REPO_WORKFLOW.md` – zip-based iteration + packaging rules (Project source zips)
 - `Docs/THREAD_HANDOFF_PROMPT.md` – copy/paste prompt for new threads
 - `Docs/ASSISTANT_PLAYBOOK.md` – internal “what works / what doesn’t” notes to prevent repeated workflow dead-ends
 - `Docs/Audio/AUDIO_CHECKLIST.md` – audio sourcing + organization checklist (plus license templates)
+- `Docs/Assets/README.md` – optional asset setup (local paths; Assets aren’t shipped in AI zips)
 - `Docs/NEXT_TASK.md` – the next small step
 - `CHANGELOG.md` + `VERSION.txt` – track what changed and current build id

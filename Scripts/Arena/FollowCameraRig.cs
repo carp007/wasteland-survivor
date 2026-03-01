@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Arena/FollowCameraRig.cs
+// Purpose: Arena gameplay/runtime support (3D world, pawns, VFX).
+// -------------------------------------------------------------------------------------------------
 using Godot;
 
 namespace WastelandSurvivor.Game.Arena;
@@ -25,17 +30,35 @@ public partial class FollowCameraRig : Node3D
 	public void SetTarget(Node3D? target)
 	{
 		_target = target;
+
 		// Snap immediately so the first rendered frame has a sane camera pose.
-		if (_target != null && GodotObject.IsInstanceValid(_target))
+		// IMPORTANT: GlobalPosition access throws warnings if the target isn't in the scene tree yet.
+		if (_target == null || !GodotObject.IsInstanceValid(_target))
+			return;
+
+		if (!_target.IsInsideTree())
 		{
-			GlobalPosition = _target.GlobalPosition + Offset;
-			LookAt(_target.GlobalPosition, Vector3.Up);
+			CallDeferred(nameof(SnapToTarget));
+			return;
 		}
+
+		SnapToTarget();
+	}
+
+	private void SnapToTarget()
+	{
+		if (_target == null || !GodotObject.IsInstanceValid(_target)) return;
+		if (!_target.IsInsideTree()) return;
+
+		GlobalPosition = _target.GlobalPosition + Offset;
+		LookAt(_target.GlobalPosition, Vector3.Up);
 	}
 
 	public override void _Process(double delta)
 	{
 		if (_target == null || !GodotObject.IsInstanceValid(_target)) return;
+		if (!_target.IsInsideTree()) return;
+
 		var dt = (float)delta;
 		var desired = _target.GlobalPosition + Offset;
 		GlobalPosition = GlobalPosition.Lerp(desired, 1f - Mathf.Exp(-FollowLerp * dt));

@@ -1,3 +1,1 @@
-Wasteland Survivor
-Build: 2026-02-23-13
-Notes: Added audio sourcing docs + licensing templates (`Docs/Audio/*`) and restored the missing `Docs/ASSISTANT_PLAYBOOK.md`; updated onboarding docs to reference audio checklist. Packaging rules unchanged: AI zips exclude `.git/`, `.godot/`, and `Assets/`.
+Build: 2026-03-01-11

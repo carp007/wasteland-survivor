@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Game/GameLog.cs
+// Purpose: Game-layer services and facades (session, balance, logging).
+// -------------------------------------------------------------------------------------------------
 using Godot;
 
 namespace WastelandSurvivor.Game;

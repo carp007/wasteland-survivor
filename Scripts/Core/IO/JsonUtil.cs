@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Core/IO/JsonUtil.cs
+// Purpose: Serialization and definition loading helpers (Godot file access + System.Text.Json).
+// -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using System.Text.Json;

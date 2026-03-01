@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Arena/ArenaVfx.cs
+// Purpose: Arena gameplay/runtime support (3D world, pawns, VFX).
+// -------------------------------------------------------------------------------------------------
 using System;
 using Godot;
 
@@ -28,6 +33,36 @@ public static class ArenaVfx
 
 		if (hit)
 			SpawnFlash(root, endWorld, new Color(1.0f, 0.95f, 0.75f), radius: 0.22f, ttlSeconds: 0.10f);
+	}
+
+	/// <summary>
+	/// Projectile-style shot: a single visible bullet traveling from muzzle to end.
+	/// Damage application is handled by the caller; this is purely visuals.
+	/// </summary>
+	public static float SpawnProjectileShot(
+		ArenaWorld world,
+		Vector3 muzzleWorld,
+		Vector3 endWorld,
+		bool fromPlayer,
+		bool hit,
+		float projectileSpeed)
+	{
+		var root = world.GetVfxRoot();
+		var color = fromPlayer
+			? new Color(1.0f, 0.92f, 0.35f)
+			: new Color(1.0f, 0.45f, 0.45f);
+
+		SpawnFlash(root, muzzleWorld, fromPlayer ? new Color(1.0f, 0.95f, 0.55f) : new Color(1.0f, 0.6f, 0.6f), radius: 0.20f, ttlSeconds: 0.06f);
+
+		return BulletProjectileVfx3D.Spawn(root, muzzleWorld, endWorld, projectileSpeed, color,
+			onArrive: () =>
+			{
+				if (hit)
+				{
+					SpawnFlash(root, endWorld, new Color(1.0f, 0.95f, 0.75f), radius: 0.22f, ttlSeconds: 0.10f);
+					SpawnSparks(world, endWorld + new Vector3(0f, 0.06f, 0f), count: 4);
+				}
+			});
 	}
 
 	public static void SpawnSparks(ArenaWorld world, Vector3 atWorld, int count = 3)

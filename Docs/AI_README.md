@@ -11,6 +11,7 @@ That document is the source of truth even if early prototypes simplify or stub s
 ## 2) Current implementation state
 Then read:
 - `Docs/PROJECT_STATE.md`
+- `Docs/CODEMAP.md` (where to look in the code)
 
 This is the canonical “where we are today” snapshot.
 
@@ -25,6 +26,9 @@ Then read:
 - `Docs/THREAD_HANDOFF_PROMPT.md`
 - `Docs/ASSISTANT_PLAYBOOK.md` (internal “what works / what doesn’t” notes)
 - `Docs/Audio/AUDIO_CHECKLIST.md` (audio checklist + licensing templates)
+- `Docs/REFRACTORING_PLAN.md` (proposal: refactor opportunities + reusable components)
+- `Docs/REFRACTORING_PROGRESS.md` (completed refactor steps; each ships as a zip)
+- `Docs/Assets/README.md` (optional asset setup paths; Assets are not shipped in AI zips)
 
 ## 5) What to do next
 Finally read:
@@ -32,6 +36,7 @@ Finally read:
 
 ## Working rules (summary)
 - Keep changes incremental and compile-safe.
+- UI/dialog framework code lives in the `UiKit/` project; game-specific UI screens live under `Scenes/UI` + `Scripts/UI`.
 - Prefer simple, explicit code over clever abstractions.
 - Save/state changes must be backward compatible (or include a small migration).
 - Turn-based arena is deprecated/removed. Don’t reintroduce it.

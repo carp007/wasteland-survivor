@@ -1,8 +1,16 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Core/State/SaveGameState.cs
+// Purpose: Serializable runtime/persisted state records (SaveGameState and related sub-records).
+// -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 
 namespace WastelandSurvivor.Core.State;
 
+/// <summary>
+/// Root persisted state (saved as JSON). Versioned and migrated forward by SaveMigration.
+/// </summary>
 public sealed record SaveGameState
 {
     public int Version { get; init; } = 1;

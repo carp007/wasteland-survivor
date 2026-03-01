@@ -1,11 +1,18 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Arena/VehiclePawn.cs
+// Purpose: 3D vehicle pawn (CharacterBody3D). Handles movement/handling, visuals, hitboxes, weapon mounts/muzzles, and exposes audio telemetry.
+// -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Godot;
 using WastelandSurvivor.Core.Defs;
 using WastelandSurvivor.Core.IO;
 using WastelandSurvivor.Core.State;
 using WastelandSurvivor.Game.Systems;
+using WastelandSurvivor.Game.Audio;
 
 namespace WastelandSurvivor.Game.Arena;
 
@@ -13,19 +20,46 @@ namespace WastelandSurvivor.Game.Arena;
 /// Minimal 3D vehicle pawn for the early 2.5D transition.
 /// Kinematic-ish car movement on the XZ plane (Y up), using CharacterBody3D.
 /// </summary>
-public partial class VehiclePawn : CharacterBody3D
+public partial class VehiclePawn : CharacterBody3D, IVehicleAudioTelemetry
 {
+
+	// -------------------------------------------------------------------------------------------------
+	// File navigation (high level)
+	// - ConfigureLoadout(): connect DefDatabase + VehicleInstanceState to mounts/weapon visuals
+	// - _PhysicsProcess(): movement/handling (bicycle model + friction/drag) from ThrottleInput/SteerInput
+	// - Ensure*(): lazily builds visuals, hitboxes, mounts, and engine audio child nodes
+	// - Damage/VFX: section+tire hitboxes, blown-tire smoke/skid hooks
+	// - Audio: implements IVehicleAudioTelemetry for VehicleEngineAudio
+	// -------------------------------------------------------------------------------------------------
+
+	// --- Visuals (Passenger Car Pack) ---
+	[Export] public bool UsePassengerCarPackVisual = true;
+	[Export(PropertyHint.File, "*.gltf,*.glb,*.tscn")] public string PassengerCarPackScenePath = "res://Assets/Models/Vehicles/GenericPassengerCarPack/scene.gltf";
+	[Export] public string PassengerCarPackBodyNodeName = "Compact Body";
+	[Export] public string PassengerCarPackWheelRootPrefix = "Wheel_C"; // Wheel_C, Wheel_C001, Wheel_C002, Wheel_C003
+	[Export] public int PassengerCarPackPlayerVariantIndex = 1; // Body 1 for player
+	[Export] public int PassengerCarPackEnemyVariantIndex = 0;  // Body 0 for enemy
+	[Export] public float PassengerCarPackTargetLength = 3.25f; // roughly matches proxy length
+	[Export] public float PassengerCarPackMinVisibleLength = 0.5f; // if model imports tiny, we autoscale
+	[Export] public bool PassengerCarPackAutoAlignYaw = true; // attempts to align model long axis to vehicle forward (-Z)
+	// When true, logs model path + computed alignment vectors/angles to the Godot Output.
+	[Export] public bool PassengerCarPackDebugAlignment = true;
+	[Export] public Vector3 PassengerCarPackRotationDegrees = Vector3.Zero; // tweak if imported forward axis is off
+	[Export] public Vector3 PassengerCarPackExtraScale = Vector3.One; // extra user scale multiplier
+
 	[Export] public float MaxForwardSpeed = 18.0f;
 	[Export] public float MaxReverseSpeed = 8.0f;
-	[Export] public float Accel = 48.0f;
+	[Export] public float Accel = 16.0f;
+	[Export] public float AccelNearMaxFactor = 0.35f;
+	[Export] public float AccelSpeedFalloffExponent = 1.6f;
 
 	// Realism tuning (bicycle model + friction). Keep defaults gentle for early gameplay.
 	[Export] public float WheelbaseMeters = 2.6f;
-	[Export] public float CoastDecel = 18.0f;
+	[Export] public float CoastDecel = 3.5f;
 	[Export] public float BrakeDecel = 58.0f;
 	[Export] public float LateralFriction = 26.0f;
-	[Export] public float LinearDrag = 0.8f;
-	[Export] public float QuadraticDrag = 0.018f;
+	[Export] public float LinearDrag = 0.06f;
+	[Export] public float QuadraticDrag = 0.0012f;
 
 	[Export] public float FrontWheelMaxSteerDeg = 28f;
 	[Export] public float FrontWheelSteerLerp = 14f;
@@ -48,6 +82,7 @@ public partial class VehiclePawn : CharacterBody3D
 	public float SteerGrip { get; private set; } = 1f;
 	public float DriveGrip { get; private set; } = 1f;
 	private Node3D? _visualRoot;
+	private bool _usingPassengerCarPackVisual;
 	private readonly List<MeshInstance3D> _bodyMeshes = new();
 	private Node3D? _hitboxes;
 
@@ -56,6 +91,9 @@ public partial class VehiclePawn : CharacterBody3D
 	private readonly float[] _smokeCooldown = new float[4];
 	private readonly float[] _skidCooldown = new float[4];
 	private ArenaWorld? _arenaWorldCached;
+
+	// Audio
+	private VehicleEngineAudio? _engineAudio;
 
 	// Wheels (visual steering)
 	private Node3D? _wheelFlPivot;
@@ -68,6 +106,7 @@ public partial class VehiclePawn : CharacterBody3D
 	private Node3D? _mountsRoot;
 	private Node3D? _weaponsRoot;
 	private readonly Dictionary<string, Marker3D> _mountById = new();
+	private readonly Dictionary<string, Marker3D> _muzzleByMountId = new();
 	private readonly Dictionary<string, TurretInfo> _turretsByMountId = new();
 	private Marker3D? _primaryMuzzle;
 	private string? _primaryMountId;
@@ -102,6 +141,8 @@ public partial class VehiclePawn : CharacterBody3D
 		// Sensible initial values before defs are configured.
 		EffectiveMaxForwardSpeed = MaxForwardSpeed;
 		EffectiveMaxReverseSpeed = MaxReverseSpeed;
+
+		EnsureEngineAudio();
 	}
 
 	/// <summary>
@@ -111,6 +152,7 @@ public partial class VehiclePawn : CharacterBody3D
 	public void SetRuntimeState(VehicleInstanceState runtime)
 	{
 		_vehicleRuntime = runtime;
+		ApplyEngineAudioArchetype();
 	}
 
 	/// <summary>
@@ -133,9 +175,71 @@ public partial class VehiclePawn : CharacterBody3D
 			EnsureMountPoints(_vehicleDef);
 		AttachWeaponVisuals();
 		ApplyBodyColor();
+		ApplyEngineAudioArchetype();
 	}
 
-	private void EnsureVisualAndCollision()
+	
+
+private void EnsureEngineAudio()
+{
+	if (_engineAudio != null && GodotObject.IsInstanceValid(_engineAudio)) return;
+
+	VehicleEngineAudio? node = null;
+	try
+	{
+		var ps = GD.Load<PackedScene>("res://Scenes/Audio/VehicleEngineAudio.tscn");
+		if (ps != null)
+			node = ps.Instantiate() as VehicleEngineAudio;
+	}
+	catch
+	{
+		// Ignore and fall back to code-only node.
+	}
+
+	node ??= new VehicleEngineAudio();
+	node.Name = "EngineAudio";
+	AddChild(node);
+	node.SetTelemetrySource(this);
+	_engineAudio = node;
+
+	ApplyEngineAudioArchetype();
+}
+
+private void ApplyEngineAudioArchetype()
+{
+	if (_engineAudio == null || !GodotObject.IsInstanceValid(_engineAudio)) return;
+	var archetype = ComputeEngineArchetypeId();
+	_engineAudio.SetArchetype(archetype);
+}
+
+private string ComputeEngineArchetypeId()
+{
+	// Prefer the installed engine's fuel type when available; otherwise fall back to vehicle class.
+	if (_defs != null && _vehicleRuntime != null && !string.IsNullOrWhiteSpace(_vehicleRuntime.InstalledEngineId))
+	{
+		if (_defs.Engines.TryGetValue(_vehicleRuntime.InstalledEngineId!, out var eng))
+		{
+			if (eng.FuelType == FuelType.Diesel) return "diesel_truck";
+			if (eng.FuelType == FuelType.Electric) return "i4_compact"; // placeholder (no EV loops yet)
+
+		}
+
+	}
+
+	if (_vehicleDef != null)
+	{
+		return _vehicleDef.Class switch
+		{
+			VehicleClass.Compact => "i4_compact",
+			VehicleClass.LightTruck => "diesel_truck",
+			_ => "v8_muscle",
+		};
+	}
+
+	return "v8_muscle";
+}
+
+private void EnsureVisualAndCollision()
 	{
 		// Keep the .tscn minimal; ensure required child nodes exist.
 		var col = GetNodeOrNull<CollisionShape3D>("Collision");
@@ -150,8 +254,7 @@ public partial class VehiclePawn : CharacterBody3D
 		}
 
 
-		// Replace the old single-box mesh with a slightly more "car-like" proxy model.
-		// This remains box-based for robustness and because we'll swap to real imported models later.
+		// Vehicle visuals (proxy by default; optionally use imported passenger car pack).
 		_visualRoot = GetNodeOrNull<Node3D>("Visual");
 		if (_visualRoot == null)
 		{
@@ -163,6 +266,23 @@ public partial class VehiclePawn : CharacterBody3D
 		var legacy = GetNodeOrNull<MeshInstance3D>("BodyMesh");
 		if (legacy != null)
 			legacy.QueueFree();
+
+		_usingPassengerCarPackVisual = false;
+		if (UsePassengerCarPackVisual)
+		{
+			// If the model isn't already present, rebuild visuals.
+			var existing = _visualRoot.GetNodeOrNull<Node>("PassengerCarModel");
+			if (existing == null || !GodotObject.IsInstanceValid(existing))
+			{
+				ClearChildren(_visualRoot);
+				if (!TryBuildPassengerCarPackVisual(_visualRoot))
+				{
+					// Fallback for robustness.
+					ClearChildren(_visualRoot);
+					BuildProxyVehicleVisual(_visualRoot);
+				}
+			}
+		}
 
 		if (_visualRoot.GetChildCount() == 0)
 			BuildProxyVehicleVisual(_visualRoot);
@@ -232,7 +352,13 @@ public partial class VehiclePawn : CharacterBody3D
 			}
 			else
 			{
-				vFwd += throttle * accel * dt;
+				// Ease acceleration as we approach top speed so we don't hit max too quickly.
+				var maxFwdLocal = EffectiveMaxForwardSpeed > 0.01f ? EffectiveMaxForwardSpeed : MaxForwardSpeed;
+				var maxRevLocal = EffectiveMaxReverseSpeed > 0.01f ? EffectiveMaxReverseSpeed : MaxReverseSpeed;
+				var desiredMax = throttle >= 0f ? maxFwdLocal : maxRevLocal;
+				var spd01 = desiredMax > 0.01f ? Mathf.Clamp(MathF.Abs(vFwd) / desiredMax, 0f, 1f) : 0f;
+				var accelFactor = Mathf.Lerp(1f, Mathf.Clamp(AccelNearMaxFactor, 0.05f, 1f), MathF.Pow(spd01, MathF.Max(0.5f, AccelSpeedFalloffExponent)));
+				vFwd += throttle * accel * accelFactor * dt;
 			}
 		}
 		else
@@ -322,6 +448,27 @@ public partial class VehiclePawn : CharacterBody3D
 		return forward.Length() < 0.001f ? Vector3.Forward : forward.Normalized();
 	}
 
+	public Vector3 GetMuzzleWorldPosition(string mountId)
+	{
+		if (!string.IsNullOrWhiteSpace(mountId) && _muzzleByMountId.TryGetValue(mountId, out var muzzle) && GodotObject.IsInstanceValid(muzzle))
+			return muzzle.GlobalPosition;
+		return GetMuzzleWorldPosition();
+	}
+
+	public Vector3 GetMuzzleWorldForward(string mountId)
+	{
+		if (!string.IsNullOrWhiteSpace(mountId) && _muzzleByMountId.TryGetValue(mountId, out var muzzle) && GodotObject.IsInstanceValid(muzzle))
+		{
+			var f = -muzzle.GlobalTransform.Basis.Z;
+			f.Y = 0f;
+			if (f.Length() < 0.001f)
+				return GetMuzzleWorldForward();
+			return f.Normalized();
+		}
+		return GetMuzzleWorldForward();
+	}
+
+
 	
 	public Vector3 GetAimPointWorld()
 	{
@@ -329,8 +476,100 @@ public partial class VehiclePawn : CharacterBody3D
 		// Vehicle GlobalPosition is kept at ~half-height (y=0.4).
 		return GlobalPosition + Vector3.Up * 0.10f;
 	}
+
+	public Vector3 GetTireWorldPosition(int tireIndex)
+	{
+		// Matches the rough tire hitbox offsets used in EnsureHitboxes().
+		var local = tireIndex switch
+		{
+			0 => new Vector3(-0.9f, -0.05f, -1.3f), // FL
+			1 => new Vector3(0.9f, -0.05f, -1.3f),  // FR
+			2 => new Vector3(-0.9f, -0.05f, 1.3f),  // RL
+			3 => new Vector3(0.9f, -0.05f, 1.3f),   // RR
+			_ => Vector3.Zero
+		};
+		// Convert pawn-local to world.
+		var basis = GlobalTransform.Basis;
+		var origin = GlobalTransform.Origin;
+		return origin + basis * local;
+	}
+
+
+
+// --- IVehicleAudioTelemetry (engine audio driver) ---
+public float GetSpeedMps() => Velocity.Length();
+
+	// --- HUD helpers (RPM + gear display) ---
+	public float GetForwardSpeedSignedMps() => GetForwardSpeedMps();
+
+	public float GetEngineRpm01ForHud()
+	{
+		if (_engineAudio != null) return _engineAudio.CurrentRpm01;
+		var max = GetMaxSpeedMps();
+		return Mathf.Clamp(GetSpeedMps() / MathF.Max(0.01f, max), 0f, 1f);
+	}
+
+	public int GetEngineGearForHud()
+	{
+		if (_engineAudio != null) return Math.Max(1, _engineAudio.CurrentGear);
+		return 1;
+	}
+
+	public string GetEngineGearDisplayForHud()
+	{
+		// Treat reverse as "R" when backing up (or when the player is commanding reverse from a stop).
+		var vFwd = GetForwardSpeedMps();
+		if (vFwd < -0.6f) return "R";
+		if (MathF.Abs(vFwd) < 0.6f && ThrottleInput < -0.4f) return "R";
+		return GetEngineGearForHud().ToString();
+	}
+
+	public int GetEngineDisplayRpmForHud()
+	{
+		if (_engineAudio != null) return _engineAudio.GetDisplayRpm();
+		// Fallback mapping if audio not present.
+		var rpm01 = GetEngineRpm01ForHud();
+		return Mathf.RoundToInt(Mathf.Lerp(900f, 6500f, rpm01));
+	}
+
+public float GetMaxSpeedMps() => MathF.Max(0.01f, EffectiveMaxForwardSpeed > 0.01f ? EffectiveMaxForwardSpeed : MaxForwardSpeed);
+
+public float GetThrottle01()
+{
+	var throttle = Mathf.Clamp(ThrottleInput, -1f, 1f);
+	var vFwd = GetForwardSpeedMps();
+	// If nearly stopped, treat either direction as a rev.
+	if (MathF.Abs(vFwd) < 0.15f) return Mathf.Clamp(MathF.Abs(throttle), 0f, 1f);
+	// Forward acceleration.
+	if (vFwd > 0.15f && throttle > 0f) return throttle;
+	// Reverse acceleration.
+	if (vFwd < -0.15f && throttle < 0f) return -throttle;
+	return 0f;
+}
+
+public float GetBrake01()
+{
+	var throttle = Mathf.Clamp(ThrottleInput, -1f, 1f);
+	var vFwd = GetForwardSpeedMps();
+	// Braking when input opposes motion.
+	if (vFwd > 0.15f && throttle < 0f) return Mathf.Clamp(-throttle, 0f, 1f);
+	if (vFwd < -0.15f && throttle > 0f) return Mathf.Clamp(throttle, 0f, 1f);
+	return 0f;
+}
+
+private float GetForwardSpeedMps()
+{
+	var forward = -GlobalTransform.Basis.Z;
+	forward.Y = 0f;
+	forward = forward.Normalized();
+	return Velocity.Dot(forward);
+}
+
 private void ApplyBodyColor()
 	{
+		// Passenger car pack uses textured materials; do not override.
+		if (_usingPassengerCarPackVisual) return;
+
 		if (_visualRoot == null) return;
 		if (_bodyMeshes.Count == 0)
 		{
@@ -361,6 +600,627 @@ private void ApplyBodyColor()
 				into.Add(mi);
 			CollectMeshesByPrefix(child, prefix, into);
 		}
+	}
+
+	private static void ClearChildren(Node parent)
+	{
+		foreach (var childObj in parent.GetChildren())
+		{
+			if (childObj is Node n)
+				n.QueueFree();
+		}
+	}
+
+	private bool TryBuildPassengerCarPackVisual(Node3D parent)
+	{
+		string? scenePath = ResolvePassengerCarPackScenePath();
+		if (string.IsNullOrWhiteSpace(scenePath))
+		{
+			GD.PushWarning($"[VehiclePawn] Passenger car pack scene not found. Expected: {PassengerCarPackScenePath}");
+			return false;
+		}
+
+		if (PassengerCarPackDebugAlignment)
+			GD.Print($"[VehiclePawn] PassengerCarPack scene path: {scenePath}");
+
+		PackedScene? ps = null;
+		try
+		{
+			ps = GD.Load<PackedScene>(scenePath);
+		}
+		catch (Exception ex)
+		{
+			GD.PushWarning($"[VehiclePawn] Failed to load passenger car pack scene '{scenePath}': {ex.Message}");
+			return false;
+		}
+		if (ps == null)
+		{
+			GD.PushWarning($"[VehiclePawn] Passenger car pack scene load returned null: {scenePath}");
+			return false;
+		}
+
+		Node? inst;
+		try
+		{
+			inst = ps.Instantiate();
+		}
+		catch (Exception ex)
+		{
+			GD.PushWarning($"[VehiclePawn] Failed to instantiate passenger car pack scene '{scenePath}': {ex.Message}");
+			return false;
+		}
+		if (inst is not Node3D model)
+		{
+			inst.QueueFree();
+			GD.PushWarning($"[VehiclePawn] Passenger car pack scene root is not Node3D: {inst.GetType().Name}");
+			return false;
+		}
+
+		model.Name = "PassengerCarModel";
+		model.Position = Vector3.Zero;
+		// Start from a clean local transform; we'll apply alignment and then any user overrides.
+		model.RotationDegrees = Vector3.Zero;
+		model.Scale = PassengerCarPackExtraScale;
+		parent.AddChild(model);
+
+		// Visibility selection (choose one body + one wheel set).
+		ApplyPassengerCarPackSelection(model);
+		// Ensure transforms/materials are ready before measuring.
+		model.ForceUpdateTransform();
+
+		// If the import is extremely tiny (common for some Sketchfab exports), auto-scale to match our proxy.
+		AutoScaleAndCenterPassengerCar(model);
+
+		// Auto-align yaw so the car points the same direction as our proxy vehicle (forward is -Z).
+		AutoYawAlignPassengerCar(model);
+
+		// Apply any user override rotations (rarely needed once auto-align is in place).
+		if (PassengerCarPackRotationDegrees != Vector3.Zero)
+			model.RotationDegrees += PassengerCarPackRotationDegrees;
+
+		// Re-center after yaw/overrides so the model stays on the pawn origin.
+		AutoScaleAndCenterPassengerCar(model);
+
+		// Apply variant materials (Body 0 enemy, Body 1 player).
+		var variant = IsInGroup("player_vehicle") ? PassengerCarPackPlayerVariantIndex : PassengerCarPackEnemyVariantIndex;
+		ApplyPassengerCarPackVariantMaterials(model, variant);
+
+		// Bind wheel pivots for steering visuals.
+		BindPassengerCarWheels(model);
+
+		_usingPassengerCarPackVisual = true;
+		_bodyMeshes.Clear(); // so ApplyBodyColor won't reuse cached proxy meshes
+		return true;
+	}
+
+	private string? ResolvePassengerCarPackScenePath()
+	{
+		// 1) Use configured path if it exists.
+		if (!string.IsNullOrWhiteSpace(PassengerCarPackScenePath) && ResourceLoader.Exists(PassengerCarPackScenePath))
+			return PassengerCarPackScenePath;
+
+		// 2) Common fallbacks.
+		var fallbacks = new[]
+		{
+			"res://Assets/Models/Vehicles/GenericPassengerCarPack/scene.gltf",
+			"res://Assets/Models/Vehicles/generic_passenger_car_pack/scene.gltf",
+			"res://Assets/Models/GenericPassengerCarPack/scene.gltf",
+			"res://Assets/generic_passenger_car_pack/scene.gltf",
+		};
+		foreach (var p in fallbacks)
+			if (ResourceLoader.Exists(p))
+				return p;
+
+		// 3) Last resort: scan for a scene.gltf named like the pack.
+		try
+		{
+			var found = FindFirstFileRecursive("res://Assets", "scene.gltf");
+			if (!string.IsNullOrWhiteSpace(found))
+				return found;
+		}
+		catch
+		{
+			// ignore
+		}
+
+		return null;
+	}
+
+	private static string? FindFirstFileRecursive(string rootResPath, string fileName)
+	{
+		var dir = DirAccess.Open(rootResPath);
+		if (dir == null) return null;
+		dir.ListDirBegin();
+		while (true)
+		{
+			var name = dir.GetNext();
+			if (string.IsNullOrEmpty(name)) break;
+			if (name == "." || name == "..") continue;
+			var full = rootResPath.TrimEnd('/') + "/" + name;
+			if (dir.CurrentIsDir())
+			{
+				var sub = FindFirstFileRecursive(full, fileName);
+				if (!string.IsNullOrWhiteSpace(sub))
+				{
+					dir.ListDirEnd();
+					return sub;
+				}
+			}
+			else
+			{
+				if (string.Equals(name, fileName, StringComparison.OrdinalIgnoreCase))
+				{
+					dir.ListDirEnd();
+					return full;
+				}
+			}
+		}
+		dir.ListDirEnd();
+		return null;
+	}
+
+	private void ApplyPassengerCarPackSelection(Node3D model)
+	{
+		// Imported hierarchy typically includes a "RootNode" containing all bodies/wheels.
+		var root = model.FindChild("RootNode", recursive: true, owned: false) as Node3D;
+		if (root == null)
+		{
+			GD.PushWarning("[VehiclePawn] Passenger car pack: RootNode not found. Leaving model as-is.");
+			return;
+		}
+
+		foreach (var childObj in root.GetChildren())
+		{
+			if (childObj is not Node3D n) continue;
+			var nm = n.Name.ToString();
+
+			var keepBody = string.Equals(nm, PassengerCarPackBodyNodeName, StringComparison.OrdinalIgnoreCase);
+			var keepWheel = nm.StartsWith(PassengerCarPackWheelRootPrefix, StringComparison.OrdinalIgnoreCase);
+
+			// Hide everything except the chosen body + wheel set.
+			n.Visible = keepBody || keepWheel;
+		}
+	}
+
+	private void AutoScaleAndCenterPassengerCar(Node3D model)
+	{
+		// IMPORTANT:
+		// Measure bounds in the coordinate space of the model's *parent* (the VehiclePawn's "Visual" node),
+		// not in world space. World-space bounds include the pawn's spawn position and will create a huge
+		// constant offset between the vehicle origin (weapon mounts) and the visible model.
+		var parentSpace = model.GetParent() as Node3D ?? model;
+		if (!TryComputeAabbInSpace(model, parentSpace, out var aabb))
+			return;
+
+		var len = MathF.Max(aabb.Size.X, aabb.Size.Z);
+		if (len < 0.0001f) return;
+
+		// If the model is tiny, scale it up to match our proxy length.
+		if (len < PassengerCarPackMinVisibleLength)
+		{
+			var target = MathF.Max(0.5f, PassengerCarPackTargetLength);
+			var scaleFactor = target / len;
+			// Clamp to avoid catastrophic transforms.
+			scaleFactor = Mathf.Clamp(scaleFactor, 0.05f, 50000f);
+			model.Scale *= new Vector3(scaleFactor, scaleFactor, scaleFactor);
+			if (!TryComputeAabbInSpace(model, parentSpace, out aabb))
+				return;
+		}
+
+		// Center XZ and rest on the ground plane.
+		var center = aabb.Position + aabb.Size * 0.5f;
+		var bottomY = aabb.Position.Y;
+		model.Position -= new Vector3(center.X, bottomY, center.Z);
+	}
+
+	private void AutoYawAlignPassengerCar(Node3D model)
+	{
+		if (!PassengerCarPackAutoAlignYaw) return;
+
+		var parentSpace = model.GetParent() as Node3D ?? model;
+
+		// Prefer a wheel-axle based direction if we can find 4 wheels.
+		// This is far more stable than sampling mesh corners, and avoids "diagonal" PCA artifacts.
+		var method = "wheelAxle";
+		if (!TryComputeWheelAxleDirectionXZ(model, parentSpace, out var axisDir))
+		{
+			method = "pca";
+			var pts = CollectAlignmentPointsXZ(model, parentSpace);
+			if (pts.Count < 4) return;
+			axisDir = ComputePrincipalAxisXZ(pts);
+		}
+
+		if (axisDir.LengthSquared() < 0.000001f) return;
+		axisDir = axisDir.Normalized();
+
+		// Pick a consistent sign so we don't randomly flip 180° depending on wheel pair ordering.
+		// We prefer the axis direction that points "mostly forward" (-Z) in our parent space.
+		if (axisDir.Y > 0f)
+			axisDir = -axisDir;
+
+		// Convert to yaw (0 means pointing along -Z).
+		// NOTE: axisDir may be flipped (v or -v), but rotating by the computed heading always aligns
+		// the *axis* to our forward (-Z). Front/back can still be ambiguous for some models; if we
+		// ever hit that case, we handle it via an optional 180° override.
+		var heading = MathF.Atan2(axisDir.X, -axisDir.Y); // axisDir=(x,z) mapped to (x,y=z)
+		heading = WrapAnglePi(heading);
+
+		if (PassengerCarPackDebugAlignment)
+		{
+			var beforeDeg = model.RotationDegrees.Y;
+			var headingDeg = Mathf.RadToDeg(heading);
+			GD.Print($"[VehiclePawn] AutoYawAlign ({method}): axisDirXZ=({axisDir.X:0.###},{axisDir.Y:0.###}) headingDeg={headingDeg:0.##} beforeYawDeg={beforeDeg:0.##}");
+		}
+
+		// IMPORTANT: in Godot's coordinate system (forward = -Z), the yaw that maps a direction onto -Z
+		// is +heading (not -heading).
+		model.RotateY(heading);
+
+		if (PassengerCarPackDebugAlignment)
+		{
+			var afterDeg = model.RotationDegrees.Y;
+			GD.Print($"[VehiclePawn] AutoYawAlign: afterYawDeg={afterDeg:0.##}");
+		}
+	}
+
+	private bool TryComputeWheelAxleDirectionXZ(Node3D model, Node3D space, out Vector2 axisDir)
+	{
+		axisDir = Vector2.Zero;
+		var root = model.FindChild("RootNode", recursive: true, owned: false) as Node3D;
+		if (root == null) return false;
+
+		var invSpace = space.GlobalTransform.AffineInverse();
+		var wheels = new List<Vector2>(8);
+		foreach (var childObj in root.GetChildren())
+		{
+			if (childObj is not Node3D n) continue;
+			var nm = n.Name.ToString();
+			if (!nm.StartsWith(PassengerCarPackWheelRootPrefix, StringComparison.OrdinalIgnoreCase))
+				continue;
+			var rel = invSpace * n.GlobalTransform;
+			var p = rel.Origin;
+			wheels.Add(new Vector2(p.X, p.Z));
+		}
+		if (wheels.Count < 4) return false;
+
+		// Find two disjoint pairs with the smallest distance (these should be the axle widths).
+		var pairs = new List<(int i, int j, float d)>(16);
+		for (var i = 0; i < wheels.Count; i++)
+		for (var j = i + 1; j < wheels.Count; j++)
+		{
+			var d = wheels[i].DistanceTo(wheels[j]);
+			pairs.Add((i, j, d));
+		}
+		pairs.Sort((a, b) => a.d.CompareTo(b.d));
+
+		(int i, int j, float d) p1 = default;
+		(int i, int j, float d) p2 = default;
+		var got1 = false;
+		for (var k = 0; k < pairs.Count; k++)
+		{
+			var p = pairs[k];
+			if (!got1)
+			{
+				p1 = p;
+				got1 = true;
+				continue;
+			}
+			// second pair must be disjoint
+			if (p.i == p1.i || p.i == p1.j || p.j == p1.i || p.j == p1.j)
+				continue;
+			p2 = p;
+			break;
+		}
+		if (!got1 || p2.d <= 0f) return false;
+
+		var m1 = (wheels[p1.i] + wheels[p1.j]) * 0.5f;
+		var m2 = (wheels[p2.i] + wheels[p2.j]) * 0.5f;
+		var dAxis = m2 - m1;
+		if (dAxis.LengthSquared() < 0.000001f) return false;
+		axisDir = dAxis;
+		return true;
+	}
+
+	private List<Vector2> CollectAlignmentPointsXZ(Node3D model, Node3D space)
+	{
+		var pts = new List<Vector2>(64);
+		var invSpace = space.GlobalTransform.AffineInverse();
+
+		// Prefer wheel nodes if present (most stable for vehicles).
+		var root = model.FindChild("RootNode", recursive: true, owned: false) as Node3D;
+		if (root != null)
+		{
+			foreach (var childObj in root.GetChildren())
+			{
+				if (childObj is not Node3D n) continue;
+				var nm = n.Name.ToString();
+				if (!nm.StartsWith(PassengerCarPackWheelRootPrefix, StringComparison.OrdinalIgnoreCase))
+					continue;
+				var rel = invSpace * n.GlobalTransform;
+				var p = rel.Origin;
+				pts.Add(new Vector2(p.X, p.Z));
+			}
+		}
+
+		if (pts.Count >= 4) return pts;
+		pts.Clear();
+
+		// Fallback: sample mesh AABB corners transformed into the requested space.
+		var stack = new Stack<Node>();
+		stack.Push(model);
+		while (stack.Count > 0)
+		{
+			var n = stack.Pop();
+			foreach (var childObj in n.GetChildren())
+				if (childObj is Node child)
+					stack.Push(child);
+
+			if (n is not MeshInstance3D mi) continue;
+			if (mi.Mesh == null) continue;
+			if (!mi.IsVisibleInTree()) continue;
+
+			var rel = invSpace * mi.GlobalTransform;
+			var aabb = mi.GetAabb();
+			var p0 = aabb.Position;
+			var s = aabb.Size;
+			var corners = new Vector3[8]
+			{
+				p0,
+				p0 + new Vector3(s.X, 0f, 0f),
+				p0 + new Vector3(0f, s.Y, 0f),
+				p0 + new Vector3(0f, 0f, s.Z),
+				p0 + new Vector3(s.X, s.Y, 0f),
+				p0 + new Vector3(s.X, 0f, s.Z),
+				p0 + new Vector3(0f, s.Y, s.Z),
+				p0 + new Vector3(s.X, s.Y, s.Z),
+			};
+			for (var i = 0; i < corners.Length; i++)
+			{
+				var w = TransformPoint(rel, corners[i]);
+				pts.Add(new Vector2(w.X, w.Z));
+			}
+		}
+
+		return pts;
+	}
+
+	private static Vector2 ComputePrincipalAxisXZ(List<Vector2> pts)
+	{
+		if (pts.Count == 0) return Vector2.Zero;
+
+		var mean = Vector2.Zero;
+		foreach (var p in pts) mean += p;
+		mean /= pts.Count;
+
+		float sxx = 0f, szz = 0f, sxz = 0f;
+		foreach (var p in pts)
+		{
+			var dx = p.X - mean.X;
+			var dz = p.Y - mean.Y;
+			sxx += dx * dx;
+			szz += dz * dz;
+			sxz += dx * dz;
+		}
+		// Normalize by N (not required for eigenvectors, but keeps numbers sane).
+		var invN = 1f / MathF.Max(1, pts.Count);
+		sxx *= invN;
+		szz *= invN;
+		sxz *= invN;
+
+		// Eigenvector for the largest eigenvalue of [[sxx, sxz],[sxz, szz]].
+		var tr = sxx + szz;
+		var det = sxx * szz - sxz * sxz;
+		var disc = MathF.Sqrt(MathF.Max(0f, tr * tr * 0.25f - det));
+		var lambda1 = tr * 0.5f + disc;
+
+		Vector2 v;
+		if (MathF.Abs(sxz) > 0.000001f)
+			v = new Vector2(lambda1 - szz, sxz);
+		else
+			v = sxx >= szz ? new Vector2(1f, 0f) : new Vector2(0f, 1f);
+		return v;
+	}
+
+	private static float WrapAnglePi(float a)
+	{
+		// Wrap to (-PI, PI]
+		while (a <= -MathF.PI) a += MathF.Tau;
+		while (a > MathF.PI) a -= MathF.Tau;
+		return a;
+	}
+
+	private static bool TryComputeAabbInSpace(Node root, Node3D space, out Aabb aabb)
+	{
+		aabb = default;
+		var first = true;
+		var invSpace = space.GlobalTransform.AffineInverse();
+		var stack = new Stack<Node>();
+		stack.Push(root);
+		while (stack.Count > 0)
+		{
+			var n = stack.Pop();
+			foreach (var childObj in n.GetChildren())
+			{
+				if (childObj is Node child)
+					stack.Push(child);
+			}
+
+			if (n is not MeshInstance3D mi) continue;
+			if (mi.Mesh == null) continue;
+			if (!mi.IsVisibleInTree()) continue;
+
+			// Convert each mesh AABB into the requested space (typically the VehiclePawn's "Visual" node).
+			// NOTE: Godot C# bindings for Aabb do not expose the GDScript-style `transformed()` helper.
+			// We transform the 8 corners manually to avoid version/API differences.
+			var rel = invSpace * mi.GlobalTransform;
+			var mAabb = TransformAabb(mi.GetAabb(), rel);
+			if (first)
+			{
+				aabb = mAabb;
+				first = false;
+			}
+			else
+			{
+				aabb = aabb.Merge(mAabb);
+			}
+		}
+
+		return !first;
+	}
+
+	private static Aabb TransformAabb(Aabb localAabb, Transform3D xform)
+	{
+		var p = localAabb.Position;
+		var s = localAabb.Size;
+		var corners = new Vector3[8]
+		{
+			p,
+			p + new Vector3(s.X, 0f, 0f),
+			p + new Vector3(0f, s.Y, 0f),
+			p + new Vector3(0f, 0f, s.Z),
+			p + new Vector3(s.X, s.Y, 0f),
+			p + new Vector3(s.X, 0f, s.Z),
+			p + new Vector3(0f, s.Y, s.Z),
+			p + new Vector3(s.X, s.Y, s.Z),
+		};
+
+		var w0 = TransformPoint(xform, corners[0]);
+		var min = w0;
+		var max = w0;
+		for (var i = 1; i < corners.Length; i++)
+		{
+			var w = TransformPoint(xform, corners[i]);
+			min = new Vector3(Mathf.Min(min.X, w.X), Mathf.Min(min.Y, w.Y), Mathf.Min(min.Z, w.Z));
+			max = new Vector3(Mathf.Max(max.X, w.X), Mathf.Max(max.Y, w.Y), Mathf.Max(max.Z, w.Z));
+		}
+
+		return new Aabb(min, max - min);
+	}
+
+	private static Vector3 TransformPoint(Transform3D t, Vector3 v)
+	{
+		var b = t.Basis;
+		// Godot Basis columns (X/Y/Z) represent the transformed axes.
+		return t.Origin + b.X * v.X + b.Y * v.Y + b.Z * v.Z;
+	}
+
+	private void ApplyPassengerCarPackVariantMaterials(Node3D model, int variantIndex)
+	{
+		variantIndex = Mathf.Clamp(variantIndex, 0, 9);
+		var mats = CollectMaterialsByName(model);
+		if (mats.Count == 0) return;
+
+		// Swap materials on all visible nodes (body + wheels).
+		var pattern = new Regex(@"^(Body|Glass|Optics|Wheel|Wheek)_(\d+)$", RegexOptions.IgnoreCase);
+		var stack = new Stack<Node>();
+		stack.Push(model);
+		while (stack.Count > 0)
+		{
+			var n = stack.Pop();
+			foreach (var childObj in n.GetChildren())
+			{
+				if (childObj is Node child)
+					stack.Push(child);
+			}
+
+			if (n is not MeshInstance3D mi) continue;
+			if (mi.Mesh == null) continue;
+			if (!mi.IsVisibleInTree()) continue;
+
+			var surfaces = mi.Mesh.GetSurfaceCount();
+			for (var s = 0; s < surfaces; s++)
+			{
+				var mat = mi.GetSurfaceOverrideMaterial(s) ?? mi.Mesh.SurfaceGetMaterial(s);
+				if (mat == null) continue;
+				var name = GetMaterialName(mat);
+				if (string.IsNullOrWhiteSpace(name)) continue;
+
+				var m = pattern.Match(name);
+				if (!m.Success) continue;
+				var prefix = m.Groups[1].Value;
+				var desired = $"{prefix}_{variantIndex}";
+				if (mats.TryGetValue(desired, out var newMat))
+					mi.SetSurfaceOverrideMaterial(s, newMat);
+			}
+		}
+	}
+
+	private static Dictionary<string, Material> CollectMaterialsByName(Node root)
+	{
+		var dict = new Dictionary<string, Material>(StringComparer.OrdinalIgnoreCase);
+		var stack = new Stack<Node>();
+		stack.Push(root);
+		while (stack.Count > 0)
+		{
+			var n = stack.Pop();
+			foreach (var childObj in n.GetChildren())
+			{
+				if (childObj is Node child)
+					stack.Push(child);
+			}
+
+			if (n is not MeshInstance3D mi) continue;
+			if (mi.Mesh == null) continue;
+
+			var surfaces = mi.Mesh.GetSurfaceCount();
+			for (var s = 0; s < surfaces; s++)
+			{
+				var mat = mi.GetSurfaceOverrideMaterial(s) ?? mi.Mesh.SurfaceGetMaterial(s);
+				if (mat == null) continue;
+				var name = GetMaterialName(mat);
+				if (string.IsNullOrWhiteSpace(name)) continue;
+				if (!dict.ContainsKey(name))
+					dict[name] = mat;
+			}
+		}
+		return dict;
+	}
+
+	private static string GetMaterialName(Material mat)
+	{
+		if (!string.IsNullOrWhiteSpace(mat.ResourceName))
+			return mat.ResourceName;
+		// Godot sometimes leaves ResourceName blank for imported embedded resources.
+		var path = mat.ResourcePath;
+		if (string.IsNullOrWhiteSpace(path)) return "";
+		return System.IO.Path.GetFileNameWithoutExtension(path);
+	}
+
+	private void BindPassengerCarWheels(Node3D model)
+	{
+		_wheelFlPivot = null;
+		_wheelFrPivot = null;
+		_wheelRlPivot = null;
+		_wheelRrPivot = null;
+
+		var root = model.FindChild("RootNode", recursive: true, owned: false) as Node3D;
+		if (root == null) return;
+
+		var wheels = new List<Node3D>();
+		foreach (var childObj in root.GetChildren())
+		{
+			if (childObj is not Node3D n) continue;
+			var nm = n.Name.ToString();
+			if (nm.StartsWith(PassengerCarPackWheelRootPrefix, StringComparison.OrdinalIgnoreCase))
+				wheels.Add(n);
+		}
+		if (wheels.Count < 4) return;
+
+		// Determine FL/FR/RL/RR by position in the VehiclePawn's visual space (forward is -Z).
+		var parentSpace = model.GetParent() as Node3D ?? model;
+		var invParent = parentSpace.GlobalTransform.AffineInverse();
+		var wheelInfo = wheels
+			.Select(w => new { node = w, pos = (invParent * w.GlobalTransform).Origin })
+			.ToList();
+
+		var orderedByFront = wheelInfo.OrderBy(w => w.pos.Z).ToList();
+		var front = orderedByFront.Take(2).OrderBy(w => w.pos.X).ToList();
+		var rear = orderedByFront.Skip(orderedByFront.Count - 2).OrderBy(w => w.pos.X).ToList();
+
+		_wheelFlPivot = front[0].node;
+		_wheelFrPivot = front[1].node;
+		_wheelRlPivot = rear[0].node;
+		_wheelRrPivot = rear[1].node;
 	}
 
 	private void BuildProxyVehicleVisual(Node3D parent)
@@ -620,6 +1480,7 @@ private void ApplyBodyColor()
 			(childObj as Node)?.QueueFree();
 		_primaryMuzzle = null;
 		_primaryMountId = null;
+		_muzzleByMountId.Clear();
 
 		if (_vehicleRuntime == null) return;
 		if (_vehicleRuntime.InstalledWeaponsByMountId.Count == 0) return;
@@ -629,15 +1490,32 @@ private void ApplyBodyColor()
 		// 2) Else prefer a Front mount if present.
 		// 3) Else first key.
 		var primary = _vehicleRuntime.InstalledWeaponsByMountId.Keys.FirstOrDefault();
-		foreach (var kv in _vehicleRuntime.InstalledWeaponsByMountId)
+
+// Prefer an MG-type weapon as the "primary" if possible (covers 9mm MG, 50cal MG, etc.).
+if (_defs != null)
+{
+	foreach (var kv in _vehicleRuntime.InstalledWeaponsByMountId)
+	{
+		if (_defs.Weapons.TryGetValue(kv.Value.WeaponId, out var wdef) && wdef.WeaponType == WeaponType.MG)
 		{
-			if (kv.Value.WeaponId == "wpn_mg")
-			{
-				primary = kv.Key;
-				break;
-			}
+			primary = kv.Key;
+			break;
 		}
-		if (_vehicleDef != null)
+	}
+}
+else
+{
+	foreach (var kv in _vehicleRuntime.InstalledWeaponsByMountId)
+	{
+		if (string.Equals(kv.Value.WeaponId, "wpn_mg", StringComparison.OrdinalIgnoreCase) ||
+			string.Equals(kv.Value.WeaponId, "wpn_mg_50cal", StringComparison.OrdinalIgnoreCase))
+		{
+			primary = kv.Key;
+			break;
+		}
+	}
+}
+if (_vehicleDef != null)
 		{
 			var frontMount = _vehicleDef.MountPoints.FirstOrDefault(m => m.MountLocation == MountLocation.Front);
 			if (frontMount != null && _vehicleRuntime.InstalledWeaponsByMountId.ContainsKey(frontMount.MountId))
@@ -651,8 +1529,10 @@ private void ApplyBodyColor()
 			if (!_mountById.TryGetValue(mountId, out var mountMarker))
 				continue;
 
-			var weapon = CreateBoxWeaponVisual(mountId, kv.Value.WeaponId);
+			var weapon = WeaponVisualFactory.CreateWeaponVisual(mountId, kv.Value.WeaponId);
 			mountMarker.AddChild(weapon);
+			// If this weapon has a configured 3D model visual, auto-align/scale it now.
+			WeaponVisualFactory.TryAutoAlignWeaponVisual(weapon);
 			// Align weapon so its internal MountPoint coincides with the mount marker origin.
 			var wMount = weapon.GetNodeOrNull<Marker3D>("MountPoint");
 			if (wMount != null)
@@ -660,8 +1540,12 @@ private void ApplyBodyColor()
 
 			DisableWeaponCollision(weapon);
 
+			var muzzle = weapon.GetNodeOrNull<Marker3D>("Muzzle");
+			if (muzzle != null)
+				_muzzleByMountId[mountId] = muzzle;
+
 			if (_primaryMuzzle == null && mountId == _primaryMountId)
-				_primaryMuzzle = weapon.GetNodeOrNull<Marker3D>("Muzzle");
+				_primaryMuzzle = muzzle;
 		}
 	}
 

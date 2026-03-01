@@ -1,0 +1,14 @@
+{
+  "background": "#0b0d10",
+  "panel": "#11161d",
+  "panelAlt": "#0f131a",
+  "panelAlpha": 0.92,
+  "accentGold": "#d9b740",
+  "accentCyan": "#35d0ff",
+  "text": "#e8edf2",
+  "textMuted": "#9aa7b3",
+  "danger": "#ff4d4d",
+  "success": "#3ddc97",
+  "baseFontSize": 14,
+  "titleFontSize": 18
+}

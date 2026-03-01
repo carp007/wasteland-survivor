@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Game/Session/SessionContext.cs
+// Purpose: Owns the in-memory SaveGameState and is the only component allowed to replace/persist it. Provides safe mutation helpers and console logging.
+// -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using WastelandSurvivor.Core.IO;

@@ -1,43 +1,66 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/UI/GarageView.cs
+// Purpose: Garage screen where the player selects their active vehicle and spends scrap on repairs/upgrades.
+// -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
 using Godot;
 using WastelandSurvivor.Core.IO;
+using WastelandSurvivor.Framework.SceneBinding;
+using WastelandSurvivor.Game.Navigation;
 
 namespace WastelandSurvivor.Game.UI;
 
 public partial class GarageView : Control
 {
-	private Label? _lblActive;
-	private Label? _lblRepair;
-	private Label? _lblUpgrades;
-	private ItemList? _list;
-	private Button? _btnSetActive;
-	private Button? _btnPatchArmor;
-	private Button? _btnPatchTire;
-	private Button? _btnUpgradeArmor;
-	private Button? _btnUpgradeTire;
-	private Button? _btnBack;
+	private ColorRect? _bg;
+
+	private Label _lblActive = null!;
+	private Label _lblRepair = null!;
+	private Label _lblUpgrades = null!;
+	private ItemList _list = null!;
+
+	private Button _btnSetActive = null!;
+	private Button _btnPatchArmor = null!;
+	private Button _btnPatchTire = null!;
+	private Button _btnUpgradeArmor = null!;
+	private Button _btnUpgradeTire = null!;
+	private Button _btnBack = null!;
 
 	private readonly List<string> _instanceIdsByIndex = new();
 
+	private void EnsureBound()
+	{
+		var b = new SceneBinder(this, nameof(GarageView));
+		_bg = b.Opt<ColorRect>("Bg");
+
+		_lblActive = b.Req<Label>("Panel/VBox/LblActive");
+		_lblRepair = b.Req<Label>("Panel/VBox/LblRepair");
+		_lblUpgrades = b.Req<Label>("Panel/VBox/LblUpgrades");
+		_list = b.Req<ItemList>("Panel/VBox/VehicleList");
+
+		_btnSetActive = b.Req<Button>("Panel/VBox/HBoxButtons/BtnSetActive");
+		_btnPatchArmor = b.Req<Button>("Panel/VBox/HBoxRepair/BtnPatchArmor");
+		_btnPatchTire = b.Req<Button>("Panel/VBox/HBoxRepair/BtnPatchTire");
+		_btnUpgradeArmor = b.Req<Button>("Panel/VBox/HBoxUpgrades/BtnUpgradeArmor");
+		_btnUpgradeTire = b.Req<Button>("Panel/VBox/HBoxUpgrades/BtnUpgradeTire");
+		_btnBack = b.Req<Button>("Panel/VBox/HBoxButtons/BtnBack");
+	}
+
 	public override void _Ready()
 	{
-		_lblActive = GetNodeOrNull<Label>("Panel/VBox/LblActive");
-		_lblRepair = GetNodeOrNull<Label>("Panel/VBox/LblRepair");
-		_lblUpgrades = GetNodeOrNull<Label>("Panel/VBox/LblUpgrades");
-		_list = GetNodeOrNull<ItemList>("Panel/VBox/VehicleList");
-		_btnSetActive = GetNodeOrNull<Button>("Panel/VBox/HBoxButtons/BtnSetActive");
-		_btnPatchArmor = GetNodeOrNull<Button>("Panel/VBox/HBoxRepair/BtnPatchArmor");
-		_btnPatchTire = GetNodeOrNull<Button>("Panel/VBox/HBoxRepair/BtnPatchTire");
-		_btnUpgradeArmor = GetNodeOrNull<Button>("Panel/VBox/HBoxUpgrades/BtnUpgradeArmor");
-		_btnUpgradeTire = GetNodeOrNull<Button>("Panel/VBox/HBoxUpgrades/BtnUpgradeTire");
-		_btnBack = GetNodeOrNull<Button>("Panel/VBox/HBoxButtons/BtnBack");
+		GameUiTheme.ApplyToTree(this);
+		EnsureBound();
 
-		_btnSetActive!.Pressed += SetActiveFromSelection;
-		_btnPatchArmor!.Pressed += PatchArmor;
-		_btnPatchTire!.Pressed += PatchTire;
-		_btnUpgradeArmor!.Pressed += UpgradeArmorPlating;
-		_btnUpgradeTire!.Pressed += UpgradeTirePlating;
-		_btnBack!.Pressed += Back;
+		if (_bg != null)
+			_bg.Color = GameUiTheme.BackgroundColor;
+
+		_btnSetActive.Pressed += SetActiveFromSelection;
+		_btnPatchArmor.Pressed += PatchArmor;
+		_btnPatchTire.Pressed += PatchTire;
+		_btnUpgradeArmor.Pressed += UpgradeArmorPlating;
+		_btnUpgradeTire.Pressed += UpgradeTirePlating;
+		_btnBack.Pressed += Back;
 
 		Refresh();
 	}
@@ -50,7 +73,7 @@ public partial class GarageView : Control
 		var session = app.Services.Get<GameSession>();
 		var defs = app.Services.Get<DefDatabase>();
 
-		_list!.Clear();
+		_list.Clear();
 		_instanceIdsByIndex.Clear();
 
 		foreach (var v in session.GetOwnedVehicles())
@@ -64,26 +87,26 @@ public partial class GarageView : Control
 		}
 
 		var active = session.GetActiveVehicle();
-		_lblActive!.Text = active == null ? "Active: (none)" : $"Active: {active.DefinitionId} ({active.InstanceId[..8]})";
+		_lblActive.Text = active == null ? "Active: (none)" : $"Active: {active.DefinitionId} ({active.InstanceId[..8]})";
 
 		if (active is null)
 		{
-			_lblRepair!.Text = "Scrap repairs: select an active vehicle.";
-			_lblUpgrades!.Text = "";
-			_btnPatchArmor!.Disabled = true;
-			_btnPatchTire!.Disabled = true;
-			_btnUpgradeArmor!.Disabled = true;
-			_btnUpgradeTire!.Disabled = true;
+			_lblRepair.Text = "Scrap repairs: select an active vehicle.";
+			_lblUpgrades.Text = "";
+			_btnPatchArmor.Disabled = true;
+			_btnPatchTire.Disabled = true;
+			_btnUpgradeArmor.Disabled = true;
+			_btnUpgradeTire.Disabled = true;
 			return;
 		}
 
 		var (armorMissing, tireMissing, totalMissing) = session.ComputeMissingRepairPointsByType(active.InstanceId, defs);
 		var scrap = session.Save.Player.Scrap;
-		_lblRepair!.Text = $"Scrap: {scrap} | Armor missing: {armorMissing} | Tire missing: {tireMissing} | Total: {totalMissing}";
+		_lblRepair.Text = $"Scrap: {scrap} | Armor missing: {armorMissing} | Tire missing: {tireMissing} | Total: {totalMissing}";
 
 		var canSpend = scrap >= GameSession.ScrapRepairCostPerPoint && !session.HasActiveEncounter();
-		_btnPatchArmor!.Disabled = !canSpend || armorMissing <= 0;
-		_btnPatchTire!.Disabled = !canSpend || tireMissing <= 0;
+		_btnPatchArmor.Disabled = !canSpend || armorMissing <= 0;
+		_btnPatchTire.Disabled = !canSpend || tireMissing <= 0;
 
 		var canUpgrade = !session.HasActiveEncounter();
 		var armorLevel = active.ArmorPlatingLevel;
@@ -94,18 +117,18 @@ public partial class GarageView : Control
 		var armorCost = GameSession.GetArmorPlatingUpgradeCost(armorNext);
 		var tireCost = GameSession.GetTirePlatingUpgradeCost(tireNext);
 
-		_lblUpgrades!.Text = $"Upgrades: Armor Plating L{armorLevel}/{GameSession.MaxArmorPlatingLevel} (+{armorLevel} max) | Tire Plating L{tireLevel}/{GameSession.MaxTirePlatingLevel} (+{tireLevel} max)";
+		_lblUpgrades.Text = $"Upgrades: Armor Plating L{armorLevel}/{GameSession.MaxArmorPlatingLevel} (+{armorLevel} max) | Tire Plating L{tireLevel}/{GameSession.MaxTirePlatingLevel} (+{tireLevel} max)";
 
-		_btnUpgradeArmor!.Text = armorLevel >= GameSession.MaxArmorPlatingLevel
+		_btnUpgradeArmor.Text = armorLevel >= GameSession.MaxArmorPlatingLevel
 			? "Armor Plating (MAX)"
 			: $"Install Armor Plating (L{armorLevel}→L{armorNext}) (-{armorCost} scrap)";
 
-		_btnUpgradeTire!.Text = tireLevel >= GameSession.MaxTirePlatingLevel
+		_btnUpgradeTire.Text = tireLevel >= GameSession.MaxTirePlatingLevel
 			? "Tire Plating (MAX)"
 			: $"Install Tire Plating (L{tireLevel}→L{tireNext}) (-{tireCost} scrap)";
 
-		_btnUpgradeArmor!.Disabled = !canUpgrade || armorLevel >= GameSession.MaxArmorPlatingLevel || scrap < armorCost;
-		_btnUpgradeTire!.Disabled = !canUpgrade || tireLevel >= GameSession.MaxTirePlatingLevel || scrap < tireCost;
+		_btnUpgradeArmor.Disabled = !canUpgrade || armorLevel >= GameSession.MaxArmorPlatingLevel || scrap < armorCost;
+		_btnUpgradeTire.Disabled = !canUpgrade || tireLevel >= GameSession.MaxTirePlatingLevel || scrap < tireCost;
 	}
 
 	private void PatchArmor()
@@ -134,7 +157,6 @@ public partial class GarageView : Control
 		Refresh();
 	}
 
-	
 	private void UpgradeArmorPlating()
 	{
 		var app = App.Instance;
@@ -166,7 +188,7 @@ public partial class GarageView : Control
 		var app = App.Instance;
 		if (app == null) return;
 
-		var selected = _list!.GetSelectedItems();
+		var selected = _list.GetSelectedItems();
 		if (selected.Length == 0) return;
 
 		var idx = selected[0];
@@ -179,12 +201,14 @@ public partial class GarageView : Control
 
 	private void Back()
 	{
-		var parent = GetParent();
-		if (parent == null) return;
+		var app = App.Instance;
+		if (app == null) return;
+			if (!app.Services.TryGet<IGameNavigator>(out var nav) || nav == null)
+			{
+				GD.PrintErr("[GarageView] IGameNavigator not registered (cannot navigate back to CityShell).");
+				return;
+			}
 
-		var scene = GD.Load<PackedScene>("res://Scenes/UI/CityShell.tscn");
-		var ui = scene.Instantiate();
-		parent.AddChild(ui);
-		QueueFree();
+			nav.ToCityShell(this);
 	}
 }

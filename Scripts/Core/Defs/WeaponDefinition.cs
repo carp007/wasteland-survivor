@@ -1,5 +1,13 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Core/Defs/WeaponDefinition.cs
+// Purpose: Data definition model loaded from JSON under Data/Defs (stable, Godot-independent).
+// -------------------------------------------------------------------------------------------------
 namespace WastelandSurvivor.Core.Defs;
 
+/// <summary>
+/// Definition for a weapon (loaded from Data/Defs/Weapons). Includes damage/rate, mount constraints, ammo types, and (later) projectile behavior.
+/// </summary>
 public sealed record WeaponDefinition : IHasId
 {
     public string Id { get; init; } = "";

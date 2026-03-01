@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Game/Systems/SaveMigration.cs
+// Purpose: Save migration steps for backward-compatible changes to SaveGameState (record-based, immutable "with" updates).
+// -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Linq;
 using WastelandSurvivor.Core.Defs;
@@ -121,7 +126,58 @@ internal static class SaveMigration
 			}
 		}
 
-		save = save with { Vehicles = vehicles, Player = p, Version = targetVersion };
+		
+
+		// v7: seed secondary ammo types when corresponding weapons are installed, and add a rear mine dropper
+		// to starter-style vehicles that have a B1 mount but no weapon installed there.
+		if (defs != null && vehicles.Count > 0)
+		{
+			for (var i = 0; i < vehicles.Count; i++)
+			{
+				var v = vehicles[i];
+				if (!defs.Vehicles.TryGetValue(v.DefinitionId, out var vdef))
+					continue;
+
+				var changed = false;
+				var installs = v.InstalledWeaponsByMountId is { Count: > 0 }
+					? new Dictionary<string, InstalledWeaponState>(v.InstalledWeaponsByMountId)
+					: new Dictionary<string, InstalledWeaponState>();
+
+				// Add a mine dropper to B1 only if the chassis supports B1 and it's currently empty.
+				if (vdef.MountPoints.Any(m => m.MountId == "B1") && !installs.ContainsKey("B1"))
+				{
+					installs["B1"] = new InstalledWeaponState { WeaponId = "wpn_mine_dropper", SelectedAmmoId = "ammo_mine_std" };
+					changed = true;
+				}
+
+				// Seed ammo for installed weapons if missing.
+				var inv = v.AmmoInventory ?? new Dictionary<string, int>();
+				var invUpdated = new Dictionary<string, int>(inv);
+				foreach (var kv in installs)
+				{
+					var ammoId = kv.Value.SelectedAmmoId;
+					if (string.IsNullOrWhiteSpace(ammoId)) continue;
+					if (invUpdated.ContainsKey(ammoId!)) continue;
+
+					// Conservative seed amounts so this doesn't feel like "free loot".
+					var seed = ammoId switch
+					{
+						"ammo_missile_std" => 6,
+						"ammo_mine_std" => 4,
+						_ => 0
+					};
+					if (seed > 0)
+					{
+						invUpdated[ammoId!] = seed;
+						changed = true;
+					}
+				}
+
+				if (changed)
+					vehicles[i] = v with { InstalledWeaponsByMountId = installs, AmmoInventory = invUpdated };
+			}
+		}
+save = save with { Vehicles = vehicles, Player = p, Version = targetVersion };
 		return true;
 	}
 }

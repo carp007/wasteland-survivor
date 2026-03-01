@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Game/Session/SessionGarage.cs
+// Purpose: Focused session service that mutates SaveGameState via SessionContext.
+// -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -78,16 +83,23 @@ internal sealed class SessionGarage
 
         var ammoInv = new Dictionary<string, int>
         {
-            [GameBalance.PrimaryAmmoId] = 50
+            [GameBalance.PrimaryAmmoId] = 120, // 9mm (kept for workshop/testing)
+            ["ammo_mg_50cal"] = 80,
+            ["ammo_missile_std"] = 12,
+            ["ammo_mine_std"] = 8
         };
 
-		// Starter loadout (minimal but playable): front MG + a secondary guided missile mount.
-		// Mount ids are defined in the vehicle definition (Compact uses F1 + R1 by default).
+		// Starter loadout (minimal but playable):
+		// - Slot 1 (Space): front MG (F1)
+		// - Slot 2 (Shift): top turret missile (R1)
+		// - Slot 3 (Ctrl): rear mine dropper (B1) when supported by the chassis.
 		var installs = new Dictionary<string, InstalledWeaponState>
 		{
-			["F1"] = new InstalledWeaponState { WeaponId = "wpn_mg", SelectedAmmoId = GameBalance.PrimaryAmmoId },
+			["F1"] = new InstalledWeaponState { WeaponId = "wpn_mg_50cal", SelectedAmmoId = "ammo_mg_50cal" },
 			["R1"] = new InstalledWeaponState { WeaponId = "wpn_missile", SelectedAmmoId = "ammo_missile_std" }
 		};
+		if (vdef.MountPoints.Any(m => m.MountId == "B1"))
+			installs["B1"] = new InstalledWeaponState { WeaponId = "wpn_mine_dropper", SelectedAmmoId = "ammo_mine_std" };
 
         var inst = new VehicleInstanceState
         {

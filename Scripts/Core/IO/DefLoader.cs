@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/Core/IO/DefLoader.cs
+// Purpose: Loads JSON definitions under Data/Defs into a DefDatabase with basic validation and cross-reference checks.
+// -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using System.Linq;

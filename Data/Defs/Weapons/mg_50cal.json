@@ -1,0 +1,14 @@
+{
+  "Id": "wpn_mg_50cal",
+  "DisplayName": "50 cal Machine Gun",
+  "WeaponType": "MG",
+  "FireMode": "DumbFire",
+  "ProjectileSpeed": 75,
+  "BaseDamage": 16,
+  "SplashRadius": null,
+  "CooldownMs": 1000,
+  "MassKg": 32,
+  "AmmoTypeIds": [
+    "ammo_mg_50cal"
+  ]
+}

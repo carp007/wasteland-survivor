@@ -1,5 +1,11 @@
+// -------------------------------------------------------------------------------------------------
+// Wasteland Survivor
+// File: Scripts/UI/PlayerStatusHud.cs
+// Purpose: UI view/controller code for scenes under Scenes/UI.
+// -------------------------------------------------------------------------------------------------
 using System;
 using Godot;
+using WastelandSurvivor.Framework.SceneBinding;
 
 namespace WastelandSurvivor.Game.UI;
 
@@ -17,12 +23,20 @@ public partial class PlayerStatusHud : PanelContainer
 	private StyleBoxFlat _hpFill = null!;
 	private StyleBoxFlat _apFill = null!;
 
+	private void EnsureBound()
+	{
+		var b = new SceneBinder(this, nameof(PlayerStatusHud));
+		_pbHp = b.Req<ProgressBar>("Center/HBox/HpRow/PbHp");
+		_lblHpInBar = b.Req<Label>("Center/HBox/HpRow/PbHp/LblHpInBar");
+		_pbAp = b.Req<ProgressBar>("Center/HBox/ApRow/PbAp");
+		_lblApInBar = b.Req<Label>("Center/HBox/ApRow/PbAp/LblApInBar");
+	}
+
 	public override void _Ready()
 	{
-		_pbHp = GetNode<ProgressBar>("Center/HBox/HpRow/PbHp");
-		_lblHpInBar = GetNode<Label>("Center/HBox/HpRow/PbHp/LblHpInBar");
-		_pbAp = GetNode<ProgressBar>("Center/HBox/ApRow/PbAp");
-		_lblApInBar = GetNode<Label>("Center/HBox/ApRow/PbAp/LblApInBar");
+
+		GameUiTheme.ApplyToTree(this);
+		EnsureBound();
 
 		// Slightly smaller in-bar text for the compact HUD.
 		_lblHpInBar.AddThemeFontSizeOverride("font_size", 12);

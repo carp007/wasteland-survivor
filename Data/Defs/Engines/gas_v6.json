@@ -6,8 +6,8 @@
   "TorqueNm": 310,
   "Efficiency": 1.0,
   "AllowedVehicleClasses": [
-    "Sedan",
-    "Sports",
+	"Sedan",
+	"Sports",
     "LightTruck"
   ]
 }
