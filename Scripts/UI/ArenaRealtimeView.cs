@@ -3658,6 +3658,7 @@ private void ResetUi()
 		_playerArmorMaxRuntime = Math.Max(1, session.GetDriverArmorMax());
 		_playerArmorRuntime = Math.Clamp(session.GetDriverArmor(), 0, _playerArmorMaxRuntime);
 		SeedPersonalWeaponRuntime(session);
+		ResetBailOutRuntime();
 
 		// Ensure vehicle has section/tire HP initialized.
 		var defs = Defs();
@@ -4038,6 +4039,7 @@ private void ResetUi()
 		_playerArmorMaxRuntime = Math.Max(1, session.GetDriverArmorMax());
 		_playerArmorRuntime = Math.Clamp(session.GetDriverArmor(), 0, _playerArmorMaxRuntime);
 		SeedPersonalWeaponRuntime(session);
+		ResetBailOutRuntime();
 
 		var defs = Defs();
 		if (defs != null && defs.Vehicles.TryGetValue(_playerVehicleRuntime.DefinitionId, out var vdef))
@@ -4188,6 +4190,17 @@ private void ResetUi()
 	{
 		_targeting.SetVehicleCandidates(_enemyPawn);
 		_targeting.EnsureVehicleTarget();
+
+		// Bailed-out duel: the DUELIST is the fight — brackets and camera look-ahead follow them,
+		// not the dead wreck (judge P1: the whole targeting read pointed at the hull).
+		if (_enemyBailedOut && _enemyDriverPawn != null && GodotObject.IsInstanceValid(_enemyDriverPawn))
+		{
+			_targetIndicator?.SetTarget(_enemyDriverPawn);
+			_arenaWorld?.GetNodeOrNull<FollowCameraRig>("CameraRig")
+				?.SetLookAheadTarget(_combatLive ? _enemyDriverPawn : null);
+			return;
+		}
+
 		_targeting.ApplyIndicator(_targetIndicator);
 
 		// Keep the engagement on screen: the camera frames a point between the player and the lock.
@@ -4841,6 +4854,25 @@ private void ResetUi()
 	// Enemy bail-out duel (Docs/ONFOOT_COMBAT_PLAN.md stage 3)
 	// ---------------------------------------------------------------------------------------------
 
+	/// <summary>
+	/// Full bail-out state reset at encounter seeding. WITHOUT this, a tournament's next round (or
+	/// any rematch resuming in the same arena view) inherited _enemyBailedOut=true and started as a
+	/// broken free win — the closing judge round's one P0.
+	/// </summary>
+	private void ResetBailOutRuntime()
+	{
+		_enemyBailedOut = false;
+		_enemyBailSurrendered = false;
+		_enemyBailDeathTriggered = false;
+		_enemyBailFireCooldown = 0f;
+		_enemyBailJinkTimer = 0f;
+		_enemyBailRamCooldown = 0f;
+		_enemyBailWeapon = null;
+		if (_enemyDriverPawn != null && GodotObject.IsInstanceValid(_enemyDriverPawn))
+			_enemyDriverPawn.QueueFree();
+		_enemyDriverPawn = null;
+	}
+
 	/// <summary>Tier-3+ drivers with a pulse left fight for their rig instead of surrendering it.</summary>
 	private bool ShouldEnemyBailOut()
 	{
@@ -5058,6 +5090,18 @@ private void ResetUi()
 		var through = damage - absorbed;
 		if (through > 0)
 			_enemyHpRuntime = Math.Max(0, _enemyHpRuntime - through);
+
+		// Kill pose HERE, not in the AI tick: the resolve check ends combat the same frame HP
+		// zeroes, so the tick that would have played the death never runs (judge P1 — salvage
+		// happened around a standing corpse).
+		if (_enemyHpRuntime <= 0 && !_enemyBailDeathTriggered
+			&& _enemyDriverPawn != null && GodotObject.IsInstanceValid(_enemyDriverPawn))
+		{
+			_enemyBailDeathTriggered = true;
+			_enemyDriverPawn.MoveInput = Vector3.Zero;
+			_enemyDriverPawn.TriggerDeath();
+		}
+
 		RefreshStats();
 	}
 
@@ -6041,6 +6085,10 @@ private void ResetUi()
 
 	private void ApplyEnemyDriverDamage(int damage)
 	{
+		// Bailed out = the driver is not IN this vehicle. Shelling the abandoned wreck must not
+		// drain the duelist's vest from across the arena (judge P1) — hit the person, not the hull.
+		if (_enemyBailedOut) return;
+
 		var remaining = Math.Max(0, damage);
 		if (remaining <= 0) return;
 
@@ -6212,8 +6260,11 @@ private void ResetUi()
 		// Kill punctuation: the losing vehicle goes up with a full destruction burst (debris arcs,
 		// shockwave ring, fireball, light pulse) and stays a charred, smoldering hulk through salvage.
 		// (Outcome string is "lose" — the old "loss" comparison meant defeat never got its explosion.)
+		// BAIL-OUT EXCEPTION (judge P1): winning the duel is the one win whose whole PROMISE is an
+		// intact hull — the driver died OUTSIDE it. No detonation, no charring; the prize gleams.
 		var wreckPawn = outcome == "win" ? _enemyPawn : outcome == "lose" ? _playerPawn : null;
-		if (wreckPawn != null && GodotObject.IsInstanceValid(wreckPawn) && _arenaWorld != null)
+		var hullStaysWhole = outcome == "win" && _enemyBailedOut;
+		if (wreckPawn != null && GodotObject.IsInstanceValid(wreckPawn) && _arenaWorld != null && !hullStaysWhole)
 		{
 			ArenaVfx.SpawnVehicleDestruction(_arenaWorld, wreckPawn.GlobalPosition + Vector3.Up * 0.25f, wreckPawn.BodyColor);
 		WastelandSurvivor.Game.Audio.AmbienceDirector.PlayCrowdSwell();
@@ -6221,6 +6272,12 @@ private void ResetUi()
 			PlayRandomSfx3D(_sfxExplosionBig, wreckPawn.GlobalPosition, volumeDb: 0.0f);
 			WastelandSurvivor.Game.Audio.AmbienceDirector.PlayCrowdSwell();
 			ShakeCamera(0.9f, wreckPawn.GlobalPosition);
+		}
+		else if (hullStaysWhole && wreckPawn != null && GodotObject.IsInstanceValid(wreckPawn))
+		{
+			// A modest cheer for the clean take instead of the explosion.
+			WastelandSurvivor.Game.Audio.AmbienceDirector.PlayCrowdSwell();
+			ShowCombatToast("HULL TAKEN WHOLE", aboutPlayer: false);
 		}
 
 		CommitPersonalAmmoIfSeeded(session);

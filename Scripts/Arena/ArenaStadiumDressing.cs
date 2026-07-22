@@ -143,7 +143,9 @@ public partial class ArenaStadiumDressing : Node3D
 			var f = phase - MathF.Floor(phase);
 			f = f * f * (3f - 2f * f);
 			_fieldWashSpot.LightColor = BroadcastColors[i0].Lerp(BroadcastColors[i1], f);
-			_fieldWashSpot.LightEnergy = (1.6f + 2.2f * SpectacleT) * (1f + 0.12f * MathF.Sin(_time * 0.9f));
+			// t5 blowout trim (loop-6 closing judge: pit-05 rings washed white / amber-tinted the
+			// frame): the stacked tier-scaled energies ran hot at SpectacleT=1.
+			_fieldWashSpot.LightEnergy = (1.6f + 1.5f * SpectacleT) * (1f + 0.12f * MathF.Sin(_time * 0.9f));
 		}
 
 		// Jumbotron floor wash: keep the 0.1 Hz smoothstepped drift through the broadcast palette
@@ -999,8 +1001,9 @@ public partial class ArenaStadiumDressing : Node3D
 					Name = "Spot",
 					Rotation = new Vector3(Mathf.DegToRad(-34f), 0f, 0f),
 					LightColor = LightPoolColor,
-					// Tier spectacle: corner pools push harder on big nights (round 10 P0-3).
-					LightEnergy = Mathf.Lerp(3.8f, 6.6f, SpectacleT),
+					// Tier spectacle: corner pools push harder on big nights (round 10 P0-3);
+					// top end trimmed 6.6→5.2 (loop-6 closing judge: t5 washout).
+					LightEnergy = Mathf.Lerp(3.8f, 5.2f, SpectacleT),
 					SpotRange = 34f,
 					SpotAngle = 36f,
 					SpotAngleAttenuation = 1.5f,
@@ -1162,7 +1165,7 @@ public partial class ArenaStadiumDressing : Node3D
 			Name = "WashSpot",
 			Rotation = new Vector3(Mathf.DegToRad(-90f), 0f, 0f),
 			LightColor = BroadcastColors[1],
-			LightEnergy = 1.6f + 2.2f * SpectacleT,
+			LightEnergy = 1.6f + 1.5f * SpectacleT,
 			SpotRange = 16f,
 			SpotAngle = 50f,
 			SpotAngleAttenuation = 1.6f,

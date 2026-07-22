@@ -79,24 +79,40 @@ public partial class DriverPawn : HumanoidPawn
 		});
 		marker.AddChild(shadow);
 
-		var ringColor = Hostile ? new Color(1.0f, 0.28f, 0.16f, 0.60f) : new Color(1.0f, 0.84f, 0.25f, 0.55f);
+		// Judge round (loop 6 close): the humanoid was a near-invisible black speck at the fixed
+		// RTS altitude — ring grew, brightened, and gained a vertical beacon tick so both the
+		// player's gold and a duelist's red read instantly against the dark floor.
+		var ringColor = Hostile ? new Color(1.0f, 0.28f, 0.16f, 0.78f) : new Color(1.0f, 0.84f, 0.25f, 0.72f);
 		var ringEmission = Hostile ? new Color(1.0f, 0.22f, 0.10f) : new Color(1.0f, 0.78f, 0.20f);
 		var ring = new MeshInstance3D
 		{
 			Name = "IdentityRing",
-			Mesh = new TorusMesh { InnerRadius = 0.42f, OuterRadius = 0.50f, Rings = 24, RingSegments = 8 },
+			Mesh = new TorusMesh { InnerRadius = 0.52f, OuterRadius = 0.64f, Rings = 24, RingSegments = 8 },
 			Position = new Vector3(0f, 0.05f, 0f),
 			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
 		};
-		ring.SetSurfaceOverrideMaterial(0, new StandardMaterial3D
+		var ringMat = new StandardMaterial3D
 		{
 			AlbedoColor = ringColor,
 			Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
 			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
 			EmissionEnabled = true,
 			Emission = ringEmission,
-			EmissionEnergyMultiplier = Hostile ? 1.1f : 0.9f,
-		});
+			EmissionEnergyMultiplier = Hostile ? 2.2f : 1.8f,
+		};
+		ring.SetSurfaceOverrideMaterial(0, ringMat);
 		marker.AddChild(ring);
+
+		// Beacon tick: a short emissive post above head height — visible even when the avatar
+		// itself blends into shadow.
+		var beacon = new MeshInstance3D
+		{
+			Name = "Beacon",
+			Mesh = new CylinderMesh { TopRadius = 0.030f, BottomRadius = 0.030f, Height = 0.34f, RadialSegments = 6 },
+			Position = new Vector3(0f, 2.05f, 0f),
+			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+		};
+		beacon.SetSurfaceOverrideMaterial(0, ringMat);
+		marker.AddChild(beacon);
 	}
 }

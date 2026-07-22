@@ -808,17 +808,26 @@ public partial class ArenaWorld : Node3D
 		// Scene-owned environment: near-black backdrop beyond the curtains, cool ambient lift so
 		// shadowed sides of vehicles stay readable, and conservative glow so lamp heads / fire /
 		// tracers bloom slightly without washing out the HUD-facing floor.
+		// Highway fights happen OUTSIDE at dusk, not under a night-event roof (loop-6 closing
+		// judge: the road "read as a warehouse" — black void sky, indoor ambience). Open-road legs
+		// get a burnt-dusk horizon color and a stronger warm ambient; stadium/yard keep the
+		// near-black event look.
+		var highway = _venueKind == ArenaVenueKind.Highway;
 		var worldEnv = new WorldEnvironment
 		{
 			Name = "ArenaEnvironment",
 			Environment = new Godot.Environment
 			{
 				BackgroundMode = Godot.Environment.BGMode.Color,
-				BackgroundColor = new Color(0.015f, 0.015f, 0.022f),
+				BackgroundColor = highway
+					? new Color(0.115f, 0.062f, 0.038f) // burnt dusk over the plains
+					: new Color(0.015f, 0.015f, 0.022f),
 				AmbientLightSource = Godot.Environment.AmbientSource.Color,
-				AmbientLightColor = new Color(0.58f, 0.63f, 0.78f),
+				AmbientLightColor = highway
+					? new Color(0.86f, 0.72f, 0.58f)
+					: new Color(0.58f, 0.63f, 0.78f),
 				// Small lift (0.26 -> 0.33) so shadowed floor/vehicle faces stay readable at RTS height.
-				AmbientLightEnergy = 0.33f,
+				AmbientLightEnergy = highway ? 0.52f : 0.33f,
 				TonemapMode = Godot.Environment.ToneMapper.Aces,
 				GlowEnabled = true,
 				GlowIntensity = 0.42f,
@@ -841,10 +850,26 @@ public partial class ArenaWorld : Node3D
 		var poolColor = stadium ? SaturateColor(basePool, 1.15f + 0.45f * t) : CityPreset.LightPoolColor;
 		var contrastColor = ContrastLightColor(basePool);
 		if (stadium) contrastColor = SaturateColor(contrastColor, 1.10f + 0.40f * t);
-		SpawnLightTower(atmosphere, new Vector3(-LightTowerInset, 0f, -LightTowerInset), contrastColor, towerScale);
-		SpawnLightTower(atmosphere, new Vector3(LightTowerInset, 0f, -LightTowerInset), contrastColor, towerScale);
-		SpawnLightTower(atmosphere, new Vector3(-LightTowerInset, 0f, LightTowerInset), poolColor, towerScale);
-		SpawnLightTower(atmosphere, new Vector3(LightTowerInset, 0f, LightTowerInset), poolColor, towerScale);
+		// No broadcast light towers on the open road — the highway is lit by its dusk sun below.
+		if (!highway)
+		{
+			SpawnLightTower(atmosphere, new Vector3(-LightTowerInset, 0f, -LightTowerInset), contrastColor, towerScale);
+			SpawnLightTower(atmosphere, new Vector3(LightTowerInset, 0f, -LightTowerInset), contrastColor, towerScale);
+			SpawnLightTower(atmosphere, new Vector3(-LightTowerInset, 0f, LightTowerInset), poolColor, towerScale);
+			SpawnLightTower(atmosphere, new Vector3(LightTowerInset, 0f, LightTowerInset), poolColor, towerScale);
+		}
+		else
+		{
+			// Low warm dusk sun raking across the road: long readable shadows, outdoor read.
+			atmosphere.AddChild(new DirectionalLight3D
+			{
+				Name = "DuskSun",
+				LightColor = new Color(1.0f, 0.72f, 0.46f),
+				LightEnergy = 1.35f,
+				ShadowEnabled = true,
+				RotationDegrees = new Vector3(-26f, 55f, 0f),
+			});
+		}
 
 		// In-bowl colored light POOLS (round 10 P0-1): the corner tower pools only reach the rim of
 		// the mid-bowl frame, so the stage itself carried no show lighting. Straight-down spots from

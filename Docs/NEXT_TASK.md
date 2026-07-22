@@ -43,10 +43,17 @@ Then buy the Doorbreaker 12g and feel the difference point-blank.
   glyph samples), salvage toast overlap, vest trade-in condition scaling, shotgun pellet floor,
   on-foot aim overfly (probe 0/9 → 9/9 section hits), ENEMY BAIL-OUT DUELS at tier 3+
   (--shot=bailout), deterministic on-foot hit staging.
-- Remaining for loop #7: shared ammo-pool cap quirk on equip-switch (pistol↔SMG share pammo_9mm
-  with different caps); player car still simple at combat zoom (needs per-class detail meshes,
-  not shader work); parts-store backdrop presence; per-weapon on-foot SFX (stage 3); bail-out
-  polish (duelist could surrender below 25% HP; personal-weapon pickup from killed duelists?).
+- Closed post-186 (builds 187-188): ammo carry-cap rule; car outfitting greebles; store backdrop
+  lift; duelist mercy-surrender + 3x vehicle-caliber; P0 bail-state reset; hull-stays-whole win;
+  duelist death pose/targeting/wreck-shelling holes; pawn visibility (rings + beacon); highway
+  dusk lighting; t5 washout trim. Closing regrade: visual B- → B (menu-family B+, arena B+),
+  economy B+, outfitting-safety A-.
+- Remaining for loop #7: per-weapon on-foot SFX + duelist loot pickup (stage 3); missiles/mines
+  can't target people (INTENDED fiction — document in-game via intel line?); journey player-car
+  sprite → use the cached showroom thumbnail everywhere (fallback silhouette only on cold cache);
+  menu bottom-edge clipping needs a real per-panel layout audit (survived two scroll-affordance
+  passes); store thumbnails could use per-class liveries (uniform gold blunts the re-angle);
+  bail-out duels at tiers 1-2 (design question: onboarding vs consistency).
 - Post-185 telemetry anchors: t3 LANES = 47 enemy shots (was 11-13), t4 SIDEWINDER = 57 shots /
   8 part hits (was 10/2); bail-out probe: duelist landed pistol chips on player sections 4-24m.
 
