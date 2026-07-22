@@ -328,6 +328,8 @@ public partial class DriverStoreView : Control
 
 		var ammoPool = player.PersonalAmmoInventory != null
 			&& player.PersonalAmmoInventory.TryGetValue(def.AmmoId, out var pool) ? pool : 0;
+		// Shared-pool display cap: largest owned capacity for this ammo id (stable across swaps).
+		var carryCap = Math.Max(def.AmmoCapacity, session.Store.GetPersonalAmmoCarryCap(defs, def.AmmoId));
 		var role = def.WeaponClass switch
 		{
 			PersonalWeaponClass.Smg => "Close spray",
@@ -338,7 +340,7 @@ public partial class DriverStoreView : Control
 		var pellets = def.PelletsPerShot > 1 ? $" ×{def.PelletsPerShot}" : "";
 		var title = carried ? $"{def.DisplayName}   (carried)" : owned ? $"{def.DisplayName}   (owned)" : def.DisplayName;
 		AddRowLabels(info, title,
-			$"{role} · {def.BaseDamage:0.#} dmg{pellets} · {def.RangeMeters:0} m · {def.CooldownMs} ms · ammo {ammoPool}/{def.AmmoCapacity}",
+			$"{role} · {def.BaseDamage:0.#} dmg{pellets} · {def.RangeMeters:0} m · {def.CooldownMs} ms · ammo {ammoPool}/{carryCap}",
 			def.Flavor);
 
 		var money = session.GetMoneyUsd();
@@ -375,7 +377,7 @@ public partial class DriverStoreView : Control
 		var btnAmmo = new Button
 		{
 			Text = $"Ammo ×10  ${ammoPrice:N0}",
-			Disabled = !owned || ammoPool >= def.AmmoCapacity || money < ammoPrice,
+			Disabled = !owned || ammoPool >= carryCap || money < ammoPrice,
 			SizeFlagsVertical = SizeFlags.ShrinkCenter,
 			CustomMinimumSize = new Vector2(140, 38),
 		};

@@ -206,6 +206,7 @@ public partial class ArenaRealtimeView : Control
 	private DriverPawn? _enemyDriverPawn;
 	private bool _enemyBailedOut;
 	private bool _enemyBailDeathTriggered;
+	private bool _enemyBailSurrendered;
 	private float _enemyBailFireCooldown;
 	private float _enemyBailJinkTimer;
 	private float _enemyBailJinkSign = 1f;
@@ -4915,6 +4916,20 @@ private void ResetUi()
 			return;
 		}
 
+		// Mercy rule: a duelist shot down to ~a quarter of their health knows the math — hands up,
+		// fight over, hull forfeit. (Same win as killing them; the player just isn't forced to
+		// execute a beaten opponent to finish the match.)
+		if (!_enemyBailSurrendered && _enemyHpRuntime <= Math.Max(8, _enemyHpMaxRuntime / 4))
+		{
+			_enemyBailSurrendered = true;
+			d.MoveInput = Vector3.Zero;
+			d.Sprint = false;
+			ShowCombatToast("DUELIST SURRENDERS", aboutPlayer: false);
+			AddLog("The duelist drops their weapon and raises both hands — the field, and the hull, are yours.");
+			ResolveOutcome("win");
+			return;
+		}
+
 		var target = IsPlayerOnFoot() && _driverPawn != null && GodotObject.IsInstanceValid(_driverPawn)
 			? (Node3D)_driverPawn
 			: _playerPawn != null && GodotObject.IsInstanceValid(_playerPawn) ? _playerPawn : null;
@@ -5481,13 +5496,14 @@ private void ResetUi()
 
 		void ApplyImpact()
 		{
-			// Bailed-out duel: vehicle guns connecting with the on-foot enemy driver hit at full
-			// weapon damage (they are vehicle guns — the duelist's cover is their problem).
+			// Bailed-out duel: vehicle-caliber fire connecting with a PERSON is devastating (3x) —
+			// the duelist's defense is being small and jinking, not soaking .50cal on a vest.
+			// First probe had the duelist shrugging 48 rounds of machine-gun fire; that read wrong.
 			if (isPlayer && _enemyBailedOut && hit.Hit
 				&& _enemyDriverPawn != null && GodotObject.IsInstanceValid(_enemyDriverPawn)
 				&& ArenaRaycastUtil.IsHitOnNode(hit, _enemyDriverPawn))
 			{
-				ApplyEnemyDriverOnFootDamage(damage);
+				ApplyEnemyDriverOnFootDamage(damage * 3);
 				if (_sfxVehicleHits.Length > 0)
 					PlayRandomSfx3D(_sfxVehicleHits, impactPos, volumeDb: -8.0f);
 				return;
@@ -5631,7 +5647,17 @@ private void ResetUi()
 
 		var intended = isPlayer ? (Node3D?)_enemyPawn : GetPlayerEntityForEnemyTarget();
 		var hitTarget = hit.Hit && intended != null && ArenaRaycastUtil.IsHitOnNode(hit, intended);
-		if (hitTarget)
+
+		// Bailed-out duel parity with the main fire path: legacy shots on the on-foot enemy
+		// driver land at vehicle-caliber (3x) severity.
+		if (isPlayer && _enemyBailedOut && hit.Hit
+			&& _enemyDriverPawn != null && GodotObject.IsInstanceValid(_enemyDriverPawn)
+			&& ArenaRaycastUtil.IsHitOnNode(hit, _enemyDriverPawn))
+		{
+			ApplyEnemyDriverOnFootDamage(damage * 3);
+			hitTarget = true;
+		}
+		else if (hitTarget)
 		{
 			if (!isPlayer && IsPlayerOnFoot() && intended == _driverPawn)
 				OnHitDriverOnFoot(damage, hit);

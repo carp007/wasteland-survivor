@@ -168,15 +168,22 @@ Firing loop (all inside `Scripts/UI/ArenaRealtimeView.cs`, one new private metho
   swapping between owned personal weapons is free at the store (open question 3).
 - Armor tiers: **already live** — the two new vest JSONs need no code.
 
-### Stage 3 — later polish (not scheduled)
+### Stage 3 — in progress (bail-outs SHIPPED 2026-07-22, build 186)
 
-- Per-weapon fire/impact SFX + muzzle flash via a `personal_weapon_visuals.json` config store
-  (clone of `weapon_visuals.json` pattern, `Docs/Config/WEAPON_VISUALS.md`).
-- Fire-while-moving animation blend on the Mixamo avatar (`driver_pawn.json` `avatar` block).
-- On-foot fire during the post-win salvage phase and overworld events (currently combat-phase only).
-- AI drivers bailing out of mobility-killed hulls and shooting back → the master-spec fantasy of
-  taking a hull whole by out-dueling its driver on foot.
-- Exo-frame armor tier with on-foot move-speed/carry bonuses (`MassKg` becomes meaningful).
+- **DONE — AI bail-out duels**: tier-3+ mobility-killed enemies bail out (red hostile identity
+  ring, tier-appropriate sidearm: 9mm at t3 / SMG at t4+), strafe-jink at pistol range, and
+  return fire (chip vs the player's hull, full damage vs the player on foot). All player damage
+  paths route to their vest→HP pool: vehicle guns at full damage, personal weapons at full
+  driver damage, run-downs at speed. Below ~25% HP they SURRENDER (same win, no forced
+  execution); driver kill or surrender both leave the hull salvage-whole. Tiers 1-2 keep the
+  onboarding surrender. Probe: `--shot=bailout` (stages tier-3 city + forces the mobility kill).
+- Remaining stage-3 backlog:
+  - Per-weapon fire/impact SFX + muzzle flash via a `personal_weapon_visuals.json` config store
+    (personal fire currently reuses the MG sample at reduced volume).
+  - Fire-while-moving animation blend on the Mixamo avatar (`driver_pawn.json` `avatar` block).
+  - On-foot fire during the post-win salvage phase and overworld events (combat-phase only).
+  - Duelist weapon pickup from killed/surrendered drivers (loot hook).
+  - Exo-frame armor tier with on-foot move-speed/carry bonuses (`MassKg` becomes meaningful).
 
 ---
 

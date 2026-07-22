@@ -114,7 +114,9 @@ public partial class StoreView : Control
 		FullscreenTextureRectUtil.ConfigureCover(_bgImage);
 		_bgImage.Texture = _menuBackground;
 		_bgImage.Visible = _menuBackground != null;
-		_bgImage.SelfModulate = new Color(0.30f, 0.32f, 0.36f);
+		// Backdrop presence (play-test note 5): the old 0.30 dim buried the city art in near-black.
+		// 0.52 keeps the drawer legible while DETROIT/skyline actually reads behind it.
+		_bgImage.SelfModulate = new Color(0.52f, 0.54f, 0.58f);
 
 		ApplyDrawer();
 		GetViewport().SizeChanged += ApplyDrawer;

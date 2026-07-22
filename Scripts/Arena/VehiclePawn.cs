@@ -1253,7 +1253,9 @@ private void ApplyBodyColor()
 			var n = stack.Pop();
 			foreach (var childObj in n.GetChildren())
 			{
-				if (childObj is Node child)
+				// Outfitting greebles (antenna, exhaust stacks) are decoration, not hull: excluding
+				// them keeps identity-VFX/HUD anchor heights and model auto-scaling stable.
+				if (childObj is Node child && child.Name != VehicleOutfitting.NodeName)
 					stack.Push(child);
 			}
 
@@ -1553,10 +1555,27 @@ private void ApplyBodyColor()
 
 		BindDefModelWheels(model);
 		ApplyDefModelTint(model);
+		AttachWastelandOutfitting(parent, model, scenePath);
 
 		_bodyMeshes.Clear();
 		_usingPassengerCarPackVisual = false;
 		return true;
+	}
+
+	/// <summary>
+	/// Wasteland outfitting greebles (bullbar, roof cargo/stacks, antenna, skirts, spare) over the
+	/// clean kit hull — the single-mesh Kenney bodies read as toys at combat zoom without them.
+	/// Runs after the model is yaw-aligned/scaled/centered so the measured AABB is authoritative.
+	/// Parented under "Visual" so a def-model rebuild (ClearChildren) wipes it with the hull;
+	/// trailers get nothing (VehicleOutfitting also guards). Deterministic per (def id + model).
+	/// </summary>
+	private void AttachWastelandOutfitting(Node3D parent, Node3D model, string scenePath)
+	{
+		if (_vehicleDef?.Class == VehicleClass.Trailer) return;
+		if (!TryComputeAabbInSpace(model, parent, out var aabb)) return;
+		var archetype = VehicleHullDetailer.ResolveArchetype(scenePath);
+		var seed = VehicleOutfitting.ComputeSeed(_vehicleDef?.Id, scenePath);
+		VehicleOutfitting.Attach(parent, _vehicleDef, archetype, seed, CurrentDefModelTargetLength(), aabb);
 	}
 
 	/// <summary>

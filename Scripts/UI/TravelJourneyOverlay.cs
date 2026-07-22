@@ -46,6 +46,8 @@ public partial class TravelJourneyOverlay : Control
 	private float _duration = 7.0f;
 	private bool _interruptFired;
 	private float _interruptHold;
+	private bool _stationStopFired;
+	private float _stationStopHold;
 
 	private RoadBand? _road;
 	private TextureRect? _vehicleChip;
@@ -367,6 +369,31 @@ public partial class TravelJourneyOverlay : Control
 			return;
 		}
 
+		// Station-stop beat: the mid-route top-up the leg already paid for gets its two seconds —
+		// the road freezes at the pumps and the receipt line is the star (travel Stage 3 texture).
+		if (_stationStopHold > 0f)
+		{
+			_stationStopHold -= dt;
+			_elapsed -= dt; // freeze effective journey time so progress doesn't jump after the stop
+			if (_road != null) _road.ScrollSpeed = 0f;
+			if (_stationStopHold <= 0f && _interruptLabel != null)
+				_interruptLabel.Visible = false;
+			return;
+		}
+		if (_info.StationStop && !_stationStopFired && _progress01 >= 0.40f)
+		{
+			_stationStopFired = true;
+			_stationStopHold = 1.8f;
+			if (_interruptLabel != null)
+			{
+				_interruptLabel.Text = $"FUEL STOP  —  TOP-UP -${_info.StationCostUsd:N0}";
+				_interruptLabel.AddThemeColorOverride("font_color", GameUiTheme.AccentCyanColor);
+				_interruptLabel.AddThemeFontSizeOverride("font_size", 30);
+				_interruptLabel.Visible = true;
+			}
+			return;
+		}
+
 		var target = HasInterrupt ? InterruptAt01 : 1.0f;
 		_progress01 = MathF.Min(target, _elapsed / _duration * (HasInterrupt ? InterruptAt01 / 0.72f : 1f));
 
@@ -426,8 +453,12 @@ public partial class TravelJourneyOverlay : Control
 		{
 			_interruptLabel.Text = title;
 			_interruptLabel.Visible = true;
-			if (!hostile)
-				_interruptLabel.AddThemeColorOverride("font_color", GameUiTheme.AccentGoldColor);
+			_interruptLabel.AddThemeFontSizeOverride("font_size", 46);
+			// Explicit both ways — the label is shared with the fuel-stop beat (cyan), so relying
+			// on the constructor default here would leave a later RAIDERS banner cyan.
+			_interruptLabel.AddThemeColorOverride("font_color", hostile
+				? new Color(1f, 0.36f, 0.22f)
+				: GameUiTheme.AccentGoldColor);
 		}
 		if (_interruptFlash != null)
 			_interruptFlash.Color = hostile

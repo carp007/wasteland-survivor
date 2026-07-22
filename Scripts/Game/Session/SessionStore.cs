@@ -445,9 +445,27 @@ internal sealed class SessionStore
 	}
 
 	/// <summary>
-	/// Buy a 10-round box for a personal weapon's pool, capped at that weapon's carry capacity.
-	/// Pools are shared per ammo id (pistol + SMG both feed on pammo_9mm), and the cap used is the
-	/// EQUIPPED weapon's capacity when it shares the pool, else the purchased weapon's.
+	/// Carry cap for a shared personal-ammo pool: the LARGEST AmmoCapacity among the weapons the
+	/// player owns that feed on it (your gear defines your webbing). This keeps the pool's cap
+	/// stable across equip-switches — the old equipped-weapon cap let a pool legitimately exceed
+	/// the display cap the moment you switched from SMG (180) back to pistol (60).
+	/// </summary>
+	public int GetPersonalAmmoCarryCap(DefDatabase defs, string ammoId)
+	{
+		var cap = 1;
+		foreach (var pw in defs.PersonalWeapons.Values)
+		{
+			if (!string.Equals(pw.AmmoId, ammoId, StringComparison.OrdinalIgnoreCase))
+				continue;
+			if (IsPersonalWeaponOwned(pw.Id))
+				cap = Math.Max(cap, pw.AmmoCapacity);
+		}
+		return cap;
+	}
+
+	/// <summary>
+	/// Buy a 10-round box for a personal weapon's pool, capped at the shared pool's carry cap
+	/// (largest capacity among OWNED weapons feeding on that ammo id).
 	/// </summary>
 	public bool TryBuyPersonalAmmo(DefDatabase defs, string weaponId, out string error)
 	{
@@ -465,10 +483,7 @@ internal sealed class SessionStore
 			return false;
 		}
 
-		var cap = Math.Max(1, def.AmmoCapacity);
-		if (defs.PersonalWeapons.TryGetValue(player.EquippedPersonalWeaponId ?? string.Empty, out var equipped)
-			&& string.Equals(equipped.AmmoId, def.AmmoId, StringComparison.OrdinalIgnoreCase))
-			cap = Math.Max(cap, equipped.AmmoCapacity);
+		var cap = GetPersonalAmmoCarryCap(defs, def.AmmoId);
 
 		var ammo = new Dictionary<string, int>(player.PersonalAmmoInventory ?? new Dictionary<string, int>(), StringComparer.OrdinalIgnoreCase);
 		var pool = ammo.TryGetValue(def.AmmoId, out var cur) ? cur : 0;
