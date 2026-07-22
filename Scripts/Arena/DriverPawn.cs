@@ -44,6 +44,13 @@ public partial class DriverPawn : HumanoidPawn
 	}
 
 	/// <summary>
+	/// Hostile identity: bailed-out enemy drivers run a hot red ring instead of the player's warm
+	/// gold (spec: killing a driver on foot takes the hull whole — the target needs to read as a
+	/// target). Set BEFORE the pawn enters the tree.
+	/// </summary>
+	public bool Hostile { get; set; }
+
+	/// <summary>
 	/// On-foot readability at the fixed RTS altitude: the humanoid is a handful of pixels from
 	/// 37m up, and the on-foot beats (tire swaps, wreck salvage, tow hookups) are exactly when
 	/// the player must not lose their character. Soft shadow disc + warm gold ring, mirroring
@@ -72,6 +79,8 @@ public partial class DriverPawn : HumanoidPawn
 		});
 		marker.AddChild(shadow);
 
+		var ringColor = Hostile ? new Color(1.0f, 0.28f, 0.16f, 0.60f) : new Color(1.0f, 0.84f, 0.25f, 0.55f);
+		var ringEmission = Hostile ? new Color(1.0f, 0.22f, 0.10f) : new Color(1.0f, 0.78f, 0.20f);
 		var ring = new MeshInstance3D
 		{
 			Name = "IdentityRing",
@@ -81,12 +90,12 @@ public partial class DriverPawn : HumanoidPawn
 		};
 		ring.SetSurfaceOverrideMaterial(0, new StandardMaterial3D
 		{
-			AlbedoColor = new Color(1.0f, 0.84f, 0.25f, 0.55f),
+			AlbedoColor = ringColor,
 			Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
 			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
 			EmissionEnabled = true,
-			Emission = new Color(1.0f, 0.78f, 0.20f),
-			EmissionEnergyMultiplier = 0.9f,
+			Emission = ringEmission,
+			EmissionEnergyMultiplier = Hostile ? 1.1f : 0.9f,
 		});
 		marker.AddChild(ring);
 	}

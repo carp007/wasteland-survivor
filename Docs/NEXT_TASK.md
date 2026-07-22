@@ -11,7 +11,10 @@ interrupts), ON-FOOT PERSONAL WEAPONS stages 1+2 (four guns + armor ladder at th
 Outfitter; fire key works on foot; clones wake armed), cars grounded (deeper gold, automotive
 paint response), city hub headline is now the CITY NAME.
 
-## FIRST: human play-test (nothing since build 125 has human minutes on it)
+## FIRST: human play-test of the loop-6 changes
+Build ~181 GOT human minutes on 2026-07-22 — the 13-note session recorded in
+`Docs/PLAYTEST_NOTES.md` drove this whole loop. What has NOT been played by a human yet is
+everything loop #6 built (182+): the golden paths below cover it.
 **Restart the Godot editor first** (new assemblies + imports). Copy
 `%APPDATA%\Godot\app_userdata\Wasteland Survivor\savegame.json` somewhere safe first.
 
@@ -34,19 +37,18 @@ Clinic & Outfitter: buy nothing — you already carry the free Rusthound 9mm (60
 stop, exit (E), hold fire: pistol tracers at the locked enemy, ammo readout under your vitals.
 Then buy the Doorbreaker 12g and feel the difference point-blank.
 
-## Judge round (loop #6): visual B-, gameplay B- — all 7 confirmed P1s fixed in build 184,
-## most P2s + the loop-5 t4 carry-over closed in build 185. Remaining backlog for loop #7:
-- ECONOMY (design decisions, deliberately left to the designer): vest swap restores full AP →
-  downgrading a shredded vest undercuts the repair service, and trade-in excess is forfeited
-  silently; shotgun per-pellet Math.Max(1,...) floor doubles its designed anti-hull chip; shared
-  ammo-pool cap quirk on equip-switch (pistol↔SMG share pammo_9mm with different caps).
-- Garage Service Bay/Upgrades tabs half-empty; travel map legend is a cryptic single text run;
-  section-caved toasts can overlap the salvage-phase header; player car still reads simple at
-  combat zoom (next step would be real per-class detail meshes, not shader work).
-- On-foot probe: aim/range/cone/whiff/cover-block all verified live; a clean HULL-hit assert is
-  still racy (walking driver vs driving car) — consider a deterministic close-range staging
-  (spawn override) if it matters. Post-185 telemetry: t3 LANES = 47 enemy shots (was 11-13),
-  t4 SIDEWINDER = 57 shots / 8 part hits (was 10/2).
+## Judge round (loop #6): visual B-, gameplay B- — all 7 confirmed P1s fixed in 184, P2 sweep +
+## t4 carry-over in 185, and the continuation (build 186) closed most of the rest:
+- CLOSED in 186: garage tabs (real hull-integrity/upgrade-ladder consoles), map legend (drawn
+  glyph samples), salvage toast overlap, vest trade-in condition scaling, shotgun pellet floor,
+  on-foot aim overfly (probe 0/9 → 9/9 section hits), ENEMY BAIL-OUT DUELS at tier 3+
+  (--shot=bailout), deterministic on-foot hit staging.
+- Remaining for loop #7: shared ammo-pool cap quirk on equip-switch (pistol↔SMG share pammo_9mm
+  with different caps); player car still simple at combat zoom (needs per-class detail meshes,
+  not shader work); parts-store backdrop presence; per-weapon on-foot SFX (stage 3); bail-out
+  polish (duelist could surrender below 25% HP; personal-weapon pickup from killed duelists?).
+- Post-185 telemetry anchors: t3 LANES = 47 enemy shots (was 11-13), t4 SIDEWINDER = 57 shots /
+  8 part hits (was 10/2); bail-out probe: duelist landed pistol chips on player sections 4-24m.
 
 ## Known debt / watch items
 - Journey overlay: interrupt timing/pacing is a first cut; Stage 2 = HIGHWAY combat venue for

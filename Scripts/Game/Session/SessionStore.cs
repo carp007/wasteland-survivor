@@ -234,15 +234,21 @@ internal sealed class SessionStore
 	}
 
 	/// <summary>
-	/// Trade-in value of the currently equipped driver vest (40% of store price). Basic kevlar and
-	/// anything not sold at the outfitter trade in at $0.
+	/// Trade-in value of the currently equipped driver vest: 40% of store price scaled by the
+	/// vest's REMAINING armor fraction (judge round, loop 6 — a shredded assault rig traded at
+	/// full value, so cycling swaps beat the repair service and beat taking care of your gear).
+	/// Basic kevlar and anything not sold at the outfitter trade in at $0.
 	/// </summary>
 	public static int GetDriverArmorTradeInValue(DefDatabase defs, string equippedArmorId)
+		=> GetDriverArmorTradeInValue(defs, equippedArmorId, conditionFraction: 1f);
+
+	public static int GetDriverArmorTradeInValue(DefDatabase defs, string equippedArmorId, float conditionFraction)
 	{
 		if (string.IsNullOrWhiteSpace(equippedArmorId))
 			return 0;
+		var cond = Math.Clamp(conditionFraction, 0f, 1f);
 		return defs.DriverUpgrades.TryGetValue(equippedArmorId, out var u) && u.Kind == DriverUpgradeKind.Armor
-			? (int)MathF.Round(u.PriceUsd * DriverArmorTradeInRate)
+			? (int)MathF.Round(u.PriceUsd * DriverArmorTradeInRate * cond)
 			: 0;
 	}
 
@@ -324,7 +330,8 @@ internal sealed class SessionStore
 			return false;
 		}
 
-		var tradeIn = GetDriverArmorTradeInValue(defs, player.EquippedArmorId);
+		var tradeCondition = player.DriverArmorMax > 0 ? (float)player.DriverArmor / player.DriverArmorMax : 1f;
+		var tradeIn = GetDriverArmorTradeInValue(defs, player.EquippedArmorId, tradeCondition);
 		var netCost = Math.Max(0, def.PriceUsd - tradeIn);
 		if (player.MoneyUsd < netCost)
 		{

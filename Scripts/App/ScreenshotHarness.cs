@@ -149,16 +149,16 @@ public partial class ScreenshotHarness : Node
 						// Arena captures must be able to run any tier 1..5; city tier caps are part of
 						// the campaign arc (Detroit caps at 2), so stage the sandbox in the tier-5 city.
 						// --shot-city overrides so tier A/B comparisons can share one venue palette.
-						if (Target == "arena" && !string.IsNullOrWhiteSpace(CityId))
+						if ((Target == "arena" || Target == "bailout") && !string.IsNullOrWhiteSpace(CityId))
 							session.SetCurrentCity(CityId);
-						else if (Target == "arena" && Tier >= 3)
+						else if ((Target == "arena" || Target == "bailout") && Tier >= 3)
 							session.SetCurrentCity("pittsburgh");
 						// Tournament entry charges a real fee — bankroll the sandbox clone.
 						if (Target == "tournament" || Target == "tournamentbracket")
 							session.TryAddMoney(1500, out _, out _);
 						// Combat probes fight with a REAL ammo hold (starter 58 rounds runs dry long
 						// before tier-3+ pools empty, which skews every TTK measurement).
-						if (Target == "arena" || Target == "tournament")
+						if (Target == "arena" || Target == "tournament" || Target == "bailout")
 							session.TryBuyAmmoForActiveVehicle("ammo_mg_50cal", 150, 0, out _);
 					}
 				}
@@ -327,6 +327,22 @@ public partial class ScreenshotHarness : Node
 				_steps.Add((0.3f, Quit, "quit"));
 				break;
 
+			case "bailout":
+				// Mobility-kill → bail-out duel probe (tier 3+): force the enemy's tires dead,
+				// then film the on-foot driver shooting back. Use --shot-tier=3.
+				_steps.Add((0.7f, () => NavigateTo(GameScenes.ArenaRealtimeView), "nav arena"));
+				_steps.Add((0.6f, SelectBriefingTier, "select tier"));
+				_steps.Add((0.4f, StartArenaMatch, "start match"));
+				_steps.Add((0.5f, () => _autoDriveActive = true, "auto-drive on"));
+				_steps.Add((3.0f, ForceEnemyMobilityKill, "force mobility kill"));
+				_steps.Add((1.2f, () => Capture("bailout_start"), "shot bail-out start"));
+				_steps.Add((1.2f, () => Input.ActionPress("ws_fire"), "hold fire"));
+				_steps.Add((1.6f, () => Capture("bailout_duel"), "shot duel"));
+				_steps.Add((3.0f, () => Capture("bailout_duel2"), "shot duel 2"));
+				_steps.Add((3.0f, () => Capture("bailout_end"), "shot duel end"));
+				_steps.Add((0.3f, Quit, "quit"));
+				break;
+
 			case "highway":
 				// Road-ambush fight on the HIGHWAY venue (asphalt ribbon, guardrails, shoulder
 				// derelicts): stage the encounter via the session, resume in the arena, film it.
@@ -490,6 +506,8 @@ public partial class ScreenshotHarness : Node
 					ApproachEnemyOnFoot(false);
 					Input.ActionRelease("ws_sprint");
 				}, "stop walking"));
+				// Deterministic hit: park the enemy in front of the driver for the fire window.
+				_steps.Add((0.4f, StageEnemyBesideDriver, "stage enemy close"));
 				_steps.Add((0.3f, () => Input.ActionPress("ws_fire"), "hold fire on foot"));
 				_steps.Add((1.0f, () => Capture("onfoot_firing"), "shot onfoot firing"));
 				_steps.Add((1.5f, () => Capture("onfoot_firing2"), "shot onfoot firing 2"));
@@ -820,6 +838,40 @@ public partial class ScreenshotHarness : Node
 			Input.ActionPress(to.Z < 0 ? "ws_move_forward" : "ws_move_backward");
 		if (MathF.Abs(to.X) > 1f)
 			Input.ActionPress(to.X < 0 ? "ws_steer_left" : "ws_steer_right");
+	}
+
+	/// <summary>
+	/// Deterministic on-foot hit staging: park the enemy vehicle ~11m in front of the driver so a
+	/// hull hit is guaranteed regardless of where the AI drove (probe-only; the racy walk-chase
+	/// left the chip-damage path unexercised across runs).
+	/// </summary>
+	private void StageEnemyBesideDriver()
+	{
+		var driver = GetTree().GetFirstNodeInGroup("player_driver") as Node3D
+			?? GetTree().GetFirstNodeInGroup("driver_pawn") as Node3D;
+		var enemy = GetTree().GetFirstNodeInGroup("enemy_vehicle") as Node3D;
+		if (driver == null || enemy == null)
+		{
+			GD.PrintErr("[ShotHarness] StageEnemyBesideDriver: pawns missing.");
+			return;
+		}
+		var toCenter = (new Vector3(0f, driver.GlobalPosition.Y, 0f) - driver.GlobalPosition);
+		toCenter.Y = 0f;
+		var dir2 = toCenter.LengthSquared() > 1f ? toCenter.Normalized() : Vector3.Forward;
+		enemy.GlobalPosition = driver.GlobalPosition + dir2 * 11f + Vector3.Up * 0.05f;
+		if (enemy is CharacterBody3D body)
+			body.Velocity = Vector3.Zero;
+		GD.Print("[ShotHarness] Enemy staged 11m from on-foot driver.");
+	}
+
+	private void ForceEnemyMobilityKill()
+	{
+		var app = App.Instance;
+		if (app == null || !app.Services.TryGet<GameUiKit.UI.ScreenRouter>(out var router)) return;
+		if (router?.Current is ArenaRealtimeView arena)
+			arena.DebugForceEnemyMobilityKill();
+		else
+			GD.PrintErr("[ShotHarness] ForceEnemyMobilityKill: arena view not active.");
 	}
 
 	private static void StartRoadAmbush()

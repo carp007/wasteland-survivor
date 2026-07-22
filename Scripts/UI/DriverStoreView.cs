@@ -407,7 +407,8 @@ public partial class DriverStoreView : Control
 		var title = equipped ? $"{def.DisplayName}   (equipped)" : def.DisplayName;
 		AddRowLabels(info, title, $"Body armor · {def.ArmorPoints} armor points · replaces your current vest", def.Flavor);
 
-		var tradeIn = equipped ? 0 : SessionStore.GetDriverArmorTradeInValue(defs, player.EquippedArmorId);
+		var tradeCondition = player.DriverArmorMax > 0 ? (float)player.DriverArmor / player.DriverArmorMax : 1f;
+		var tradeIn = equipped ? 0 : SessionStore.GetDriverArmorTradeInValue(defs, player.EquippedArmorId, tradeCondition);
 		var netCost = Math.Max(0, def.PriceUsd - tradeIn);
 		var money = session.GetMoneyUsd();
 		var btn = new Button

@@ -1,4 +1,13 @@
-## 2026-07-22 build loop #6 (builds 182-183+) — play-test response: front door, structure, drivers, the road, the sidearm
+## 2026-07-22 build loop #6 (builds 182-186) — play-test response: front door, structure, drivers, the road, the sidearm
+- **Human minutes**: the user play-tested ~181 and left 13 notes — recorded with dispositions in
+  `Docs/PLAYTEST_NOTES.md` (canonical play-test log). This loop is the response.
+- **ENEMY BAIL-OUT DUELS** (186): tier-3+ mobility kills spawn a red-ring on-foot driver who
+  returns sidearm fire; all player damage paths (guns/personal/ram) work on them; driver kill =
+  intact hull. Tiers 1-2 still surrender. `--shot=bailout`.
+- **Garage consoles** (186): Service Bay hull-integrity grid + fuel/range tiles + mechanic's log;
+  Upgrades plating ladders with install deltas (armor/kg/top-speed %).
+- **Judge round**: 2-judge panel + adversarial verify (both B-); all 7 confirmed P1s fixed in 184
+  (see CHANGELOG), P2 sweep + t4 SIDEWINDER carry-over in 185, remainder in 186.
 - **Real TITLE SCREEN / main menu** (`TitleScreenView`): studio splash → full-bleed title art
   (new UiKit `CoverArtControl` cover-crops with a TOP anchor so the lettering never truncates
   again; slow Ken Burns drift) with CONTINUE / NEW GAME (confirm + full wipe via

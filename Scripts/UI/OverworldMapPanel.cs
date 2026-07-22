@@ -197,11 +197,6 @@ public partial class OverworldMapPanel : Control
 
 		DrawString(headingFont, new Vector2(14f, 22f), "REGIONAL ROAD NET",
 			HorizontalAlignment.Left, -1f, 14, GameUiTheme.AccentGoldColor);
-		const string legend = "T# ARENA · + CLONE LAB · PUMP = FUEL STOP · RED DASH = CLOSED";
-		var legendSize = bodyFont.GetStringSize(legend, HorizontalAlignment.Left, -1f, 11);
-		if (legendSize.X < size.X - 190f)
-			DrawString(bodyFont, new Vector2(size.X - legendSize.X - 14f, 22f), legend,
-				HorizontalAlignment.Left, -1f, 11, GameUiTheme.TextMutedColor);
 
 		if (_cities.Count == 0)
 		{
@@ -374,6 +369,9 @@ public partial class OverworldMapPanel : Control
 			DrawString(bodyFont, new Vector2(nameX, p.Y + 20f), name,
 				HorizontalAlignment.Left, -1f, 12, nameColor);
 		}
+
+		// Legend last so map plotting never overdraws it.
+		DrawLegendStrip(Size, bodyFont);
 	}
 
 	/// <summary>
@@ -399,6 +397,78 @@ public partial class OverworldMapPanel : Control
 
 		// Base plinth.
 		canvas.DrawRect(new Rect2(topLeft + new Vector2(-1f * scale, h), new Vector2(w + 2f * scale, 1.5f * scale)), color);
+	}
+
+	/// <summary>
+	/// Bottom-edge legend with real glyph samples instead of the old single cryptic text run
+	/// ("T# ARENA · + CLONE LAB · PUMP = FUEL STOP..." — judge round, loop 6). Each entry draws
+	/// the actual symbol the map uses next to a short label; items that don't fit are dropped
+	/// from the right.
+	/// </summary>
+	private void DrawLegendStrip(Vector2 size, Font bodyFont)
+	{
+		var y = size.Y - 14f;
+		var x = 14f;
+		var label = GameUiTheme.TextMutedColor;
+		const int fs = 11;
+
+		void Entry(string text, float glyphWidth, Action<Vector2> drawGlyph)
+		{
+			var w = glyphWidth + 4f + bodyFont.GetStringSize(text, HorizontalAlignment.Left, -1f, fs).X + 16f;
+			if (x + w > size.X - 10f) return;
+			drawGlyph(new Vector2(x, y));
+			DrawString(bodyFont, new Vector2(x + glyphWidth + 4f, y + 4f), text, HorizontalAlignment.Left, -1f, fs, label);
+			x += w;
+		}
+
+		// T# arena-tier badge.
+		Entry("arena tier", 18f, p =>
+		{
+			DrawRect(new Rect2(p.X, p.Y - 8f, 18f, 12f), new Color(GameUiTheme.AccentGoldColor, 0.22f));
+			DrawString(bodyFont, new Vector2(p.X + 2f, p.Y + 3f), "T3", HorizontalAlignment.Left, -1f, 10, GameUiTheme.AccentGoldColor);
+		});
+
+		// Clone lab cross.
+		Entry("clone lab", 10f, p =>
+		{
+			var c = GameUiTheme.AccentCyanColor;
+			DrawLine(new Vector2(p.X + 5f, p.Y - 8f), new Vector2(p.X + 5f, p.Y + 2f), c, 2f);
+			DrawLine(new Vector2(p.X, p.Y - 3f), new Vector2(p.X + 10f, p.Y - 3f), c, 2f);
+		});
+
+		// Fuel pump block.
+		Entry("fuel stop", 10f, p =>
+		{
+			var c = new Color(0.55f, 0.75f, 0.55f);
+			DrawRect(new Rect2(p.X, p.Y - 8f, 7f, 10f), c);
+			DrawLine(new Vector2(p.X + 7f, p.Y - 6f), new Vector2(p.X + 10f, p.Y - 3f), c, 1.5f);
+		});
+
+		// Closed road dash.
+		Entry("road closed", 18f, p =>
+		{
+			var c = new Color(0.95f, 0.30f, 0.22f);
+			DrawLine(new Vector2(p.X, p.Y - 3f), new Vector2(p.X + 6f, p.Y - 3f), c, 2f);
+			DrawLine(new Vector2(p.X + 10f, p.Y - 3f), new Vector2(p.X + 16f, p.Y - 3f), c, 2f);
+		});
+
+		// WANTED reticle.
+		Entry("wanted leg", 14f, p =>
+		{
+			var c = new Color(1f, 0.25f, 0.15f);
+			DrawArc(new Vector2(p.X + 7f, p.Y - 3f), 5f, 0f, Mathf.Tau, 20, c, 1.5f, antialiased: true);
+			DrawLine(new Vector2(p.X + 7f, p.Y - 8f), new Vector2(p.X + 7f, p.Y + 2f), c, 1f);
+			DrawLine(new Vector2(p.X + 2f, p.Y - 3f), new Vector2(p.X + 12f, p.Y - 3f), c, 1f);
+		});
+
+		// Freight crate.
+		Entry("freight drop", 12f, p =>
+		{
+			var c = GameUiTheme.AccentGoldColor;
+			var rect = new Rect2(p.X, p.Y - 9f, 11f, 11f);
+			DrawRect(rect, c, false, 1.5f);
+			DrawLine(rect.Position, rect.End, c, 1.1f, antialiased: true);
+		});
 	}
 
 	private void DrawTargetBrackets(Vector2 center, float half, Color color)
