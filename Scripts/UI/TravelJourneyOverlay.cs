@@ -76,6 +76,42 @@ public partial class TravelJourneyOverlay : Control
 
 	private const float InterruptAt01 = 0.64f;
 
+	/// <summary>
+	/// Late thumbnail delivery: the showroom icon often finishes baking a second into the ride
+	/// (first trip of a session). Swaps the drawn fallback for the real car mid-journey.
+	/// </summary>
+	public void SetVehicleIcon(Texture2D tex)
+	{
+		if (_finished || tex == null) return;
+		if (_vehicleChip != null && GodotObject.IsInstanceValid(_vehicleChip))
+		{
+			_vehicleChip.Texture = tex;
+			return;
+		}
+		if (_fallbackChip == null || !GodotObject.IsInstanceValid(_fallbackChip)) return;
+
+		var chip = new TextureRect
+		{
+			Name = "VehicleChip",
+			Texture = tex,
+			ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+			StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+			MouseFilter = MouseFilterEnum.Ignore,
+			CustomMinimumSize = new Vector2(210f, 132f),
+		};
+		AddChild(chip);
+		chip.SetAnchorsPreset(LayoutPreset.CenterLeft);
+		chip.AnchorTop = 0.52f;
+		chip.AnchorBottom = 0.52f;
+		chip.OffsetLeft = 180f;
+		chip.OffsetRight = 390f;
+		chip.OffsetTop = _fallbackChip.OffsetTop;
+		chip.OffsetBottom = _fallbackChip.OffsetBottom;
+		_fallbackChip.QueueFree();
+		_fallbackChip = null;
+		_vehicleChip = chip;
+	}
+
 	/// <summary>Builds, parents, and runs the overlay. <paramref name="onArrive"/> always runs exactly once.</summary>
 	public static TravelJourneyOverlay Show(Control host, JourneyInfo info, Action onArrive)
 	{

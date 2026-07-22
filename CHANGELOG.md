@@ -1,3 +1,7 @@
+- Build 2026-07-22-189 (8-hour loop #6, iteration 12 — final polish pair):
+  - **Journey stars YOUR car even on a cold cache**: when the showroom thumbnail isn't baked yet, it bakes DURING the ride and swaps in over the drawn fallback within a second or two (`TravelJourneyOverlay.SetVehicleIcon`).
+  - **Duel spoils**: taking a bailed-out duelist down (or their surrender) recovers their sidearm into your holster the first time — "GUTTERSTORM SMG RECOVERED" — equip it at the outfitter. (`SessionStore.TryGrantPersonalWeapon`.)
+
 - Build 2026-07-22-188 (8-hour loop #6, iteration 11 — closing-regrade response; visual moved B- → B, menu-family and arena-combat both B+):
   - **P0 — bail-out state leak fixed**: `_enemyBailedOut` (and the whole duel state + pawn) never reset across encounters started in the same arena view, so a tournament's next round after a bail-out began as a broken free win. Full `ResetBailOutRuntime()` now runs at every encounter seed/resume.
   - **Duel resolve holes closed** (judge P1s): winning the duel no longer detonates the hull the feature promises stays whole — bail-out wins skip the destruction burst ("HULL TAKEN WHOLE" instead); the duelist actually falls when killed (death pose fires at damage time, not in the AI tick that resolve disables); shelling the abandoned wreck no longer drains the absent duelist's vest; and the targeting brackets + camera look-ahead follow the DUELIST during the duel instead of the dead wreck. (Missiles/mines remain unable to lock people — treated as intended fiction, noted in NEXT_TASK.)

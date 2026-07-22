@@ -416,6 +416,27 @@ internal sealed class SessionStore
 		return true;
 	}
 
+	/// <summary>
+	/// Battlefield recovery: add a personal weapon to the owned list at no cost (bail-out duel
+	/// spoils — the duelist's sidearm doesn't need them anymore). No auto-equip; returns false
+	/// when unknown or already owned.
+	/// </summary>
+	public bool TryGrantPersonalWeapon(DefDatabase defs, string weaponId, out string displayName)
+	{
+		displayName = string.Empty;
+		if (string.IsNullOrWhiteSpace(weaponId) || !defs.PersonalWeapons.TryGetValue(weaponId, out var def))
+			return false;
+		if (IsPersonalWeaponOwned(def.Id))
+			return false;
+
+		var player = _ctx.Save.Player;
+		var owned = new List<string>(player.OwnedPersonalWeaponIds ?? new List<string>()) { def.Id };
+		_ctx.Replace(_ctx.Save with { Player = player with { OwnedPersonalWeaponIds = owned } });
+		_ctx.Status($"Recovered the duelist's {def.DisplayName}.");
+		displayName = def.DisplayName;
+		return true;
+	}
+
 	/// <summary>Swap between owned personal weapons (free — it's your own holster).</summary>
 	public bool TryEquipPersonalWeapon(DefDatabase defs, string weaponId, out string error)
 	{

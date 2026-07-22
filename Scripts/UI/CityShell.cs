@@ -1026,12 +1026,12 @@ public partial class CityShell : Control
 		// Journey interstitial (skippable): plays over the committed leg, then presents the outcome.
 		var (fuelNow, fuelCap) = session.GetActiveVehicleFuel(defs);
 		Texture2D? chip = null;
+		VehicleDefinition? journeyVehicleDef = null;
 		var activeVehicle = session.GetActiveVehicle();
 		if (activeVehicle != null && defs.Vehicles.TryGetValue(activeVehicle.DefinitionId, out var activeDef))
 		{
+			journeyVehicleDef = activeDef;
 			chip = VehiclePortraitIconFactory.GetCached(activeDef.Id, VehiclePresentation.PlayerBodyColor);
-			if (chip == null) // warm the cache so the next leg (and store/garage rows) get the real car
-				_ = VehiclePortraitIconFactory.GetOrCreateAsync(this, defs, activeDef, VehiclePresentation.PlayerBodyColor);
 		}
 
 		var journey = new TravelJourneyOverlay.JourneyInfo
@@ -1049,8 +1049,27 @@ public partial class CityShell : Control
 			InterruptKind = interruptKind,
 			VehicleIcon = chip,
 		};
-		TravelJourneyOverlay.Show(this, journey,
+		var overlay = TravelJourneyOverlay.Show(this, journey,
 			() => PresentTravelOutcome(app, session, cityId, ambushTier, roadsideMerchant, freightPayout));
+
+		// Cold cache: bake the showroom thumbnail DURING the ride and swap it in when ready, so
+		// even a session's first trip stars the player's actual car within a second or two.
+		if (chip == null && journeyVehicleDef != null)
+			DeliverJourneyChipAsync(overlay, defs, journeyVehicleDef);
+	}
+
+	private async void DeliverJourneyChipAsync(TravelJourneyOverlay overlay, WastelandSurvivor.Core.IO.DefDatabase defs, VehicleDefinition vdef)
+	{
+		try
+		{
+			var tex = await VehiclePortraitIconFactory.GetOrCreateAsync(this, defs, vdef, VehiclePresentation.PlayerBodyColor);
+			if (tex != null && overlay != null && GodotObject.IsInstanceValid(overlay))
+				overlay.SetVehicleIcon(tex);
+		}
+		catch (Exception ex)
+		{
+			GD.PrintErr($"[CityShell] Journey chip bake failed: {ex.Message}");
+		}
 	}
 
 	/// <summary>

@@ -6278,6 +6278,15 @@ private void ResetUi()
 			// A modest cheer for the clean take instead of the explosion.
 			WastelandSurvivor.Game.Audio.AmbienceDirector.PlayCrowdSwell();
 			ShowCombatToast("HULL TAKEN WHOLE", aboutPlayer: false);
+
+			// Duel spoils: the duelist's sidearm joins your holster (first time only).
+			var lootDefs = Defs();
+			if (lootDefs != null && _enemyBailWeapon is { } lootPw
+				&& session.Store.TryGrantPersonalWeapon(lootDefs, lootPw.Id, out var lootName))
+			{
+				ShowCombatToast($"{lootName.ToUpperInvariant()} RECOVERED", aboutPlayer: false);
+				AddLog($"You strip the duelist's {lootName} — it rides in your holster now (equip it at the outfitter).");
+			}
 		}
 
 		CommitPersonalAmmoIfSeeded(session);
