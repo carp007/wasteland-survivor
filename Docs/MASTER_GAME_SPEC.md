@@ -63,7 +63,31 @@ Weapons, targeting computer, and ammo
 
 On-foot gameplay (secondary)
 - Player can exit vehicles and enter other vehicles (including salvaged enemy vehicles if the driver is killed and the vehicle is usable).
-- v1 focus: on-foot is utility (enter/exit, tire replace, loot/salvage, attach tow). Later: character weapons/armor/clothing via “driver store.”
+- Baseline on-foot verbs: enter/exit, tire replace, loot/salvage, attach tow, hijack drivable wrecks.
+- Design intent: on-foot is HIGH-RISK UTILITY, not a shooter. Personal weapons exist as last-resort defense while exposed and as a finishing tool against crippled vehicles/exposed drivers; they must never out-damage vehicle mounts or make fighting on foot a preferred strategy.
+
+Personal weapons (driver-carried)
+- Single equipped personal-weapon slot on the driver (mirrors the single armor-vest slot). A fresh clone always wakes with at least the basic 9mm sidearm — the player is never unarmed outside the vehicle.
+- Sold at the Driver Store (“Clinic & Outfitter”) alongside body armor and cybernetics. Personal ammo is bought there too and is carried on the driver: per-person ammo pools, separate from any vehicle’s ammo stores.
+- Weapon classes and combat roles:
+  - Sidearm (9mm pistol): starter/backup. Modest damage, moderate range, forgiving cooldown. The “always armed” guarantee.
+  - SMG (9mm): close-range sustained spray. Highest on-foot DPS but short range and wide spread; still below any vehicle-mounted MG.
+  - Shotgun (12-gauge): point-blank multi-pellet burst. Devastating inside ~12 m, useless beyond; the tire-swap ambush deterrent.
+  - Hunting rifle: long-range single shots. Best per-shot punch and reach, slow cooldown; the deliberate finisher.
+- Personal fire against vehicles is chip damage (per-weapon vehicle-damage multiplier); its real value is finishing already-stripped sections and injuring drivers through destroyed sections via the normal overflow rules.
+- Aiming model (keyboard-first, top-down): auto-aim at the locked/nearest target when it is inside the weapon’s range and the driver’s facing cone; otherwise shots travel down the facing line. No mouse aiming.
+
+Personal armor (driver-worn)
+- Single equipped vest slot providing driver Armor Points (AP): a buffer that absorbs driver damage before HP (in and out of the vehicle).
+- Kevlar ladder sold at the Driver Store with old-vest trade-in: Basic Kevlar 50 AP (free default) → Heavy Kevlar 58 AP → Composite Vest 65 AP → Assault Rig 85 AP → Exo Plate Carrier 110 AP.
+- Later: a powered exo-frame armor tier that also buffs on-foot speed/carry weight (post-v1; pairs with cybernetics at clone facilities).
+- Ammo-vs-armor counters stay a vehicle-side system; personal armor remains a simple AP pool by design.
+
+Clone / driver-kill interaction (on-foot)
+- Driver HP/AP applies identically in and out of the vehicle; on foot the driver just has no hull between themselves and the guns.
+- Dying on foot is a normal driver death: clone respawn at the last upload facility, clone fee, vehicle left where it stood (capture/reclaim rules apply).
+- Equipped vest, equipped personal weapon, and carried personal ammo persist through cloning — they are profile equipment, not cargo.
+- Killing an enemy driver who has bailed out on foot (later, once AI bail-outs exist) counts as a driver kill: the hull stays intact for salvage, making the personal-weapon finisher the cleanest way to take a vehicle whole.
 
 AI goals
 - AI should feel like players (at least some opponents): fight, salvage, tow, sell/repair, and use the same rules.

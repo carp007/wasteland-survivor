@@ -1,0 +1,18 @@
+{
+  "Id": "toledo",
+  "DisplayName": "Toledo",
+  "MapX": 0.52,
+  "MapY": 0.60,
+  "HasStore": true,
+  "HasGarage": true,
+  "ArenaMaxTier": 2,
+  "HasCloneFacility": false,
+  "FuelPriceMultiplier": 0.9,
+  "Flavor": "Refinery town at the crossroads. Cheap fuel, a rough-and-ready amateur arena, and traffic from every direction.",
+  "BackdropPath": "",
+  "Roads": [
+    { "ToCityId": "detroit", "DistanceKm": 95, "AmbushChance": 0.3, "AmbushTierMin": 1, "AmbushTierMax": 2 },
+    { "ToCityId": "cleveland", "DistanceKm": 190, "AmbushChance": 0.4, "AmbushTierMin": 1, "AmbushTierMax": 2 },
+    { "ToCityId": "fort_wayne", "DistanceKm": 150, "AmbushChance": 0.4, "AmbushTierMin": 1, "AmbushTierMax": 2 }
+  ]
+}

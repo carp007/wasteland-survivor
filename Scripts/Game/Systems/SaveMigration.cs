@@ -177,6 +177,41 @@ internal static class SaveMigration
 					vehicles[i] = v with { InstalledWeaponsByMountId = installs, AmmoInventory = invUpdated };
 			}
 		}
+		// v9: tournaments (SaveGameState.ActiveTournament, EncounterState tournament linkage).
+		// Pure additive nullable/default fields — no data rewrite needed; the version bump below covers it.
+
+		// v8: fuel becomes real (road-graph travel burns it). Older saves carry the 0/1.0 placeholder
+		// FuelAmount that was never consumed — normalize those to a full tank so nobody starts stranded.
+		if (defs != null)
+		{
+			for (var i = 0; i < vehicles.Count; i++)
+			{
+				var v = vehicles[i];
+				if (!defs.Vehicles.TryGetValue(v.DefinitionId, out var vdef))
+					continue;
+
+				if (v.FuelAmount <= 1.01f || v.FuelAmount > vdef.FuelCapacityUnits)
+					vehicles[i] = v with { FuelAmount = vdef.FuelCapacityUnits };
+			}
+		}
+
+		// v11: freight contracts (SaveGameState.ActiveFreightContract, Player.FreightContractsDelivered).
+		// Pure additive nullable/default fields — no data rewrite needed; the version bump covers it.
+
+		// v12: WANTED bounties (SaveGameState.ActiveBountyContract, Player.BountiesClaimed).
+		// Pure additive nullable/default fields — no data rewrite needed; the version bump covers it.
+
+		// v10: overworld trailer hitching — clear hitch links whose target instance is gone.
+		{
+			var knownIds = vehicles.Select(v => v.InstanceId).ToHashSet(System.StringComparer.Ordinal);
+			for (var i = 0; i < vehicles.Count; i++)
+			{
+				var v = vehicles[i];
+				if (!string.IsNullOrWhiteSpace(v.HitchedTrailerInstanceId) && !knownIds.Contains(v.HitchedTrailerInstanceId!))
+					vehicles[i] = v with { HitchedTrailerInstanceId = null };
+			}
+		}
+
 save = save with { Vehicles = vehicles, Player = p, Version = targetVersion };
 		return true;
 	}

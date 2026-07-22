@@ -5,6 +5,7 @@
 // -------------------------------------------------------------------------------------------------
 using System;
 using Godot;
+using GamePawnKit.Pawns;
 using WastelandSurvivor.Core.IO;
 
 namespace WastelandSurvivor.Game.Arena;
@@ -13,39 +14,25 @@ namespace WastelandSurvivor.Game.Arena;
 /// Small JSON-backed config for the Phase 1 driver on-foot prototype.
 /// Kept intentionally tiny so we can tune feel without touching code.
 /// </summary>
-public sealed class DriverPawnConfigStore
+public sealed class DriverPawnConfigStore : JsonConfigStore<DriverPawnConfig>
 {
 	public static DriverPawnConfigStore Instance { get; } = new();
 
-	public string ConfigPath { get; set; } = "res://Data/Config/driver_pawn.json";
-
-	private DriverPawnConfig? _cached;
-
-	public DriverPawnConfig Get()
+	private DriverPawnConfigStore() : base("res://Data/Config/driver_pawn.json")
 	{
-		if (_cached != null) return _cached;
+	}
 
-		try
-		{
-			if (!FileAccess.FileExists(ConfigPath))
-			{
-				_cached = DriverPawnConfig.Default();
-				return _cached;
-			}
+	protected override DriverPawnConfig CreateDefault() => DriverPawnConfig.Default();
 
-			var json = FileAccess.GetFileAsString(ConfigPath);
-			var cfg = JsonUtil.Deserialize<DriverPawnConfig>(json);
-			_cached = cfg ?? DriverPawnConfig.Default();
-			return _cached;
-		}
-		catch (Exception ex)
-		{
-			GD.PrintErr($"[DriverPawnConfigStore] Failed to load {ConfigPath}: {ex.Message}");
-			_cached = DriverPawnConfig.Default();
-			return _cached;
-		}
+	protected override DriverPawnConfig Normalize(DriverPawnConfig config)
+	{
+		config.ExitOffset ??= new Vec3();
+		config.Avatar ??= DriverAvatarConfig.Default();
+		config.Avatar.ModelLocalOffset ??= new Vec3();
+		return config;
 	}
 }
+
 
 public sealed class DriverPawnConfig
 {
@@ -88,6 +75,21 @@ public sealed class DriverAvatarConfig
 	public static DriverAvatarConfig Default() => new();
 
 	public Vector3 ModelLocalOffsetVec3() => new(ModelLocalOffset.X, ModelLocalOffset.Y, ModelLocalOffset.Z);
+
+	public HumanoidAvatarConfig ToHumanoidAvatarConfig()
+	{
+		return new HumanoidAvatarConfig
+		{
+			ModelScenePath = ModelScenePath,
+			IdleAnim = IdleAnim,
+			WalkAnim = WalkAnim,
+			RunAnim = RunAnim,
+			DeathAnim = DeathAnim,
+			ModelScale = ModelScale,
+			ModelYawOffsetDegrees = ModelYawOffsetDegrees,
+			ModelLocalOffset = ModelLocalOffsetVec3(),
+		};
+	}
 }
 
 public sealed class Vec3

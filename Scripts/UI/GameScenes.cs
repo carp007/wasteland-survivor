@@ -18,9 +18,13 @@ namespace WastelandSurvivor.Game.UI;
 public static class GameScenes
 {
 	public const string BootSplashView = "res://Scenes/UI/BootSplashView.tscn";
+	public const string TitleScreenView = "res://Scenes/UI/TitleScreenView.tscn";
 	public const string CityShell = "res://Scenes/UI/CityShell.tscn";
 	public const string GarageView = "res://Scenes/UI/GarageView.tscn";
 	public const string WorkshopView = "res://Scenes/UI/WorkshopView.tscn";
+	public const string StoreView = "res://Scenes/UI/StoreView.tscn";
+	public const string DriverStoreView = "res://Scenes/UI/DriverStoreView.tscn";
+	public const string CasinoView = "res://Scenes/UI/CasinoView.tscn";
 	public const string ArenaRealtimeView = "res://Scenes/UI/ArenaRealtimeView.tscn";
 	public const string VehicleStatusHud = "res://Scenes/UI/VehicleStatusHud.tscn";
 

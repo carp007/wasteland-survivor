@@ -1,0 +1,19 @@
+{
+  "Id": "cleveland",
+  "DisplayName": "Cleveland",
+  "MapX": 0.70,
+  "MapY": 0.66,
+  "HasStore": true,
+  "HasGarage": true,
+  "ArenaMaxTier": 0,
+  "HasCloneFacility": true,
+  "FuelPriceMultiplier": 1.1,
+  "Flavor": "Lakeside salvage port. No arena — Cleveland crews make their money stripping wrecks that wash in off the lakeshore highway.",
+  "BackdropPath": "res://Assets/Images/City/Cleveland.png",
+  "Roads": [
+    { "ToCityId": "detroit", "DistanceKm": 275, "AmbushChance": 0.5, "AmbushTierMin": 1, "AmbushTierMax": 3, "HasFuelStation": true, "FuelPriceMultiplier": 0.85, "FuelStationName": "Lakeshore 75 Station" },
+    { "ToCityId": "toledo", "DistanceKm": 190, "AmbushChance": 0.4, "AmbushTierMin": 1, "AmbushTierMax": 2 },
+    { "ToCityId": "erie", "DistanceKm": 160, "AmbushChance": 0.45, "AmbushTierMin": 2, "AmbushTierMax": 3 },
+    { "ToCityId": "pittsburgh", "DistanceKm": 215, "AmbushChance": 0.5, "AmbushTierMin": 2, "AmbushTierMax": 3, "HasFuelStation": true, "FuelPriceMultiplier": 0.9, "FuelStationName": "Turnpike 76 Station" }
+  ]
+}

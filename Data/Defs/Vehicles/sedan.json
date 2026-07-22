@@ -2,8 +2,13 @@
   "Id": "veh_sedan",
   "DisplayName": "Sedan",
   "Class": "Sedan",
+  "PriceUsd": 3400,
+  "ArmorType": "Steel",
+  "VisualModelPath": "res://Assets/Models/Vehicles/KenneyCarKit/sedan.glb",
+  "VisualTargetLength": 3.6,
   "BaseMassKg": 1350,
   "StorageCapacityUnits": 12,
+  "FuelCapacityUnits": 55,
   "TireCount": 4,
   "SpareTireIncluded": true,
   "BaseArmorBySection": {
@@ -53,10 +58,5 @@
       "CanAutoAim": false,
       "MaxWeaponSize": 1
     }
-  ],
-  "AllowedEngineClasses": [
-    "Compact",
-    "Sedan",
-    "Sports"
   ]
 }

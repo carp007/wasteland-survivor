@@ -6,8 +6,11 @@
   "TorqueNm": 310,
   "Efficiency": 1.0,
   "AllowedVehicleClasses": [
+	"Compact",
 	"Sedan",
 	"Sports",
-    "LightTruck"
-  ]
+	"LightTruck",
+    "Suv"
+  ],
+  "PriceUsd": 1900
 }

@@ -1,0 +1,69 @@
+{
+  "Id": "veh_semi_truck",
+  "DisplayName": "Semi Tractor",
+  "Class": "SemiTruck",
+  "PriceUsd": 21500,
+  "ArmorType": "Reactive",
+  "VisualModelPath": "res://Assets/Models/Vehicles/KenneyCarKit/truck-flat.glb",
+  "VisualTargetLength": 5.8,
+  "BaseMassKg": 4800,
+  "StorageCapacityUnits": 20,
+  "FuelCapacityUnits": 220,
+  "TireCount": 4,
+  "SpareTireIncluded": true,
+  "BaseArmorBySection": {
+    "Front": 20,
+    "Rear": 16,
+    "Left": 17,
+    "Right": 17,
+    "Top": 13,
+    "Undercarriage": 13
+  },
+  "BaseTireArmor": 10,
+  "BaseHpBySection": {
+    "Front": 40,
+    "Rear": 34,
+    "Left": 36,
+    "Right": 36,
+    "Top": 30,
+    "Undercarriage": 30
+  },
+  "BaseTireHp": 20,
+  "MountPoints": [
+    {
+      "MountId": "F1",
+      "MountLocation": "Front",
+      "ArcDegrees": 10,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "T1",
+      "MountLocation": "Top",
+      "ArcDegrees": 200,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "L1",
+      "MountLocation": "Left",
+      "ArcDegrees": 20,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "R2",
+      "MountLocation": "Right",
+      "ArcDegrees": 20,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "B1",
+      "MountLocation": "Rear",
+      "ArcDegrees": 0,
+      "CanAutoAim": false,
+      "MaxWeaponSize": 1
+    }
+  ]
+}

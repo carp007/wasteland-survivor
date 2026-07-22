@@ -1,0 +1,18 @@
+{
+  "Id": "detroit",
+  "DisplayName": "Detroit",
+  "MapX": 0.58,
+  "MapY": 0.45,
+  "HasStore": true,
+  "HasGarage": true,
+  "ArenaMaxTier": 2,
+  "HasCloneFacility": true,
+  "FuelPriceMultiplier": 1.0,
+  "Flavor": "The fortified motor capital. Home of the Motor Bowl arena circuit and the best-stocked parts market in the lakes region.",
+  "BackdropPath": "res://Assets/Images/City/Detroit.png",
+  "Roads": [
+    { "ToCityId": "saginaw", "DistanceKm": 160, "AmbushChance": 0.35, "AmbushTierMin": 1, "AmbushTierMax": 2 },
+    { "ToCityId": "toledo", "DistanceKm": 95, "AmbushChance": 0.3, "AmbushTierMin": 1, "AmbushTierMax": 2 },
+    { "ToCityId": "cleveland", "DistanceKm": 275, "AmbushChance": 0.5, "AmbushTierMin": 1, "AmbushTierMax": 3, "HasFuelStation": true, "FuelPriceMultiplier": 0.85, "FuelStationName": "Lakeshore 75 Station" }
+  ]
+}

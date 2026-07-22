@@ -1,0 +1,70 @@
+[gd_scene load_steps=2 format=3 uid="uid://casino_view_0001"]
+
+[ext_resource type="Script" path="res://Scripts/UI/CasinoView.cs" id="1"]
+
+[node name="CasinoView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.04, 0.05, 0.07, 1)
+
+[node name="BgImage" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+offset_left = 24.0
+offset_top = 84.0
+offset_right = 1024.0
+offset_bottom = 700.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+
+[node name="LblTitle" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "The Rusty Jackpot"
+
+[node name="LblSubtitle" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Back-room tables. Two games, house rules, no credit."
+
+[node name="LblWallet" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Cash: $0"
+
+[node name="LblHouse" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "House take tonight: $0"
+
+[node name="BodyScroll" type="ScrollContainer" parent="Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Body" type="VBoxContainer" parent="Panel/VBox/BodyScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BottomRow" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="LblStatus" type="Label" parent="Panel/VBox/BottomRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+
+[node name="BtnBack" type="Button" parent="Panel/VBox/BottomRow"]
+layout_mode = 2
+text = "Back to City"

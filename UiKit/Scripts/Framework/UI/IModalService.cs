@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------------------------------
-// Wasteland Survivor
+// UiKit
 // File: Scripts/Framework/UI/IModalService.cs
 // Purpose: Project-agnostic modal dialog service interface. Keeps UI screens from hand-rolling overlays
 //          and enables consistent, reusable modal behaviors across this project (and future Godot games).
@@ -7,7 +7,7 @@
 using System;
 using Godot;
 
-namespace WastelandSurvivor.Framework.UI;
+namespace GameUiKit.UI;
 
 /// <summary>
 /// A small service for showing modal UI (dialogs, confirmations, etc.) above the current screen.

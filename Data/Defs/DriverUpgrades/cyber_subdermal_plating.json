@@ -1,0 +1,8 @@
+{
+  "Id": "drv_cyber_subdermal_plating",
+  "DisplayName": "Subdermal Plating",
+  "Kind": "Cybernetic",
+  "HpBonus": 10,
+  "PriceUsd": 900,
+  "Flavor": "Woven ballistic mesh threaded under the skin. The clone techs cut you open, lace it in, and re-upload you like nothing happened."
+}

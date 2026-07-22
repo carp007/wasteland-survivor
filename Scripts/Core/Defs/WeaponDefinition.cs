@@ -28,4 +28,25 @@ public sealed record WeaponDefinition : IHasId
     public float MassKg { get; init; } = 0f;
 
     public string[] AmmoTypeIds { get; init; } = System.Array.Empty<string>();
+
+    /// <summary>Store price (USD). 0 = not sold in stores.</summary>
+    public int PriceUsd { get; init; } = 0;
+
+    /// <summary>
+    /// Mount locations this weapon may be installed on. Empty = any mount.
+    /// (Master spec: certain weapons are only allowed on certain mount locations —
+    /// e.g. droppers are rear-deploy systems and only fit Rear mounts.)
+    /// </summary>
+    public MountLocation[] AllowedMountLocations { get; init; } = System.Array.Empty<MountLocation>();
+
+    /// <summary>True if this weapon may be installed on a mount at <paramref name="location"/>.</summary>
+    public bool IsMountLocationAllowed(MountLocation location)
+    {
+        if (AllowedMountLocations.Length == 0) return true;
+        for (var i = 0; i < AllowedMountLocations.Length; i++)
+        {
+            if (AllowedMountLocations[i] == location) return true;
+        }
+        return false;
+    }
 }

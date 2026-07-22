@@ -13,7 +13,7 @@ namespace WastelandSurvivor.Game.Audio;
 /// - 5 simultaneous looping layers (idle/low/mid/high/very_high)
 /// - Crossfade volumes based on a smoothed normalized RPM value (0..1)
 /// - Optional subtle pitch scaling
-/// - Optional hard-brake skid sound (placeholder supported)
+/// - Optional hard-brake skid loop (fades in/out with brake state)
 ///
 /// Asset convention (per Docs/Audio/Engine_Archetypes.md):
 /// res://Assets/Audio/Vehicles/Engines/veh_engine_{archetype}_loop_{layer}_a.ogg
@@ -28,7 +28,7 @@ public partial class VehicleEngineAudio : Node3D
 	// - SetTelemetrySource(): bind to a pawn that implements IVehicleAudioTelemetry
 	// - SetArchetype(): selects which audio layer set to use (gas/diesel/etc.)
 	// - _Process(): maps telemetry (speed, throttle, gear intent) to RPM + layer crossfades
-	// - One-shots: brake skid + tire pop hooks (optional; depends on Assets)
+	// - Brake skid: looping squeal faded by UpdateSkid (optional; depends on Assets)
 	// -------------------------------------------------------------------------------------------------
 
 	public enum Layer
@@ -66,9 +66,10 @@ public partial class VehicleEngineAudio : Node3D
 	[Export(PropertyHint.Range, "0,0.25,0.005")] public float IdleThrottleThreshold01 = 0.03f;
 	/// <summary>
 	/// Smoothing rate for transitioning between idle-loop and drive-loop blends.
-	/// Higher = snappier transitions.
+	/// Higher = snappier transitions. Kept moderate: snappy blends turn AI throttle pulses into
+	/// audible on/off tone stabs.
 	/// </summary>
-	[Export] public float IdleDriveBlendSmoothing = 14f;
+	[Export] public float IdleDriveBlendSmoothing = 6f;
 	/// <summary>
 	/// RPM response smoothing for throttle increases (higher = snappier rev-up).
 	/// Lower values make RPM rise more gradually when the player first hits the accelerator.
@@ -78,17 +79,22 @@ public partial class VehicleEngineAudio : Node3D
 	/// RPM response smoothing for throttle decreases (higher = snappier drop).
 	/// Usually higher than <see cref="ThrottleRpmSmoothingUp"/> so RPM settles quickly when letting off.
 	/// </summary>
-	[Export] public float ThrottleRpmSmoothingDown = 14.0f;
+	[Export] public float ThrottleRpmSmoothingDown = 7.0f;
 
 	[ExportGroup("Simple drive loop (override)")]
 	/// <summary>
 	/// If enabled, use ONLY the archetype idle loop while coasting,
 	/// and a single drive loop (typically a "low" loop) with pitch progression while throttling.
-	/// This avoids the "fly buzzing" artifacts that can happen when layering mismatched loops.
+	/// Default off: each staged loop set is a matched 5-layer export of one source vehicle, so the
+	/// crossfade mode is safe. The old "fly buzzing" came from layering mismatched archetypes
+	/// (every vehicle used its own idle but the shared diesel drive loop).
 	/// </summary>
-	[Export] public bool UseSingleDriveLoop = true;
-	/// <summary>Archetype id to use for the drive loop when <see cref="UseSingleDriveLoop"/> is enabled.</summary>
-	[Export] public string DriveLoopArchetypeId = "diesel_truck";
+	[Export] public bool UseSingleDriveLoop = false;
+	/// <summary>
+	/// Archetype id for the drive loop when <see cref="UseSingleDriveLoop"/> is enabled.
+	/// Empty (default) follows <see cref="ArchetypeId"/> so every vehicle keeps its own engine voice.
+	/// </summary>
+	[Export] public string DriveLoopArchetypeId = "";
 	/// <summary>Layer id to load for the drive loop when <see cref="UseSingleDriveLoop"/> is enabled (usually "low").</summary>
 	[Export] public string DriveLoopLayerId = "low";
 	/// <summary>Enable pitch progression for the drive loop (recommended).</summary>
@@ -106,6 +112,23 @@ public partial class VehicleEngineAudio : Node3D
 	[Export] public bool EnablePitchScaling = false;
 	[Export] public float PitchMin = 0.96f;
 	[Export] public float PitchMax = 1.12f;
+
+	[ExportGroup("RPM pitch tracking (5-layer mode)")]
+	/// <summary>
+	/// Rate-matched crossfading: bend each RPM layer's pitch toward the CURRENT engine RPM so two
+	/// crossfading layers always sound like the same engine speed. Without this every loop plays at
+	/// its recorded pitch and an RPM sweep steps through five discrete tones — play-testing described
+	/// it as "randomly hitting keys on an organ". This is how layered engines work in racing games.
+	/// </summary>
+	[Export] public bool UseRpmPitchTracking = true;
+	/// <summary>
+	/// Perceived idle-to-redline frequency ratio of the loop ladder. Adjacent layers sit 0.25 rpm01
+	/// apart, so at a crossfade midpoint each layer bends ~ratio^0.125 (~11% at 2.3) toward the other.
+	/// </summary>
+	[Export] public float RevFrequencyRatio = 2.3f;
+	/// <summary>Safety clamp so far-from-anchor layers never chipmunk (they are near-silent anyway).</summary>
+	[Export] public float LayerPitchMin = 0.80f;
+	[Export] public float LayerPitchMax = 1.32f;
 	[Export] public float RandomizeStartMaxSeconds = 0.12f;
 	[Export] public float MaxSpeedMpsOverride = 0f;
 
@@ -113,7 +136,7 @@ public partial class VehicleEngineAudio : Node3D
 	[Export] public bool UseAutomaticTransmission = true;
 	[Export(PropertyHint.Range, "2,6,1")] public int GearCount = 4;
 	/// <summary>Speed hysteresis (0..1) used for downshifts to prevent gear hunting.</summary>
-	[Export(PropertyHint.Range, "0,0.20,0.005")] public float GearDownshiftHysteresis01 = 0.04f;
+	[Export(PropertyHint.Range, "0,0.20,0.005")] public float GearDownshiftHysteresis01 = 0.08f;
 	
 	// Speed band thresholds (normalized to max speed) for 4-gear tuning.
 	[Export(PropertyHint.Range, "0.05,0.45,0.01")] public float Gear1To2Speed01 = 0.18f;
@@ -133,7 +156,7 @@ public partial class VehicleEngineAudio : Node3D
 	[Export(PropertyHint.Range, "0,1,0.01")] public float ShiftDownRpm01 = 0.32f;
 	/// <summary>Minimum pedal before upshifts are allowed.</summary>
 	[Export(PropertyHint.Range, "0,1,0.01")] public float ShiftMinThrottle01 = 0.45f;
-	[Export] public float ShiftCooldownSeconds = 0.25f;
+	[Export] public float ShiftCooldownSeconds = 0.50f;
 	/// <summary>How strongly the pedal can pull RPM above wheel-speed RPM (0..1).</summary>
 	[Export(PropertyHint.Range, "0,1,0.01")] public float PedalRevStrength = 0.75f;
 	/// <summary>RPM target after an upshift (simulates RPM drop on shift).</summary>
@@ -162,10 +185,14 @@ public partial class VehicleEngineAudio : Node3D
 	[Export] public float BrakeHardThreshold01 = 0.75f;
 	[Export] public float BrakeMinSpeedMps = 7.0f;
 	[Export] public float BrakeHoldSeconds = 0.25f;
-	[Export] public float SkidRepeatSeconds = 0.18f;
 	[Export] public float SkidVolumeDb = -6f;
+	// Fade rates for the looping brake squeal (sustained while braking hard, fades on release).
+	[Export] public float SkidFadeInRate = 9f;
+	[Export] public float SkidFadeOutRate = 5f;
 	[Export] public AudioStream? BrakeSkidStream = null;
-	[Export] public string BrakeSkidPlaceholderPath = "res://Assets/Audio/tire_pop.wav";
+	// Brake skid rides the same looping squeal VehicleContactAudio uses for lateral slip;
+	// tire_pop.wav is reserved exclusively for the tire-destroyed cue (ArenaRealtimeView).
+	[Export] public string BrakeSkidPlaceholderPath = "res://Assets/Audio/Vehicles/Tires/veh_tire_skid_asphalt_loop_a.ogg";
 
 	private AudioStreamPlayer3D? _pIdle;
 	private AudioStreamPlayer3D? _pLow;
@@ -184,7 +211,10 @@ public partial class VehicleEngineAudio : Node3D
 	private bool _started;
 
 	private float _brakeHeld;
-	private float _skidCooldown;
+	private float _skidWeight01;
+
+	// Volume floor for the skid loop right as it engages (mirrors VehicleContactAudio.SkidMinDb).
+	private const float SkidMinFadeDb = -26f;
 
 	private static readonly float[] Breakpoints = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
 
@@ -247,6 +277,13 @@ public partial class VehicleEngineAudio : Node3D
 		// Treat reverse command (or actual reverse movement) as a "drive" state so we don't fade back to idle.
 		if (isReverse || reverseCommanded)
 			driveIntent01 = MathF.Max(driveIntent01, MathF.Min(1f, speed01 * 1.10f));
+
+		// A rolling drivetrain is never silent: keep the drive layers engaged at wheel-tracking RPM
+		// while the vehicle is actually moving. Without this floor, every throttle pulse (AI drivers
+		// pulse constantly) snapped the mix across the hard idle/drive gate — each pulse started and
+		// stopped a tone, which is the other half of the "organ keys" read.
+		if (speed01 > 0.04f)
+			driveIntent01 = MathF.Max(driveIntent01, MathF.Min(0.70f, 0.25f + speed01 * 0.45f));
 
 		// Also treat a commanded reverse (from a stop) as reverse for RPM mapping.
 		isReverse = isReverse || reverseCommanded;
@@ -350,7 +387,8 @@ public partial class VehicleEngineAudio : Node3D
 	{
 		if (p == null) return;
 		p.Bus = "Tires";
-		p.VolumeDb = SkidVolumeDb;
+		// Starts silent; UpdateSkid fades toward SkidVolumeDb while hard braking.
+		p.VolumeDb = MinLayerDb;
 		p.MaxDistance = SkidMaxDistance;
 		p.UnitSize = SkidUnitSize;
 	}
@@ -363,6 +401,49 @@ public partial class VehicleEngineAudio : Node3D
 		};
 		AddChild(p);
 		return p;
+	}
+
+	// --- Gear-shift clunk: short pitched-up metallic tick on each upshift/downshift. Reuses a
+	// staged impact sample rather than requiring a new asset; positional so nearby AI shifts read
+	// quietly too. Skipped entirely if the sample is absent.
+	private const string ShiftClunkPath = "res://Assets/Audio/Vehicles/Impacts/veh_hit_metal_a.wav";
+	private AudioStreamPlayer3D? _pShift;
+	private AudioStream? _shiftStream;
+	private bool _shiftStreamLoaded;
+
+	private void PlayShiftClunk()
+	{
+		if (!_shiftStreamLoaded)
+		{
+			_shiftStreamLoaded = true;
+			try
+			{
+				if (ResourceLoader.Exists(ShiftClunkPath))
+					_shiftStream = GD.Load<AudioStream>(ShiftClunkPath);
+			}
+			catch
+			{
+				_shiftStream = null;
+			}
+		}
+		if (_shiftStream == null) return;
+
+		if (_pShift == null || !GodotObject.IsInstanceValid(_pShift))
+		{
+			_pShift = new AudioStreamPlayer3D
+			{
+				Name = "ShiftClunk",
+				Bus = _pIdle?.Bus ?? "Engines",
+				VolumeDb = -17f,
+				MaxDistance = 26f,
+				Stream = _shiftStream,
+			};
+			AddChild(_pShift);
+		}
+
+		// Slight pitch variance keeps repeated shifts from sounding stamped.
+		_pShift.PitchScale = 1.55f + GD.Randf() * 0.20f;
+		_pShift.Play();
 	}
 
 	private AudioStreamPlayer3D CreateSkid(string name)
@@ -378,7 +459,8 @@ public partial class VehicleEngineAudio : Node3D
 	private void ReloadStreamsIfNeeded(bool force)
 	{
 		var norm = NormalizeArchetypeId(ArchetypeId);
-		var driveNorm = NormalizeArchetypeId(DriveLoopArchetypeId);
+		// Empty drive-loop override means "follow the vehicle's own archetype".
+		var driveNorm = string.IsNullOrWhiteSpace(DriveLoopArchetypeId) ? norm : NormalizeArchetypeId(DriveLoopArchetypeId);
 		var driveLayer = (DriveLoopLayerId ?? "low").Trim().ToLowerInvariant();
 		if (string.IsNullOrWhiteSpace(driveLayer)) driveLayer = "low";
 
@@ -407,9 +489,15 @@ public partial class VehicleEngineAudio : Node3D
 			TryAssignLayer(_pVeryHigh, LoadStream(norm, "very_high"));
 		}
 
-		// Skid stream: explicit override first, then placeholder.
+		// Skid stream: explicit override first, then placeholder. Looped — UpdateSkid fades it
+		// in/out instead of re-triggering a one-shot.
 		if (_pSkid != null)
-			_pSkid.Stream = BrakeSkidStream ?? LoadOptional(BrakeSkidPlaceholderPath);
+		{
+			var skid = BrakeSkidStream ?? LoadOptional(BrakeSkidPlaceholderPath);
+			if (skid != null)
+				TryEnableLoop(skid);
+			_pSkid.Stream = skid;
+		}
 	}
 
 	private static string NormalizeArchetypeId(string archetypeId)
@@ -546,6 +634,7 @@ public partial class VehicleEngineAudio : Node3D
 			{
 				_gear++;
 				_shiftCooldown = MathF.Max(0.05f, ShiftCooldownSeconds);
+				PlayShiftClunk();
 
 				// Force an audible RPM drop on shift (helps the rev-up → shift → rev-up feel).
 				_rpm01 = MathF.Min(_rpm01, ShiftRpmDrop01);
@@ -562,6 +651,7 @@ public partial class VehicleEngineAudio : Node3D
 				{
 					_gear--;
 					_shiftCooldown = MathF.Max(0.05f, ShiftCooldownSeconds * 0.75f);
+					PlayShiftClunk();
 
 					// RPM bump on downshift so it doesn't feel like it falls on its face.
 					_rpm01 = MathF.Max(_rpm01, 0.72f);
@@ -666,7 +756,7 @@ public partial class VehicleEngineAudio : Node3D
 		var idleW2 = 1f - Mathf.Clamp(driveBlend01, 0f, 1f);
 		var driveW2 = 1f - idleW2;
 
-		ApplyLayerWeight(_pIdle, idleW2, TrimIdleDb, 1.0f);
+		ApplyLayerWeight(_pIdle, idleW2, TrimIdleDb, LayerTrackedPitch(rpm01, Breakpoints[0], pitch));
 
 		var w = MathF.Max(0.0001f, CrossfadeWidth);
 		var low = TriWeight(rpm01, Breakpoints[1], w) * driveW2;
@@ -674,10 +764,24 @@ public partial class VehicleEngineAudio : Node3D
 		var high = TriWeight(rpm01, Breakpoints[3], w) * driveW2;
 		var vh = TriWeight(rpm01, Breakpoints[4], w) * driveW2;
 
-		ApplyLayerWeight(_pLow, low, TrimLowDb, pitch);
-		ApplyLayerWeight(_pMid, mid, TrimMidDb, pitch);
-		ApplyLayerWeight(_pHigh, high, TrimHighDb, pitch);
-		ApplyLayerWeight(_pVeryHigh, vh, TrimVeryHighDb, pitch);
+		ApplyLayerWeight(_pLow, low, TrimLowDb, LayerTrackedPitch(rpm01, Breakpoints[1], pitch));
+		ApplyLayerWeight(_pMid, mid, TrimMidDb, LayerTrackedPitch(rpm01, Breakpoints[2], pitch));
+		ApplyLayerWeight(_pHigh, high, TrimHighDb, LayerTrackedPitch(rpm01, Breakpoints[3], pitch));
+		ApplyLayerWeight(_pVeryHigh, vh, TrimVeryHighDb, LayerTrackedPitch(rpm01, Breakpoints[4], pitch));
+	}
+
+	/// <summary>
+	/// Pitch multiplier that bends a layer recorded at <paramref name="anchorRpm01"/> toward the
+	/// current engine RPM (see <see cref="UseRpmPitchTracking"/>). Falls back to the legacy global
+	/// pitch when tracking is disabled.
+	/// </summary>
+	private float LayerTrackedPitch(float rpm01, float anchorRpm01, float legacyPitch)
+	{
+		if (!UseRpmPitchTracking)
+			return legacyPitch;
+		var ratio = MathF.Max(1.01f, RevFrequencyRatio);
+		var bend = MathF.Pow(ratio, Mathf.Clamp(rpm01, 0f, 1f) - anchorRpm01);
+		return Mathf.Clamp(bend, MathF.Min(LayerPitchMin, LayerPitchMax), MathF.Max(LayerPitchMin, LayerPitchMax));
 	}
 
 	private void ApplyLayerWeight(AudioStreamPlayer3D? player, float weight01, float trimDb, float pitch)
@@ -690,7 +794,12 @@ public partial class VehicleEngineAudio : Node3D
 		}
 
 		var w = Mathf.Clamp(weight01, 0f, 1f);
-		var db = Mathf.Lerp(MinLayerDb, 0f, w) + EngineVolumeDb + trimDb;
+		// Equal-power gain: lerping raw dB put partial weights near -40 dB, which carved a deep
+		// loudness dip between crossfaded RPM layers and made the 5-layer mode sound broken.
+		var gain = MathF.Sin(w * MathF.PI * 0.5f);
+		var db = gain <= 0.001f
+			? MinLayerDb
+			: MathF.Max(MinLayerDb, Mathf.LinearToDb(gain)) + EngineVolumeDb + trimDb;
 		player.VolumeDb = db;
 		player.PitchScale = pitch;
 
@@ -712,29 +821,28 @@ public partial class VehicleEngineAudio : Node3D
 		var brake01 = Mathf.Clamp(_telemetry?.GetBrake01() ?? 0f, 0f, 1f);
 
 		var hard = brake01 >= BrakeHardThreshold01 && speedMps >= BrakeMinSpeedMps;
-		if (hard)
-		{
-			_brakeHeld += dt;
-			_skidCooldown = MathF.Max(0f, _skidCooldown - dt);
+		_brakeHeld = hard ? _brakeHeld + dt : 0f;
 
-			if (_brakeHeld >= BrakeHoldSeconds && _skidCooldown <= 0f)
-			{
-				if (_pSkid.Stream != null)
-				{
-					// Use speed to add a little variation.
-					var t = Mathf.Clamp(speedMps / MathF.Max(0.01f, maxSpeedMps), 0f, 1f);
-					_pSkid.PitchScale = Mathf.Lerp(0.88f, 1.15f, t);
-					_pSkid.VolumeDb = SkidVolumeDb;
-					_pSkid.Play();
-				}
-				_skidCooldown = MathF.Max(0.05f, SkidRepeatSeconds);
-			}
-		}
-		else
+		// Looping squeal faded with brake state (was: a repeated one-shot, which machine-gunned
+		// the sample ~5x/sec and previously pointed at the tire-blowout cue).
+		var engaged = hard && _brakeHeld >= BrakeHoldSeconds && _pSkid.Stream != null;
+		var target = engaged ? 1f : 0f;
+		var rate = target > _skidWeight01 ? SkidFadeInRate : SkidFadeOutRate;
+		_skidWeight01 = Mathf.Lerp(_skidWeight01, target, 1f - Mathf.Exp(-MathF.Max(0.01f, rate) * dt));
+
+		if (_skidWeight01 <= 0.02f)
 		{
-			_brakeHeld = 0f;
-			_skidCooldown = 0f;
+			if (_pSkid.Playing)
+				_pSkid.Stop();
+			return;
 		}
+
+		// Use speed to add a little variation.
+		var t = Mathf.Clamp(speedMps / MathF.Max(0.01f, maxSpeedMps), 0f, 1f);
+		_pSkid.PitchScale = Mathf.Lerp(0.92f, 1.10f, t);
+		_pSkid.VolumeDb = Mathf.Lerp(SkidMinFadeDb, SkidVolumeDb, _skidWeight01);
+		if (!_pSkid.Playing)
+			_pSkid.Play();
 	}
 
 	private static float SmoothTo(float current, float target, float rate, float dt)

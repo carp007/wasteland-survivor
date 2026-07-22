@@ -16,4 +16,7 @@ public sealed record TargetingComputerDefinition : IHasId
     public int MaxActiveWeaponGroups { get; init; } = 1;
     public int AutoAimSlots { get; init; } = 0;
     public float LockRange { get; init; } = 50f;
+
+    /// <summary>Store price (USD). 0 = not sold in stores.</summary>
+    public int PriceUsd { get; init; } = 0;
 }

@@ -1,0 +1,13 @@
+{
+  "Id": "eng_diesel_v12",
+  "DisplayName": "Diesel V12",
+  "FuelType": "Diesel",
+  "PowerKw": 400,
+  "TorqueNm": 1800,
+  "Efficiency": 0.80,
+  "AllowedVehicleClasses": [
+    "HeavyTruck",
+    "SemiTruck"
+  ],
+  "PriceUsd": 8200
+}

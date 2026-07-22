@@ -1,0 +1,31 @@
+{
+  "Id": "veh_trailer_small",
+  "DisplayName": "Utility Trailer",
+  "Class": "Trailer",
+  "PriceUsd": 900,
+  "ArmorType": "Steel",
+  "BaseMassKg": 350,
+  "StorageCapacityUnits": 14,
+  "FuelCapacityUnits": 0,
+  "TireCount": 2,
+  "SpareTireIncluded": false,
+  "BaseArmorBySection": {
+	"Front": 4,
+	"Rear": 6,
+	"Left": 5,
+	"Right": 5,
+	"Top": 3,
+	"Undercarriage": 4
+  },
+  "BaseTireArmor": 4,
+  "BaseHpBySection": {
+	"Front": 10,
+	"Rear": 14,
+	"Left": 12,
+	"Right": 12,
+	"Top": 8,
+	"Undercarriage": 10
+  },
+  "BaseTireHp": 8,
+  "MountPoints": []
+}

@@ -1,0 +1,10 @@
+{
+  "Id": "ammo_ac_20mm_he",
+  "DisplayName": "20mm HE-Frag",
+  "AmmoKind": "Ballistic",
+  "UnitMassKg": 0.27,
+  "DamageMultiplier": 1.725,
+  "TrackingStrength": 0.0,
+  "ArmorPenetrationTag": "HE",
+  "UnitPriceUsd": 8
+}

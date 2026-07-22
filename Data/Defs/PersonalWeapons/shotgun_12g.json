@@ -1,0 +1,18 @@
+{
+  "Id": "pw_shotgun_12g",
+  "DisplayName": "Doorbreaker 12g",
+  "WeaponClass": "Shotgun",
+  "BaseDamage": 3,
+  "PelletsPerShot": 7,
+  "CooldownMs": 950,
+  "RangeMeters": 12,
+  "SpreadRadians": 0.090,
+  "VehicleDamageMultiplier": 0.15,
+  "AmmoId": "pammo_12g",
+  "AmmoCapacity": 36,
+  "AmmoPricePer10Usd": 15,
+  "StartingAmmo": 24,
+  "MassKg": 3.4,
+  "PriceUsd": 900,
+  "Flavor": "Cut-down pump gun favored by tire-swap crews. Useless past a car length; inside one, it ends the conversation."
+}

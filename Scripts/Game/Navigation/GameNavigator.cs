@@ -4,7 +4,7 @@
 // Purpose: Default implementation of IGameNavigator using UiNav + GameScenes (router-first, legacy fallback).
 // -------------------------------------------------------------------------------------------------
 using Godot;
-using WastelandSurvivor.Framework.UI;
+using GameUiKit.UI;
 using WastelandSurvivor.Game.UI;
 
 namespace WastelandSurvivor.Game.Navigation;
@@ -27,6 +27,15 @@ public sealed class GameNavigator : IGameNavigator
 
 	public void ToWorkshop(Node from)
 		=> UiNav.Replace(from, GameScenes.WorkshopView, TryGetRouter());
+
+	public void ToStore(Node from)
+		=> UiNav.Replace(from, GameScenes.StoreView, TryGetRouter());
+
+	public void ToDriverStore(Node from)
+		=> UiNav.Replace(from, GameScenes.DriverStoreView, TryGetRouter());
+
+	public void ToCasino(Node from)
+		=> UiNav.Replace(from, GameScenes.CasinoView, TryGetRouter());
 
 	public void ToArena(Node from)
 	{

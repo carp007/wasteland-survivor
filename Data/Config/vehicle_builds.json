@@ -1,0 +1,539 @@
+{
+  "StarterBuilds": [
+    {
+      "PresetId": "starter_compact",
+      "VehicleDefinitionId": "veh_compact",
+      "EngineId": "eng_gas_v6",
+      "ComputerId": "tc_basic",
+      "WeaponsByMountId": {
+        "F1": {
+          "WeaponId": "wpn_mg_50cal",
+          "SelectedAmmoId": "ammo_mg_50cal"
+        },
+        "R1": {
+          "WeaponId": "wpn_missile",
+          "SelectedAmmoId": "ammo_missile_std"
+        },
+        "B1": {
+          "WeaponId": "wpn_mine_dropper",
+          "SelectedAmmoId": "ammo_mine_std"
+        }
+      },
+      "AmmoInventory": {
+        "ammo_mg_50cal": 80,
+        "ammo_missile_std": 12,
+        "ammo_mine_std": 8
+      },
+      "CargoInventory": {
+        "spare_tire": 1
+      }
+    },
+    {
+      "PresetId": "starter_sedan",
+      "VehicleDefinitionId": "veh_sedan",
+      "EngineId": "eng_gas_v6",
+      "ComputerId": "tc_basic",
+      "WeaponsByMountId": {
+        "F1": {
+          "WeaponId": "wpn_mg_50cal",
+          "SelectedAmmoId": "ammo_mg_50cal"
+        },
+        "L1": {
+          "WeaponId": "wpn_missile",
+          "SelectedAmmoId": "ammo_missile_std"
+        },
+        "B1": {
+          "WeaponId": "wpn_mine_dropper",
+          "SelectedAmmoId": "ammo_mine_std"
+        }
+      },
+      "AmmoInventory": {
+        "ammo_mg_50cal": 90,
+        "ammo_missile_std": 10,
+        "ammo_mine_std": 8
+      },
+      "CargoInventory": {
+        "spare_tire": 1
+      }
+    },
+    {
+      "PresetId": "starter_sports",
+      "VehicleDefinitionId": "veh_sports",
+      "EngineId": "eng_gas_v6",
+      "ComputerId": "tc_basic",
+      "WeaponsByMountId": {
+        "F1": {
+          "WeaponId": "wpn_mg_50cal",
+          "SelectedAmmoId": "ammo_mg_50cal"
+        },
+        "T1": {
+          "WeaponId": "wpn_missile",
+          "SelectedAmmoId": "ammo_missile_std"
+        },
+        "B1": {
+          "WeaponId": "wpn_mine_dropper",
+          "SelectedAmmoId": "ammo_mine_std"
+        }
+      },
+      "AmmoInventory": {
+        "ammo_mg_50cal": 75,
+        "ammo_missile_std": 10,
+        "ammo_mine_std": 6
+      }
+    },
+    {
+      "PresetId": "starter_light_truck",
+      "VehicleDefinitionId": "veh_light_truck",
+      "EngineId": "eng_diesel_i4",
+      "ComputerId": "tc_basic",
+      "WeaponsByMountId": {
+        "F1": {
+          "WeaponId": "wpn_mg_50cal",
+          "SelectedAmmoId": "ammo_mg_50cal"
+        },
+        "T1": {
+          "WeaponId": "wpn_missile",
+          "SelectedAmmoId": "ammo_missile_std"
+        },
+        "B1": {
+          "WeaponId": "wpn_mine_dropper",
+          "SelectedAmmoId": "ammo_mine_std"
+        }
+      },
+      "AmmoInventory": {
+        "ammo_mg_50cal": 120,
+        "ammo_missile_std": 14,
+        "ammo_mine_std": 10
+      },
+      "CargoInventory": {
+        "spare_tire": 1
+      }
+    },
+    {
+      "PresetId": "starter_suv",
+      "VehicleDefinitionId": "veh_suv",
+      "EngineId": "eng_gas_v6",
+      "ComputerId": "tc_basic",
+      "WeaponsByMountId": {
+        "F1": {
+          "WeaponId": "wpn_mg_50cal",
+          "SelectedAmmoId": "ammo_mg_50cal"
+        },
+        "T1": {
+          "WeaponId": "wpn_mg",
+          "SelectedAmmoId": "ammo_mg_9mm"
+        },
+        "B1": {
+          "WeaponId": "wpn_oil_dropper",
+          "SelectedAmmoId": "ammo_oil_std"
+        }
+      },
+      "AmmoInventory": {
+        "ammo_mg_50cal": 110,
+        "ammo_mg_9mm": 160,
+        "ammo_oil_std": 6
+      },
+      "CargoInventory": {
+        "spare_tire": 1
+      }
+    },
+    {
+      "PresetId": "starter_heavy_truck",
+      "VehicleDefinitionId": "veh_heavy_truck",
+      "EngineId": "eng_diesel_v8",
+      "ComputerId": "tc_basic",
+      "WeaponsByMountId": {
+        "F1": {
+          "WeaponId": "wpn_mg_50cal",
+          "SelectedAmmoId": "ammo_mg_50cal"
+        },
+        "L1": {
+          "WeaponId": "wpn_mg",
+          "SelectedAmmoId": "ammo_mg_9mm"
+        },
+        "R2": {
+          "WeaponId": "wpn_mg",
+          "SelectedAmmoId": "ammo_mg_9mm"
+        },
+        "T1": {
+          "WeaponId": "wpn_rocket",
+          "SelectedAmmoId": "ammo_rocket_std"
+        },
+        "B1": {
+          "WeaponId": "wpn_mine_dropper",
+          "SelectedAmmoId": "ammo_mine_std"
+        }
+      },
+      "AmmoInventory": {
+        "ammo_mg_50cal": 130,
+        "ammo_mg_9mm": 240,
+        "ammo_rocket_std": 10,
+        "ammo_mine_std": 8
+      },
+      "CargoInventory": {
+        "spare_tire": 1
+      }
+    },
+    {
+      "PresetId": "starter_semi_truck",
+      "VehicleDefinitionId": "veh_semi_truck",
+      "EngineId": "eng_diesel_v12",
+      "ComputerId": "tc_basic",
+      "WeaponsByMountId": {
+        "F1": {
+          "WeaponId": "wpn_mg_50cal",
+          "SelectedAmmoId": "ammo_mg_50cal"
+        },
+        "T1": {
+          "WeaponId": "wpn_ac_20mm",
+          "SelectedAmmoId": "ammo_ac_20mm"
+        },
+        "L1": {
+          "WeaponId": "wpn_mg",
+          "SelectedAmmoId": "ammo_mg_9mm"
+        },
+        "R2": {
+          "WeaponId": "wpn_mg",
+          "SelectedAmmoId": "ammo_mg_9mm"
+        },
+        "B1": {
+          "WeaponId": "wpn_smoke_dropper",
+          "SelectedAmmoId": "ammo_smoke_std"
+        }
+      },
+      "AmmoInventory": {
+        "ammo_mg_50cal": 140,
+        "ammo_ac_20mm": 120,
+        "ammo_mg_9mm": 220,
+        "ammo_smoke_std": 8
+      },
+      "CargoInventory": {
+        "spare_tire": 1
+      }
+    }
+  ],
+  "ArenaEnemyBuilds": [
+    {
+      "PresetId": "arena_tier_1",
+      "Tier": 1,
+      "VehicleDefinitionId": "veh_compact",
+      "EngineId": "eng_gas_v6",
+      "ComputerId": "tc_basic",
+      "VisualModelPathOverride": "res://Assets/Models/Vehicles/KenneyCarKit/taxi.glb",
+      "BodyColorHex": "#8a4a2b",
+      "DisplayNameOverride": "SCRAPPER",
+      "MirrorPlayerWeaponsWhenPossible": false,
+      "WeaponsByMountId": {
+        "F1": {
+          "WeaponId": "wpn_mg_50cal",
+          "SelectedAmmoId": "ammo_mg_50cal"
+        },
+        "B1": {
+          "WeaponId": "wpn_mine_dropper",
+          "SelectedAmmoId": "ammo_mine_std"
+        }
+      },
+      "AmmoInventory": {
+        "ammo_mg_50cal": 200,
+        "ammo_mine_std": 8
+      }
+    },
+    {
+      "PresetId": "arena_tier_2",
+      "Tier": 2,
+      "VehicleDefinitionId": "veh_sedan",
+      "EngineId": "eng_gas_v6",
+      "ComputerId": "tc_advanced",
+      "VisualModelPathOverride": "res://Assets/Models/Vehicles/KenneyCarKit/police.glb",
+      "BodyColorHex": "#1f3a5f",
+      "DisplayNameOverride": "ROADRUNNER",
+      "MirrorPlayerWeaponsWhenPossible": false,
+      "WeaponsByMountId": {
+        "F1": {
+          "WeaponId": "wpn_mg_50cal",
+          "SelectedAmmoId": "ammo_mg_50cal"
+        },
+        "B1": {
+          "WeaponId": "wpn_oil_dropper",
+          "SelectedAmmoId": "ammo_oil_std"
+        }
+      },
+      "AmmoInventory": {
+        "ammo_mg_50cal": 200,
+        "ammo_oil_std": 6
+      }
+    },
+    {
+      "PresetId": "arena_tier_3",
+      "Tier": 3,
+      "VehicleDefinitionId": "veh_light_truck",
+      "EngineId": "eng_diesel_i4",
+      "ComputerId": "tc_advanced",
+      "VisualModelPathOverride": "res://Assets/Models/Vehicles/KenneyCarKit/van.glb",
+      "BodyColorHex": "#5c6134",
+      "DisplayNameOverride": "WARRIG",
+      "ArmorPlatingLevel": 1,
+      "TirePlatingLevel": 1,
+      "MirrorPlayerWeaponsWhenPossible": false,
+      "WeaponsByMountId": {
+        "F1": {
+          "WeaponId": "wpn_mg_50cal",
+          "SelectedAmmoId": "ammo_mg_50cal"
+        },
+        "T1": {
+          "WeaponId": "wpn_missile",
+          "SelectedAmmoId": "ammo_missile_std"
+        },
+        "B1": {
+          "WeaponId": "wpn_smoke_dropper",
+          "SelectedAmmoId": "ammo_smoke_std"
+        }
+      },
+      "AmmoInventory": {
+        "ammo_mg_50cal": 240,
+        "ammo_missile_std": 3,
+        "ammo_smoke_std": 8
+      }
+    },
+    {
+      "PresetId": "arena_tier_4",
+      "Tier": 4,
+      "VehicleDefinitionId": "veh_sports",
+      "EngineId": "eng_gas_v6",
+      "ComputerId": "tc_advanced",
+      "VisualModelPathOverride": "res://Assets/Models/Vehicles/KenneyCarKit/race-future.glb",
+      "BodyColorHex": "#3c4148",
+      "DisplayNameOverride": "SIDEWINDER",
+      "ArmorPlatingLevel": 2,
+      "TirePlatingLevel": 1,
+      "MirrorPlayerWeaponsWhenPossible": false,
+      "WeaponsByMountId": {
+        "F1": {
+          "WeaponId": "wpn_ac_20mm",
+          "SelectedAmmoId": "ammo_ac_20mm"
+        },
+        "T1": {
+          "WeaponId": "wpn_missile",
+          "SelectedAmmoId": "ammo_missile_std"
+        },
+        "B1": {
+          "WeaponId": "wpn_oil_dropper",
+          "SelectedAmmoId": "ammo_oil_std"
+        },
+        "F2": {
+          "WeaponId": "wpn_mg_50cal",
+          "SelectedAmmoId": "ammo_mg_50cal"
+        }
+      },
+      "AmmoInventory": {
+        "ammo_ac_20mm": 140,
+        "ammo_missile_std": 7,
+        "ammo_oil_std": 8,
+        "ammo_mg_50cal": 200
+      },
+      "Variants": [
+        {
+          "PresetId": "arena_tier_4_stiletto",
+          "Tier": 4,
+          "VehicleDefinitionId": "veh_sedan",
+          "EngineId": "eng_gas_v6",
+          "ComputerId": "tc_advanced",
+          "VisualModelPathOverride": "res://Assets/Models/Vehicles/KenneyCarKit/police.glb",
+          "BodyColorHex": "#14181f",
+          "DisplayNameOverride": "STILETTO",
+          "ArmorPlatingLevel": 2,
+          "TirePlatingLevel": 1,
+          "MirrorPlayerWeaponsWhenPossible": false,
+          "WeaponsByMountId": {
+            "F1": {
+              "WeaponId": "wpn_mg_50cal",
+              "SelectedAmmoId": "ammo_mg_50cal_ap"
+            },
+            "L1": {
+              "WeaponId": "wpn_missile",
+              "SelectedAmmoId": "ammo_missile_std"
+            },
+            "B1": {
+              "WeaponId": "wpn_oil_dropper",
+              "SelectedAmmoId": "ammo_oil_std"
+            }
+          },
+          "AmmoInventory": {
+            "ammo_mg_50cal_ap": 160,
+            "ammo_missile_std": 6,
+            "ammo_oil_std": 8
+          }
+        },
+        {
+          "PresetId": "arena_tier_4_outrider",
+          "Tier": 4,
+          "VehicleDefinitionId": "veh_suv",
+          "EngineId": "eng_gas_v6",
+          "ComputerId": "tc_advanced",
+          "BodyColorHex": "#5c5636",
+          "DisplayNameOverride": "OUTRIDER",
+          "ArmorPlatingLevel": 1,
+          "TirePlatingLevel": 1,
+          "MirrorPlayerWeaponsWhenPossible": false,
+          "WeaponsByMountId": {
+            "F1": {
+              "WeaponId": "wpn_mg_50cal",
+              "SelectedAmmoId": "ammo_mg_50cal_ap"
+            },
+            "T1": {
+              "WeaponId": "wpn_mg",
+              "SelectedAmmoId": "ammo_mg_9mm"
+            },
+            "B1": {
+              "WeaponId": "wpn_smoke_dropper",
+              "SelectedAmmoId": "ammo_smoke_std"
+            }
+          },
+          "AmmoInventory": {
+            "ammo_mg_50cal_ap": 150,
+            "ammo_mg_9mm": 220,
+            "ammo_smoke_std": 8
+          }
+        }
+      ]
+    },
+    {
+      "PresetId": "arena_tier_5",
+      "Tier": 5,
+      "VehicleDefinitionId": "veh_light_truck",
+      "EngineId": "eng_diesel_i4",
+      "ComputerId": "tc_advanced",
+      "VisualModelPathOverride": "res://Assets/Models/Vehicles/KenneyCarKit/garbage-truck.glb",
+      "BodyColorHex": "#a3352c",
+      "DisplayNameOverride": "JUGGERNAUT",
+      "ArmorPlatingLevel": 3,
+      "TirePlatingLevel": 2,
+      "MirrorPlayerWeaponsWhenPossible": false,
+      "WeaponsByMountId": {
+        "F1": {
+          "WeaponId": "wpn_ac_20mm",
+          "SelectedAmmoId": "ammo_ac_20mm"
+        },
+        "T1": {
+          "WeaponId": "wpn_missile",
+          "SelectedAmmoId": "ammo_missile_std"
+        },
+        "B1": {
+          "WeaponId": "wpn_mine_dropper",
+          "SelectedAmmoId": "ammo_mine_std"
+        }
+      },
+      "AmmoInventory": {
+        "ammo_ac_20mm": 180,
+        "ammo_missile_std": 8,
+        "ammo_mine_std": 10
+      },
+      "Variants": [
+        {
+          "PresetId": "arena_tier_5_warden",
+          "Tier": 5,
+          "VehicleDefinitionId": "veh_sedan",
+          "EngineId": "eng_gas_v6",
+          "ComputerId": "tc_advanced",
+          "VisualModelPathOverride": "res://Assets/Models/Vehicles/KenneyCarKit/truck-flat.glb",
+          "BodyColorHex": "#37505c",
+          "DisplayNameOverride": "WARDEN",
+          "ArmorPlatingLevel": 3,
+          "TirePlatingLevel": 2,
+          "MirrorPlayerWeaponsWhenPossible": false,
+          "WeaponsByMountId": {
+            "F1": {
+              "WeaponId": "wpn_ac_20mm",
+              "SelectedAmmoId": "ammo_ac_20mm"
+            },
+            "R1": {
+              "WeaponId": "wpn_mg_50cal",
+              "SelectedAmmoId": "ammo_mg_50cal_ap"
+            },
+            "B1": {
+              "WeaponId": "wpn_mine_dropper",
+              "SelectedAmmoId": "ammo_mine_std"
+            }
+          },
+          "AmmoInventory": {
+            "ammo_ac_20mm": 180,
+            "ammo_mg_50cal_ap": 120,
+            "ammo_mine_std": 10
+          }
+        },
+        {
+          "PresetId": "arena_tier_5_wraith",
+          "Tier": 5,
+          "VehicleDefinitionId": "veh_sports",
+          "EngineId": "eng_gas_v6",
+          "ComputerId": "tc_advanced",
+          "VisualModelPathOverride": "res://Assets/Models/Vehicles/KenneyCarKit/hatchback-sports.glb",
+          "BodyColorHex": "#b9bfc9",
+          "DisplayNameOverride": "WRAITH",
+          "ArmorPlatingLevel": 0,
+          "TirePlatingLevel": 0,
+          "MirrorPlayerWeaponsWhenPossible": false,
+          "WeaponsByMountId": {
+            "F1": {
+              "WeaponId": "wpn_mg_50cal",
+              "SelectedAmmoId": "ammo_mg_50cal"
+            },
+            "T1": {
+              "WeaponId": "wpn_missile",
+              "SelectedAmmoId": "ammo_missile_std"
+            },
+            "B1": {
+              "WeaponId": "wpn_smoke_dropper",
+              "SelectedAmmoId": "ammo_smoke_std"
+            }
+          },
+          "AmmoInventory": {
+            "ammo_mg_50cal": 150,
+            "ammo_missile_std": 10,
+            "ammo_smoke_std": 8
+          }
+        },
+        {
+          "PresetId": "arena_tier_5_convoy",
+          "Tier": 5,
+          "VehicleDefinitionId": "veh_heavy_truck",
+          "EngineId": "eng_diesel_v8",
+          "ComputerId": "tc_tactical",
+          "BodyColorHex": "#4a3b2a",
+          "DisplayNameOverride": "CONVOY",
+          "ArmorPlatingLevel": 2,
+          "TirePlatingLevel": 2,
+          "MirrorPlayerWeaponsWhenPossible": false,
+          "WeaponsByMountId": {
+            "F1": {
+              "WeaponId": "wpn_ac_20mm",
+              "SelectedAmmoId": "ammo_ac_20mm"
+            },
+            "L1": {
+              "WeaponId": "wpn_mg",
+              "SelectedAmmoId": "ammo_mg_9mm"
+            },
+            "R2": {
+              "WeaponId": "wpn_mg",
+              "SelectedAmmoId": "ammo_mg_9mm"
+            },
+            "T1": {
+              "WeaponId": "wpn_missile",
+              "SelectedAmmoId": "ammo_missile_std"
+            },
+            "B1": {
+              "WeaponId": "wpn_mine_dropper",
+              "SelectedAmmoId": "ammo_mine_std"
+            }
+          },
+          "AmmoInventory": {
+            "ammo_ac_20mm": 170,
+            "ammo_mg_9mm": 260,
+            "ammo_missile_std": 7,
+            "ammo_mine_std": 10
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "Id": "wpn_oil_dropper",
+  "DisplayName": "Oil Slick Dropper",
+  "WeaponType": "OilSlickDropper",
+  "FireMode": "DumbFire",
+  "ProjectileSpeed": 0,
+  "BaseDamage": 0,
+  "SplashRadius": 3.6,
+  "CooldownMs": 1500,
+  "MassKg": 70,
+  "AmmoTypeIds": [
+    "ammo_oil_std"
+  ],
+  "AllowedMountLocations": [
+    "Rear"
+  ],
+  "PriceUsd": 520
+}

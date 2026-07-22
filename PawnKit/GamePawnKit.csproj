@@ -1,0 +1,15 @@
+<Project Sdk="Godot.NET.Sdk/4.6.1">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>GamePawnKit</RootNamespace>
+    <AssemblyName>GamePawnKit</AssemblyName>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Keep this library 'zip overlay' safe as well -->
+  <ItemGroup>
+    <Compile Remove="..\.godot/**" />
+    <Compile Remove="..\.godot\\**" />
+  </ItemGroup>
+</Project>

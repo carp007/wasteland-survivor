@@ -1,0 +1,9 @@
+{
+  "Id": "ammo_oil_std",
+  "DisplayName": "Oil Canister",
+  "AmmoKind": "Oil",
+  "UnitMassKg": 16.0,
+  "DamageMultiplier": 1.0,
+  "TrackingStrength": 0.0,
+  "ArmorPenetrationTag": ""
+}

@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------------------------------
-// Wasteland Survivor
+// UiKit
 // File: UiKit/Scripts/Framework/UI/ModalDialogStyle.cs
 // Purpose: Small style container for ModalService's built-in dialogs. This keeps the UiKit project
 //          reusable by letting the game provide theme + per-dialog styling.
@@ -7,7 +7,7 @@
 using System;
 using Godot;
 
-namespace WastelandSurvivor.Framework.UI;
+namespace GameUiKit.UI;
 
 /// <summary>
 /// Styling hooks used by <see cref="ModalService"/> when building message/confirm dialogs.

@@ -40,6 +40,14 @@ A lot of UI scripts do “GetNode/Path strings” and then have ad-hoc null/fall
 ### 4) “Runtime arena state” is not a first-class object
 Combat runtime state lives as a big set of fields instead of a small “arena runtime model”.
 
+### 5) Desktop responsiveness needs a shared pattern
+Several menu screens still rely on authored pixel offsets/sizes. They look good at the current fullscreen target,
+but we need a reusable viewport-aware layout strategy for other desktop resolutions.
+
+### 6) Content buildout is still partially hard-coded
+Starter vehicles and arena enemy loadouts are still partly defined in gameplay code. That makes future balancing
+and content expansion slower than it needs to be.
+
 ---
 
 ## Proposed extraction modules (reusable building blocks)
@@ -156,3 +164,10 @@ The VehiclePawn remains a shallow “composition root”.
 - Keep Godot node tree expectations explicit (fail fast with clear logs).
 - Avoid adding “global singletons” other than the existing `App` autoload.
 
+
+
+### Phase 1a: Shared menu infrastructure + data-driven builds
+- Move repeated menu background image logic into `UiKit`
+- Add a reusable viewport-aware panel layout helper for desktop scaling
+- Externalize starter/enemy vehicle loadouts into JSON-backed build presets
+- Reuse the same factory path for player and AI vehicle creation where possible

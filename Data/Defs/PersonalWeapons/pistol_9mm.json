@@ -1,0 +1,18 @@
+{
+  "Id": "pw_pistol_9mm",
+  "DisplayName": "Rusthound 9mm",
+  "WeaponClass": "Sidearm",
+  "BaseDamage": 6,
+  "PelletsPerShot": 1,
+  "CooldownMs": 450,
+  "RangeMeters": 25,
+  "SpreadRadians": 0.035,
+  "VehicleDamageMultiplier": 0.2,
+  "AmmoId": "pammo_9mm",
+  "AmmoCapacity": 60,
+  "AmmoPricePer10Usd": 5,
+  "StartingAmmo": 60,
+  "MassKg": 1.1,
+  "PriceUsd": 120,
+  "Flavor": "Stamped-steel service pistol, the wasteland's handshake. Every clone wakes up with one on the nightstand — the lab stopped asking why."
+}

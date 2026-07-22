@@ -1,12 +1,12 @@
 // -------------------------------------------------------------------------------------------------
-// Wasteland Survivor
+// UiKit
 // File: Scripts/Framework/UI/UiNav.cs
 // Purpose: Small navigation helper that prefers ScreenRouter (when available) and falls back to the
 //          legacy parent-swap pattern. This keeps call sites small and consistent while refactoring.
 // -------------------------------------------------------------------------------------------------
 using Godot;
 
-namespace WastelandSurvivor.Framework.UI;
+namespace GameUiKit.UI;
 
 /// <summary>
 /// Tiny navigation helper used by UI controllers.
@@ -71,3 +71,4 @@ public static class UiNav
 		current.QueueFree();
 		return true;
 	}
+}

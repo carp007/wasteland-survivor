@@ -27,4 +27,13 @@ public sealed class DefDatabase
 
     public IReadOnlyDictionary<string, ArmorDefinition> Armors { get; init; } =
         new Dictionary<string, ArmorDefinition>();
+
+    public IReadOnlyDictionary<string, DriverUpgradeDefinition> DriverUpgrades { get; init; } =
+        new Dictionary<string, DriverUpgradeDefinition>();
+
+    public IReadOnlyDictionary<string, PersonalWeaponDefinition> PersonalWeapons { get; init; } =
+        new Dictionary<string, PersonalWeaponDefinition>();
+
+    public IReadOnlyDictionary<string, CityDefinition> Cities { get; init; } =
+        new Dictionary<string, CityDefinition>();
 }

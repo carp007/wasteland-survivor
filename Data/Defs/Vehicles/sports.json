@@ -2,8 +2,13 @@
   "Id": "veh_sports",
   "DisplayName": "Sports",
   "Class": "Sports",
+  "PriceUsd": 5200,
+  "ArmorType": "Composite",
+  "VisualModelPath": "res://Assets/Models/Vehicles/KenneyCarKit/race.glb",
+  "VisualTargetLength": 3.5,
   "BaseMassKg": 1250,
   "StorageCapacityUnits": 10,
+  "FuelCapacityUnits": 50,
   "TireCount": 4,
   "SpareTireIncluded": false,
   "BaseArmorBySection": {
@@ -53,9 +58,5 @@
       "CanAutoAim": false,
       "MaxWeaponSize": 1
     }
-  ],
-  "AllowedEngineClasses": [
-    "Sedan",
-    "Sports"
   ]
 }

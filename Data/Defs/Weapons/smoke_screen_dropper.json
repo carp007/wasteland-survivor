@@ -1,0 +1,18 @@
+{
+  "Id": "wpn_smoke_dropper",
+  "DisplayName": "Smoke Screen Dropper",
+  "WeaponType": "SmokeScreenDropper",
+  "FireMode": "DumbFire",
+  "ProjectileSpeed": 0,
+  "BaseDamage": 0,
+  "SplashRadius": 5.0,
+  "CooldownMs": 1800,
+  "MassKg": 60,
+  "AmmoTypeIds": [
+    "ammo_smoke_std"
+  ],
+  "AllowedMountLocations": [
+    "Rear"
+  ],
+  "PriceUsd": 580
+}

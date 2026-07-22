@@ -1,0 +1,10 @@
+{
+  "Id": "ammo_mg_50cal_ap",
+  "DisplayName": ".50 AP",
+  "AmmoKind": "Ballistic",
+  "UnitMassKg": 0.048,
+  "DamageMultiplier": 1.66,
+  "TrackingStrength": 0.0,
+  "ArmorPenetrationTag": "AP",
+  "UnitPriceUsd": 3
+}

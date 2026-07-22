@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------------------------------
-// Wasteland Survivor
+// UiKit
 // File: Scripts/Framework/UI/ModalService.cs
 // Purpose: Default IModalService implementation backed by ModalHost. Includes small, reusable
 //          message/confirm dialog builders (code-only, no scenes required).
@@ -7,7 +7,7 @@
 using System;
 using Godot;
 
-namespace WastelandSurvivor.Framework.UI;
+namespace GameUiKit.UI;
 
 public sealed class ModalService : IModalService
 {
@@ -33,13 +33,15 @@ public sealed class ModalService : IModalService
 		IModalHandle? handle = null;
 		var dialog = BuildDialog(title, body);
 
-		var btn = new Button { Text = closeText };
+		var row = BuildCenteredButtonRow();
+		var btn = BuildDialogButton(closeText);
 		btn.Pressed += () =>
 		{
 			handle?.Close();
 			onClosed?.Invoke();
 		};
-		dialog.AddButtons(btn);
+		row.AddChild(btn);
+		dialog.AddButtons(row);
 
 		handle = Show(dialog, options ?? new ModalOptions(DimBackground: true, CloseOnEscape: true, AutoFocus: true));
 		return handle;
@@ -59,14 +61,9 @@ public sealed class ModalService : IModalService
 		IModalHandle? handle = null;
 		var dialog = BuildDialog(title, body);
 
-		var row = new HBoxContainer
-		{
-			Alignment = BoxContainer.AlignmentMode.Center,
-			SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-		};
-		row.AddThemeConstantOverride("separation", 10);
+		var row = BuildCenteredButtonRow();
 
-		var btnConfirm = new Button { Text = confirmText };
+		var btnConfirm = BuildDialogButton(confirmText);
 		btnConfirm.Pressed += () =>
 		{
 			handle?.Close();
@@ -74,7 +71,7 @@ public sealed class ModalService : IModalService
 		};
 		row.AddChild(btnConfirm);
 
-		var btnCancel = new Button { Text = cancelText };
+		var btnCancel = BuildDialogButton(cancelText);
 		btnCancel.Pressed += () =>
 		{
 			handle?.Close();
@@ -98,5 +95,27 @@ public sealed class ModalService : IModalService
 
 		dialog.Configure(title, body, minSize: _style.DefaultMinSize ?? new Vector2(440, 220));
 		return dialog;
+	}
+
+	private static HBoxContainer BuildCenteredButtonRow()
+	{
+		var row = new HBoxContainer
+		{
+			Alignment = BoxContainer.AlignmentMode.Center,
+			SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+		};
+		row.AddThemeConstantOverride("separation", 12);
+		return row;
+	}
+
+	private static Button BuildDialogButton(string text)
+	{
+		return new Button
+		{
+			Text = text,
+			CustomMinimumSize = new Vector2(156, 42),
+			Alignment = HorizontalAlignment.Center,
+			FocusMode = Control.FocusModeEnum.All,
+		};
 	}
 }

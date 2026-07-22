@@ -16,7 +16,7 @@ internal static class VehicleRepairMath
 	{
 		var missing = 0;
 
-		var armorLevel = Math.Max(0, veh.ArmorPlatingLevel);
+		var armorLevel = VehicleMassMath.GetPlatingArmorBonus(veh.ArmorPlatingLevel);
 		var armor = veh.CurrentArmorBySection ?? new Dictionary<ArmorSection, int>();
 		foreach (var kv in vdef.BaseArmorBySection)
 		{
@@ -36,7 +36,7 @@ internal static class VehicleRepairMath
 			missing += Math.Max(0, maxVal - curVal);
 		}
 
-		var tireLevel = Math.Max(0, veh.TirePlatingLevel);
+		var tireLevel = VehicleMassMath.GetPlatingArmorBonus(veh.TirePlatingLevel);
 		var maxTire = Math.Max(0, vdef.BaseTireArmor + tireLevel);
 		var tireCount = Math.Max(0, vdef.TireCount);
 		var tires = veh.CurrentTireArmor ?? Array.Empty<int>();
@@ -63,7 +63,7 @@ internal static class VehicleRepairMath
 		var armorMissing = 0;
 		var tireMissing = 0;
 
-		var armorLevel = Math.Max(0, veh.ArmorPlatingLevel);
+		var armorLevel = VehicleMassMath.GetPlatingArmorBonus(veh.ArmorPlatingLevel);
 		var armor = veh.CurrentArmorBySection ?? new Dictionary<ArmorSection, int>();
 		foreach (var kv in vdef.BaseArmorBySection)
 		{
@@ -83,7 +83,7 @@ internal static class VehicleRepairMath
 			armorMissing += Math.Max(0, maxVal - curVal);
 		}
 
-		var tireLevel = Math.Max(0, veh.TirePlatingLevel);
+		var tireLevel = VehicleMassMath.GetPlatingArmorBonus(veh.TirePlatingLevel);
 		var maxTire = Math.Max(0, vdef.BaseTireArmor + tireLevel);
 		var tireCount = Math.Max(0, vdef.TireCount);
 		var tires = veh.CurrentTireArmor ?? Array.Empty<int>();
@@ -115,7 +115,7 @@ internal static class VehicleRepairMath
 			? new Dictionary<ArmorSection, int>(veh.CurrentHpBySection)
 			: new Dictionary<ArmorSection, int>();
 
-		var armorLevel = Math.Max(0, veh.ArmorPlatingLevel);
+		var armorLevel = VehicleMassMath.GetPlatingArmorBonus(veh.ArmorPlatingLevel);
 		foreach (var kv in vdef.BaseArmorBySection)
 		{
 			var max = Math.Max(0, kv.Value + armorLevel);
@@ -128,7 +128,7 @@ internal static class VehicleRepairMath
 			hp[kv.Key] = max;
 		}
 
-		var tireLevel = Math.Max(0, veh.TirePlatingLevel);
+		var tireLevel = VehicleMassMath.GetPlatingArmorBonus(veh.TirePlatingLevel);
 		var tireCount = Math.Max(0, vdef.TireCount);
 		var tires = new int[tireCount];
 		for (var i = 0; i < tires.Length; i++)
@@ -153,12 +153,15 @@ internal static class VehicleRepairMath
 			? new Dictionary<ArmorSection, int>(veh.CurrentArmorBySection)
 			: new Dictionary<ArmorSection, int>();
 
+		// Installing plate also fits the new plate: current armor rises by the level's delta so the
+		// buyer doesn't leave the garage with brand-new-but-damaged plating.
+		var bonusDelta = VehicleMassMath.GetPlatingArmorBonus(nextLevel) - VehicleMassMath.GetPlatingArmorBonus(nextLevel - 1);
 		foreach (var kv in vdef.BaseArmorBySection)
 		{
-			var max = Math.Max(0, kv.Value + nextLevel);
+			var max = Math.Max(0, kv.Value + VehicleMassMath.GetPlatingArmorBonus(nextLevel));
 			armor.TryGetValue(kv.Key, out var curRaw);
 			var cur = Math.Max(0, curRaw);
-			armor[kv.Key] = Math.Min(max, cur + 1);
+			armor[kv.Key] = Math.Min(max, cur + Math.Max(1, bonusDelta));
 		}
 
 		return veh with
@@ -171,7 +174,8 @@ internal static class VehicleRepairMath
 	public static VehicleInstanceState ApplyTirePlatingUpgrade(VehicleInstanceState veh, VehicleDefinition vdef, int nextLevel)
 	{
 		var tireCount = Math.Max(0, vdef.TireCount);
-		var maxTire = Math.Max(0, vdef.BaseTireArmor + nextLevel);
+		var maxTire = Math.Max(0, vdef.BaseTireArmor + VehicleMassMath.GetPlatingArmorBonus(nextLevel));
+		var tireBonusDelta = Math.Max(1, VehicleMassMath.GetPlatingArmorBonus(nextLevel) - VehicleMassMath.GetPlatingArmorBonus(nextLevel - 1));
 		var tires = veh.CurrentTireArmor is { Length: > 0 } ? (int[])veh.CurrentTireArmor.Clone() : new int[tireCount];
 
 		if (tires.Length != tireCount)
@@ -186,7 +190,7 @@ internal static class VehicleRepairMath
 		for (var i = 0; i < tireCount; i++)
 		{
 			var cur = Math.Max(0, tires[i]);
-			tires[i] = Math.Min(maxTire, cur + 1);
+			tires[i] = Math.Min(maxTire, cur + tireBonusDelta);
 		}
 
 		return veh with
@@ -202,7 +206,7 @@ internal static class VehicleRepairMath
 			? new Dictionary<ArmorSection, int>(veh.CurrentArmorBySection)
 			: new Dictionary<ArmorSection, int>();
 
-		var armorLevel = Math.Max(0, veh.ArmorPlatingLevel);
+		var armorLevel = VehicleMassMath.GetPlatingArmorBonus(veh.ArmorPlatingLevel);
 
 		var order = new[]
 		{
@@ -235,7 +239,7 @@ internal static class VehicleRepairMath
 	public static bool TryPatchTireOnePoint(ref VehicleInstanceState veh, VehicleDefinition vdef)
 	{
 		var tireCount = Math.Max(0, vdef.TireCount);
-		var tireLevel = Math.Max(0, veh.TirePlatingLevel);
+		var tireLevel = VehicleMassMath.GetPlatingArmorBonus(veh.TirePlatingLevel);
 		var maxTire = Math.Max(0, vdef.BaseTireArmor + tireLevel);
 		if (tireCount <= 0 || maxTire <= 0) return false;
 

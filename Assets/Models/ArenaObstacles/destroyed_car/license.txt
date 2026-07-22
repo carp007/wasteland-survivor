@@ -1,0 +1,11 @@
+Model Information:
+* title:	Destroyed car
+* source:	https://sketchfab.com/3d-models/destroyed-car-2964ff64db8646f1a61f3ef70092c041
+* author:	arthur (https://sketchfab.com/Arthur_mf)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Destroyed car" (https://sketchfab.com/3d-models/destroyed-car-2964ff64db8646f1a61f3ef70092c041) by arthur (https://sketchfab.com/Arthur_mf) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

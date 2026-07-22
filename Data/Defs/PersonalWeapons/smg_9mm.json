@@ -1,0 +1,18 @@
+{
+  "Id": "pw_smg_9mm",
+  "DisplayName": "Gutterstorm SMG",
+  "WeaponClass": "Smg",
+  "BaseDamage": 3,
+  "PelletsPerShot": 1,
+  "CooldownMs": 130,
+  "RangeMeters": 20,
+  "SpreadRadians": 0.060,
+  "VehicleDamageMultiplier": 0.2,
+  "AmmoId": "pammo_9mm",
+  "AmmoCapacity": 180,
+  "AmmoPricePer10Usd": 5,
+  "StartingAmmo": 90,
+  "MassKg": 2.8,
+  "PriceUsd": 650,
+  "Flavor": "Box-fed spray gun with the serial numbers filed into art. Loud, thirsty, and very persuasive inside a garage bay."
+}

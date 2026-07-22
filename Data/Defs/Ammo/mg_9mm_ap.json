@@ -1,0 +1,10 @@
+{
+  "Id": "ammo_mg_9mm_ap",
+  "DisplayName": "9mm AP",
+  "AmmoKind": "Ballistic",
+  "UnitMassKg": 0.013,
+  "DamageMultiplier": 0.95,
+  "TrackingStrength": 0.0,
+  "ArmorPenetrationTag": "AP",
+  "UnitPriceUsd": 3
+}

@@ -1,0 +1,76 @@
+{
+  "Id": "veh_heavy_truck",
+  "DisplayName": "Heavy Truck",
+  "Class": "HeavyTruck",
+  "PriceUsd": 14500,
+  "ArmorType": "Steel",
+  "VisualModelPath": "res://Assets/Models/Vehicles/KenneyCarKit/delivery.glb",
+  "VisualTargetLength": 5.4,
+  "BaseMassKg": 3400,
+  "StorageCapacityUnits": 34,
+  "FuelCapacityUnits": 140,
+  "TireCount": 4,
+  "SpareTireIncluded": true,
+  "BaseArmorBySection": {
+    "Front": 18,
+    "Rear": 16,
+    "Left": 16,
+    "Right": 16,
+    "Top": 12,
+    "Undercarriage": 12
+  },
+  "BaseTireArmor": 9,
+  "BaseHpBySection": {
+    "Front": 36,
+    "Rear": 34,
+    "Left": 34,
+    "Right": 34,
+    "Top": 28,
+    "Undercarriage": 28
+  },
+  "BaseTireHp": 18,
+  "MountPoints": [
+    {
+      "MountId": "F1",
+      "MountLocation": "Front",
+      "ArcDegrees": 10,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "T1",
+      "MountLocation": "Top",
+      "ArcDegrees": 180,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "L1",
+      "MountLocation": "Left",
+      "ArcDegrees": 20,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "R2",
+      "MountLocation": "Right",
+      "ArcDegrees": 20,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "R1",
+      "MountLocation": "Rear",
+      "ArcDegrees": 10,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "B1",
+      "MountLocation": "Rear",
+      "ArcDegrees": 0,
+      "CanAutoAim": false,
+      "MaxWeaponSize": 1
+    }
+  ]
+}

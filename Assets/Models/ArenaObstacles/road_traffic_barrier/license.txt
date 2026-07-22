@@ -1,0 +1,11 @@
+Model Information:
+* title:	Road Traffic Barrier
+* source:	https://sketchfab.com/3d-models/road-traffic-barrier-73569fc808c04e579bfa3b3bc76f99e5
+* author:	MarkoJ (https://sketchfab.com/MarkoJ)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Road Traffic Barrier" (https://sketchfab.com/3d-models/road-traffic-barrier-73569fc808c04e579bfa3b3bc76f99e5) by MarkoJ (https://sketchfab.com/MarkoJ) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -4,6 +4,6 @@
   "AmmoKind": "Guided",
   "UnitMassKg": 14.0,
   "DamageMultiplier": 1.0,
-  "TrackingStrength": 0.55,
-  "ArmorPenetrationTag": ""
+  "TrackingStrength": 0.45,
+  "ArmorPenetrationTag": "HE"
 }

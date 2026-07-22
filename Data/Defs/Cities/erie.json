@@ -1,0 +1,18 @@
+{
+  "Id": "erie",
+  "DisplayName": "Erie",
+  "MapX": 0.82,
+  "MapY": 0.58,
+  "HasStore": true,
+  "HasGarage": true,
+  "ArenaMaxTier": 3,
+  "HasCloneFacility": false,
+  "HasCasino": true,
+  "FuelPriceMultiplier": 1.15,
+  "Flavor": "A windswept waystation on the eastern lakeshore. Thin stock, honest mechanics, and bandit country in every direction.",
+  "BackdropPath": "",
+  "Roads": [
+    { "ToCityId": "cleveland", "DistanceKm": 160, "AmbushChance": 0.45, "AmbushTierMin": 2, "AmbushTierMax": 3 },
+    { "ToCityId": "pittsburgh", "DistanceKm": 205, "AmbushChance": 0.55, "AmbushTierMin": 2, "AmbushTierMax": 3, "Closed": true, "ClosedReason": "The Wolf Creek span on Route 79 collapsed — barricades up on both approaches until the bridge crews finish." }
+  ]
+}

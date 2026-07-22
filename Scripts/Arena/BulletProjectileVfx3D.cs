@@ -66,29 +66,50 @@ public partial class BulletProjectileVfx3D : Node3D
 
 	private void BuildMesh(Color color, Vector3 fromWorld, Vector3 toWorld)
 	{
-		// A small capsule reads better than a point/sphere under a top-down camera.
-		var capsule = new CapsuleMesh
-		{
-			Radius = 0.035f,
-			Height = 0.14f,
-			RadialSegments = 10,
-			Rings = 2
-		};
+		// Core-dominant bolt (round 10 P0-2 language): a white-hot inner capsule that carries the
+		// read plus a wider additive halo in the faction color, matching the hitscan streaks.
+		// Capsule ends are rounded, so no box caps at any angle. Core emission sits above the glow
+		// HDR threshold so bolts bloom slightly under ACES.
+		var coreColor = new Color(
+			Mathf.Lerp(color.R, 1f, 0.75f),
+			Mathf.Lerp(color.G, 1f, 0.75f),
+			Mathf.Lerp(color.B, 1f, 0.75f));
 
 		_mesh = new MeshInstance3D
 		{
 			Name = "Mesh",
-			Mesh = capsule
+			Mesh = new CapsuleMesh { Radius = 0.055f, Height = 1.55f, RadialSegments = 8, Rings = 2 },
+			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off
 		};
-
-		var mat = new StandardMaterial3D
+		_mesh.SetSurfaceOverrideMaterial(0, new StandardMaterial3D
 		{
 			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
-			AlbedoColor = color,
-			NoDepthTest = true
-		};
-		_mesh.SetSurfaceOverrideMaterial(0, mat);
+			AlbedoColor = coreColor,
+			NoDepthTest = true,
+			EmissionEnabled = true,
+			Emission = coreColor,
+			EmissionEnergyMultiplier = 6.5f,
+		});
 		AddChild(_mesh);
+
+		var halo = new MeshInstance3D
+		{
+			Name = "Halo",
+			Mesh = new CapsuleMesh { Radius = 0.17f, Height = 1.70f, RadialSegments = 8, Rings = 2 },
+			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off
+		};
+		halo.SetSurfaceOverrideMaterial(0, new StandardMaterial3D
+		{
+			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+			Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+			BlendMode = BaseMaterial3D.BlendModeEnum.Add,
+			AlbedoColor = new Color(color.R, color.G, color.B, 0.45f),
+			NoDepthTest = true,
+			EmissionEnabled = true,
+			Emission = color,
+			EmissionEnergyMultiplier = 3.0f,
+		});
+		AddChild(halo);
 
 		// Orient along travel direction.
 		var dir = (toWorld - fromWorld);

@@ -7,8 +7,9 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1")
-
 
 [node name="Bg" type="ColorRect" parent="."]
 layout_mode = 3
@@ -20,52 +21,261 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
+[node name="BgImage" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+modulate = Color(1, 1, 1, 0.74)
+
 [node name="Panel" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 0
-offset_left = 12.0
-offset_top = 60.0
-offset_right = 520.0
-offset_bottom = 520.0
+offset_left = 24.0
+offset_top = 84.0
+offset_right = 964.0
+offset_bottom = 1056.0
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
 
-[node name="LblTitle" type="Label" parent="Panel/VBox"]
+[node name="HeaderRow" type="VBoxContainer" parent="Panel/VBox"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="HeaderText" type="VBoxContainer" parent="Panel/VBox/HeaderRow"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LblTitle" type="Label" parent="Panel/VBox/HeaderRow/HeaderText"]
+theme_override_font_sizes/font_size = 30
 text = "Garage"
 
-[node name="LblActive" type="Label" parent="Panel/VBox"]
-text = "Active: (none)"
+[node name="LblSubtitle" type="Label" parent="Panel/VBox/HeaderRow/HeaderText"]
+size_flags_horizontal = 3
+autowrap_mode = 2
+text = "Fleet storage and service bays. Every machine you own, wrenched, patched, and ready to roll."
 
-[node name="VehicleList" type="ItemList" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 260)
-allow_reselect = true
+[node name="HeaderArt" type="TextureRect" parent="Panel/VBox/HeaderRow"]
+custom_minimum_size = Vector2(0, 34)
+size_flags_horizontal = 3
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
 
-[node name="LblRepair" type="Label" parent="Panel/VBox"]
+[node name="BodyTabs" type="TabContainer" parent="Panel/VBox"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+current_tab = 0
+
+[node name="FleetTab" type="VBoxContainer" parent="Panel/VBox/BodyTabs"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="FleetPanel" type="PanelContainer" parent="Panel/VBox/BodyTabs/FleetTab"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="FleetVBox" type="VBoxContainer" parent="Panel/VBox/BodyTabs/FleetTab/FleetPanel"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="LblFleet" type="Label" parent="Panel/VBox/BodyTabs/FleetTab/FleetPanel/FleetVBox"]
+theme_override_font_sizes/font_size = 16
+text = "Fleet Roster"
+
+[node name="VehicleList" type="ScrollContainer" parent="Panel/VBox/BodyTabs/FleetTab/FleetPanel/FleetVBox"]
+custom_minimum_size = Vector2(0, 280)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="VehicleCards" type="VBoxContainer" parent="Panel/VBox/BodyTabs/FleetTab/FleetPanel/FleetVBox/VehicleList"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="ActionsPanel" type="PanelContainer" parent="Panel/VBox/BodyTabs/FleetTab"]
+size_flags_horizontal = 3
+
+[node name="ActionsVBox" type="VBoxContainer" parent="Panel/VBox/BodyTabs/FleetTab/ActionsPanel"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LblActionsHeader" type="Label" parent="Panel/VBox/BodyTabs/FleetTab/ActionsPanel/ActionsVBox"]
+theme_override_font_sizes/font_size = 16
+text = "Fleet Actions"
+
+[node name="ActionsGrid" type="GridContainer" parent="Panel/VBox/BodyTabs/FleetTab/ActionsPanel/ActionsVBox"]
+columns = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+
+[node name="BtnSetActive" type="Button" parent="Panel/VBox/BodyTabs/FleetTab/ActionsPanel/ActionsVBox/ActionsGrid"]
+custom_minimum_size = Vector2(0, 40)
+size_flags_horizontal = 3
+text = "Set Active Vehicle"
+
+[node name="BtnRenameSelected" type="Button" parent="Panel/VBox/BodyTabs/FleetTab/ActionsPanel/ActionsVBox/ActionsGrid"]
+custom_minimum_size = Vector2(0, 40)
+size_flags_horizontal = 3
+text = "Rename Vehicle"
+
+[node name="BtnStripSelected" type="Button" parent="Panel/VBox/BodyTabs/FleetTab/ActionsPanel/ActionsVBox/ActionsGrid"]
+custom_minimum_size = Vector2(0, 40)
+size_flags_horizontal = 3
+text = "Strip for Scrap"
+
+[node name="BtnSellSelected" type="Button" parent="Panel/VBox/BodyTabs/FleetTab/ActionsPanel/ActionsVBox/ActionsGrid"]
+custom_minimum_size = Vector2(0, 40)
+size_flags_horizontal = 3
+text = "Sell Vehicle"
+
+[node name="BtnBack" type="Button" parent="Panel/VBox/BodyTabs/FleetTab/ActionsPanel/ActionsVBox/ActionsGrid"]
+custom_minimum_size = Vector2(0, 40)
+size_flags_horizontal = 3
+text = "Return to City"
+
+[node name="ActionsSpacer" type="Control" parent="Panel/VBox/BodyTabs/FleetTab/ActionsPanel/ActionsVBox/ActionsGrid"]
+custom_minimum_size = Vector2(0, 1)
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="DetailsTab" type="VBoxContainer" parent="Panel/VBox/BodyTabs"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="DetailsScroll" type="ScrollContainer" parent="Panel/VBox/BodyTabs/DetailsTab"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="DetailsContent" type="VBoxContainer" parent="Panel/VBox/BodyTabs/DetailsTab/DetailsScroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="SelectedPanel" type="PanelContainer" parent="Panel/VBox/BodyTabs/DetailsTab/DetailsScroll/DetailsContent"]
+size_flags_horizontal = 3
+
+[node name="SelectedVBox" type="VBoxContainer" parent="Panel/VBox/BodyTabs/DetailsTab/DetailsScroll/DetailsContent/SelectedPanel"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LblSelectedHeader" type="Label" parent="Panel/VBox/BodyTabs/DetailsTab/DetailsScroll/DetailsContent/SelectedPanel/SelectedVBox"]
+theme_override_font_sizes/font_size = 16
+text = "Vehicle Details"
+
+[node name="SelectedHost" type="VBoxContainer" parent="Panel/VBox/BodyTabs/DetailsTab/DetailsScroll/DetailsContent/SelectedPanel/SelectedVBox"]
+size_flags_horizontal = 3
+
+[node name="ServiceTab" type="VBoxContainer" parent="Panel/VBox/BodyTabs"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ServiceScroll" type="ScrollContainer" parent="Panel/VBox/BodyTabs/ServiceTab"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="ServiceContent" type="VBoxContainer" parent="Panel/VBox/BodyTabs/ServiceTab/ServiceScroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="RepairsPanel" type="PanelContainer" parent="Panel/VBox/BodyTabs/ServiceTab/ServiceScroll/ServiceContent"]
+size_flags_horizontal = 3
+
+[node name="RepairsVBox" type="VBoxContainer" parent="Panel/VBox/BodyTabs/ServiceTab/ServiceScroll/ServiceContent/RepairsPanel"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LblRepairHeader" type="Label" parent="Panel/VBox/BodyTabs/ServiceTab/ServiceScroll/ServiceContent/RepairsPanel/RepairsVBox"]
+theme_override_font_sizes/font_size = 16
+text = "Service Bay"
+
+[node name="LblRepair" type="Label" parent="Panel/VBox/BodyTabs/ServiceTab/ServiceScroll/ServiceContent/RepairsPanel/RepairsVBox"]
+size_flags_horizontal = 3
+autowrap_mode = 2
 text = ""
 
-[node name="HBoxRepair" type="HBoxContainer" parent="Panel/VBox"]
+[node name="HBoxRepair" type="GridContainer" parent="Panel/VBox/BodyTabs/ServiceTab/ServiceScroll/ServiceContent/RepairsPanel/RepairsVBox"]
+columns = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
 
-[node name="BtnPatchArmor" type="Button" parent="Panel/VBox/HBoxRepair"]
-text = "Patch Armor (-1 scrap)"
+[node name="BtnRepairToFull" type="Button" parent="Panel/VBox/BodyTabs/ServiceTab/ServiceScroll/ServiceContent/RepairsPanel/RepairsVBox/HBoxRepair"]
+custom_minimum_size = Vector2(0, 40)
+size_flags_horizontal = 3
+text = "Full Garage Repair"
 
-[node name="BtnPatchTire" type="Button" parent="Panel/VBox/HBoxRepair"]
-text = "Patch Tire (-1 scrap)"
+[node name="BtnPatchArmor" type="Button" parent="Panel/VBox/BodyTabs/ServiceTab/ServiceScroll/ServiceContent/RepairsPanel/RepairsVBox/HBoxRepair"]
+custom_minimum_size = Vector2(0, 40)
+size_flags_horizontal = 3
+text = "Patch Armor"
 
-[node name="LblUpgrades" type="Label" parent="Panel/VBox"]
+[node name="BtnPatchTire" type="Button" parent="Panel/VBox/BodyTabs/ServiceTab/ServiceScroll/ServiceContent/RepairsPanel/RepairsVBox/HBoxRepair"]
+custom_minimum_size = Vector2(0, 40)
+size_flags_horizontal = 3
+text = "Patch Tires"
+
+[node name="RepairSpacer" type="Control" parent="Panel/VBox/BodyTabs/ServiceTab/ServiceScroll/ServiceContent/RepairsPanel/RepairsVBox/HBoxRepair"]
+custom_minimum_size = Vector2(0, 1)
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="UpgradesTab" type="VBoxContainer" parent="Panel/VBox/BodyTabs"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="UpgradeScroll" type="ScrollContainer" parent="Panel/VBox/BodyTabs/UpgradesTab"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="UpgradeContent" type="VBoxContainer" parent="Panel/VBox/BodyTabs/UpgradesTab/UpgradeScroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="UpgradesPanel" type="PanelContainer" parent="Panel/VBox/BodyTabs/UpgradesTab/UpgradeScroll/UpgradeContent"]
+size_flags_horizontal = 3
+
+[node name="UpgradesVBox" type="VBoxContainer" parent="Panel/VBox/BodyTabs/UpgradesTab/UpgradeScroll/UpgradeContent/UpgradesPanel"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LblUpgradeHeader" type="Label" parent="Panel/VBox/BodyTabs/UpgradesTab/UpgradeScroll/UpgradeContent/UpgradesPanel/UpgradesVBox"]
+theme_override_font_sizes/font_size = 16
+text = "Permanent Upgrades"
+
+[node name="LblUpgrades" type="Label" parent="Panel/VBox/BodyTabs/UpgradesTab/UpgradeScroll/UpgradeContent/UpgradesPanel/UpgradesVBox"]
+size_flags_horizontal = 3
+autowrap_mode = 2
 text = ""
 
-[node name="HBoxUpgrades" type="HBoxContainer" parent="Panel/VBox"]
+[node name="HBoxUpgrades" type="GridContainer" parent="Panel/VBox/BodyTabs/UpgradesTab/UpgradeScroll/UpgradeContent/UpgradesPanel/UpgradesVBox"]
+columns = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
 
-[node name="BtnUpgradeArmor" type="Button" parent="Panel/VBox/HBoxUpgrades"]
+[node name="BtnUpgradeArmor" type="Button" parent="Panel/VBox/BodyTabs/UpgradesTab/UpgradeScroll/UpgradeContent/UpgradesPanel/UpgradesVBox/HBoxUpgrades"]
+custom_minimum_size = Vector2(0, 40)
+size_flags_horizontal = 3
 text = "Install Armor Plating"
 
-[node name="BtnUpgradeTire" type="Button" parent="Panel/VBox/HBoxUpgrades"]
+[node name="BtnUpgradeTire" type="Button" parent="Panel/VBox/BodyTabs/UpgradesTab/UpgradeScroll/UpgradeContent/UpgradesPanel/UpgradesVBox/HBoxUpgrades"]
+custom_minimum_size = Vector2(0, 40)
+size_flags_horizontal = 3
 text = "Install Tire Plating"
-
-[node name="HBoxButtons" type="HBoxContainer" parent="Panel/VBox"]
-
-[node name="BtnSetActive" type="Button" parent="Panel/VBox/HBoxButtons"]
-text = "Set Active"
-
-[node name="BtnBack" type="Button" parent="Panel/VBox/HBoxButtons"]
-text = "Back"

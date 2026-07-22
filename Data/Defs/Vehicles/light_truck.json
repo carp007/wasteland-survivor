@@ -2,8 +2,13 @@
   "Id": "veh_light_truck",
   "DisplayName": "Light Truck",
   "Class": "LightTruck",
+  "PriceUsd": 6800,
+  "ArmorType": "Reactive",
+  "VisualModelPath": "res://Assets/Models/Vehicles/KenneyCarKit/truck.glb",
+  "VisualTargetLength": 4.2,
   "BaseMassKg": 1850,
   "StorageCapacityUnits": 20,
+  "FuelCapacityUnits": 90,
   "TireCount": 4,
   "SpareTireIncluded": true,
   "BaseArmorBySection": {
@@ -53,10 +58,5 @@
       "CanAutoAim": false,
       "MaxWeaponSize": 1
     }
-  ],
-  "AllowedEngineClasses": [
-    "Sedan",
-    "Sports",
-    "LightTruck"
   ]
 }

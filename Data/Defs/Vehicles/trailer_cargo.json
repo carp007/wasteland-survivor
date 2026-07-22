@@ -1,0 +1,31 @@
+{
+  "Id": "veh_trailer_cargo",
+  "DisplayName": "Cargo Trailer",
+  "Class": "Trailer",
+  "PriceUsd": 2200,
+  "ArmorType": "Steel",
+  "BaseMassKg": 700,
+  "StorageCapacityUnits": 30,
+  "FuelCapacityUnits": 0,
+  "TireCount": 4,
+  "SpareTireIncluded": false,
+  "BaseArmorBySection": {
+	"Front": 6,
+	"Rear": 8,
+	"Left": 7,
+	"Right": 7,
+	"Top": 5,
+	"Undercarriage": 5
+  },
+  "BaseTireArmor": 5,
+  "BaseHpBySection": {
+	"Front": 14,
+	"Rear": 20,
+	"Left": 18,
+	"Right": 18,
+	"Top": 12,
+	"Undercarriage": 14
+  },
+  "BaseTireHp": 10,
+  "MountPoints": []
+}

@@ -44,7 +44,9 @@ internal static class VehicleCombatMath
             ? new Dictionary<ArmorSection, int>(v.CurrentHpBySection)
             : new Dictionary<ArmorSection, int>();
 
-        var armorLevel = Math.Max(0, v.ArmorPlatingLevel);
+        // Plating grants +3/+6/+10 max armor by level (shared formula in VehicleMassMath so the
+        // weight tradeoff and the armor benefit always move together).
+        var armorLevel = VehicleMassMath.GetPlatingArmorBonus(v.ArmorPlatingLevel);
         foreach (var s in Enum.GetValues<ArmorSection>())
         {
             def.BaseArmorBySection.TryGetValue(s, out var baseArmor);
@@ -61,7 +63,9 @@ internal static class VehicleCombatMath
         }
 
         var tireCount = Math.Max(0, def.TireCount);
-        var tireArmorLevel = Math.Max(0, v.TirePlatingLevel);
+        // Tire plating gives the same +3/+6/+10 curve as section plating (it was left at +1/level
+        // in the build-127 rework, making the $950 L3 upgrade worthless against 12-16 blast hits).
+        var tireArmorLevel = VehicleMassMath.GetPlatingArmorBonus(v.TirePlatingLevel);
         var maxTireArmor = Math.Max(0, def.BaseTireArmor + tireArmorLevel);
         var maxTireHp = Math.Max(0, def.BaseTireHp);
 
@@ -105,7 +109,7 @@ internal static class VehicleCombatMath
     public static int GetMaxArmorForSection(VehicleInstanceState v, VehicleDefinition def, ArmorSection section)
     {
         def.BaseArmorBySection.TryGetValue(section, out var baseArmor);
-        return Math.Max(0, baseArmor + Math.Max(0, v.ArmorPlatingLevel));
+        return Math.Max(0, baseArmor + VehicleMassMath.GetPlatingArmorBonus(v.ArmorPlatingLevel));
     }
 
     public static int GetMaxHpForSection(VehicleDefinition def, ArmorSection section)
@@ -115,7 +119,7 @@ internal static class VehicleCombatMath
     }
 
     public static int GetMaxTireArmor(VehicleInstanceState v, VehicleDefinition def)
-        => Math.Max(0, def.BaseTireArmor + Math.Max(0, v.TirePlatingLevel));
+        => Math.Max(0, def.BaseTireArmor + VehicleMassMath.GetPlatingArmorBonus(v.TirePlatingLevel));
 
     public static int GetMaxTireHp(VehicleDefinition def)
         => Math.Max(0, def.BaseTireHp);

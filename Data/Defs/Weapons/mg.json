@@ -9,6 +9,8 @@
   "CooldownMs": 120,
   "MassKg": 18,
   "AmmoTypeIds": [
-    "ammo_mg_9mm"
-  ]
+    "ammo_mg_9mm",
+    "ammo_mg_9mm_ap"
+  ],
+  "PriceUsd": 350
 }

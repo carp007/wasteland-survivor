@@ -7,8 +7,9 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1")
-
 
 [node name="Bg" type="ColorRect" parent="."]
 layout_mode = 3
@@ -20,54 +21,346 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
+[node name="BgImage" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+modulate = Color(1, 1, 1, 0.76)
+
 [node name="Panel" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 12.0
-offset_top = 60.0
-offset_right = 420.0
-offset_bottom = 340.0
+offset_left = 24.0
+offset_top = 84.0
+offset_right = 944.0
+offset_bottom = 1056.0
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
 
-[node name="LblTitle" type="Label" parent="Panel/VBox"]
-text = "City"
+[node name="HeaderRow" type="VBoxContainer" parent="Panel/VBox"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
 
-[node name="LblCity" type="Label" parent="Panel/VBox"]
-text = "Current: (loading)"
+[node name="HeaderText" type="VBoxContainer" parent="Panel/VBox/HeaderRow"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
 
-[node name="HBoxCities" type="HBoxContainer" parent="Panel/VBox"]
+[node name="LblTitle" type="Label" parent="Panel/VBox/HeaderRow/HeaderText"]
+theme_override_font_sizes/font_size = 30
+text = "City Hub"
 
-[node name="BtnDetroit" type="Button" parent="Panel/VBox/HBoxCities"]
+[node name="LblSubtitle" type="Label" parent="Panel/VBox/HeaderRow/HeaderText"]
+size_flags_horizontal = 3
+autowrap_mode = 2
+text = "Fragmented law. Open roads. Every duel, salvage run, and highway mile builds your reputation."
+
+[node name="HeaderArt" type="TextureRect" parent="Panel/VBox/HeaderRow"]
+custom_minimum_size = Vector2(0, 34)
+size_flags_horizontal = 3
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="MetricsGrid" type="GridContainer" parent="Panel/VBox"]
+columns = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+
+[node name="TileCity" type="PanelContainer" parent="Panel/VBox/MetricsGrid"]
+size_flags_horizontal = 3
+
+[node name="TileVBox" type="VBoxContainer" parent="Panel/VBox/MetricsGrid/TileCity"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LblMetricCityTitle" type="Label" parent="Panel/VBox/MetricsGrid/TileCity/TileVBox"]
+theme_override_font_sizes/font_size = 13
+text = "Current City"
+
+[node name="LblMetricCityValue" type="Label" parent="Panel/VBox/MetricsGrid/TileCity/TileVBox"]
+theme_override_font_sizes/font_size = 16
 text = "Detroit"
 
-[node name="BtnCleveland" type="Button" parent="Panel/VBox/HBoxCities"]
+[node name="LblMetricCityDetail" type="Label" parent="Panel/VBox/MetricsGrid/TileCity/TileVBox"]
+autowrap_mode = 2
+text = "Home garage online"
+
+[node name="TileWallet" type="PanelContainer" parent="Panel/VBox/MetricsGrid"]
+size_flags_horizontal = 3
+
+[node name="TileVBox" type="VBoxContainer" parent="Panel/VBox/MetricsGrid/TileWallet"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LblMetricWalletTitle" type="Label" parent="Panel/VBox/MetricsGrid/TileWallet/TileVBox"]
+theme_override_font_sizes/font_size = 13
+text = "Wallet & Scrap"
+
+[node name="LblMetricWalletValue" type="Label" parent="Panel/VBox/MetricsGrid/TileWallet/TileVBox"]
+theme_override_font_sizes/font_size = 16
+text = "$0"
+
+[node name="LblMetricWalletDetail" type="Label" parent="Panel/VBox/MetricsGrid/TileWallet/TileVBox"]
+autowrap_mode = 2
+text = "0 scrap banked"
+
+[node name="TileVehicle" type="PanelContainer" parent="Panel/VBox/MetricsGrid"]
+size_flags_horizontal = 3
+
+[node name="TileVBox" type="VBoxContainer" parent="Panel/VBox/MetricsGrid/TileVehicle"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LblMetricVehicleTitle" type="Label" parent="Panel/VBox/MetricsGrid/TileVehicle/TileVBox"]
+theme_override_font_sizes/font_size = 13
+text = "Active Vehicle"
+
+[node name="LblMetricVehicleValue" type="Label" parent="Panel/VBox/MetricsGrid/TileVehicle/TileVBox"]
+theme_override_font_sizes/font_size = 16
+text = "No vehicle"
+
+[node name="LblMetricVehicleDetail" type="Label" parent="Panel/VBox/MetricsGrid/TileVehicle/TileVBox"]
+autowrap_mode = 2
+text = "Assign a lead vehicle"
+
+[node name="TileEncounter" type="PanelContainer" parent="Panel/VBox/MetricsGrid"]
+size_flags_horizontal = 3
+
+[node name="TileVBox" type="VBoxContainer" parent="Panel/VBox/MetricsGrid/TileEncounter"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LblMetricEncounterTitle" type="Label" parent="Panel/VBox/MetricsGrid/TileEncounter/TileVBox"]
+theme_override_font_sizes/font_size = 13
+text = "Encounter Status"
+
+[node name="LblMetricEncounterValue" type="Label" parent="Panel/VBox/MetricsGrid/TileEncounter/TileVBox"]
+theme_override_font_sizes/font_size = 16
+text = "Clear"
+
+[node name="LblMetricEncounterDetail" type="Label" parent="Panel/VBox/MetricsGrid/TileEncounter/TileVBox"]
+autowrap_mode = 2
+text = "No live arena encounter"
+
+[node name="BodyTabs" type="TabContainer" parent="Panel/VBox"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+current_tab = 0
+
+[node name="OverviewTab" type="VBoxContainer" parent="Panel/VBox/BodyTabs"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="OverviewScroll" type="ScrollContainer" parent="Panel/VBox/BodyTabs/OverviewTab"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="OverviewContent" type="VBoxContainer" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="ServicesPanel" type="PanelContainer" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent"]
+size_flags_horizontal = 3
+
+[node name="ServicesVBox" type="VBoxContainer" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/ServicesPanel"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LblServicesHeader" type="Label" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/ServicesPanel/ServicesVBox"]
+theme_override_font_sizes/font_size = 16
+text = "Major Services"
+
+[node name="LblServicesSummary" type="Label" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/ServicesPanel/ServicesVBox"]
+autowrap_mode = 2
+text = "City services: garage bays for the fleet, a workshop for loadouts, and an arena for those looking to earn."
+
+[node name="ServicesGrid" type="GridContainer" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/ServicesPanel/ServicesVBox"]
+columns = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+
+[node name="BtnGarage" type="Button" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/ServicesPanel/ServicesVBox/ServicesGrid"]
+custom_minimum_size = Vector2(0, 42)
+size_flags_horizontal = 3
+text = "Open Garage"
+
+[node name="BtnWorkshop" type="Button" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/ServicesPanel/ServicesVBox/ServicesGrid"]
+custom_minimum_size = Vector2(0, 42)
+size_flags_horizontal = 3
+text = "Open Workshop"
+
+[node name="BtnArena" type="Button" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/ServicesPanel/ServicesVBox/ServicesGrid"]
+custom_minimum_size = Vector2(0, 42)
+size_flags_horizontal = 3
+text = "Enter Arena"
+
+[node name="BtnCreateStarter" type="Button" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/ServicesPanel/ServicesVBox/ServicesGrid"]
+custom_minimum_size = Vector2(0, 42)
+size_flags_horizontal = 3
+text = "Issue Starter Vehicle"
+
+[node name="IntelPanel" type="PanelContainer" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent"]
+size_flags_horizontal = 3
+
+[node name="IntelVBox" type="VBoxContainer" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/IntelPanel"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LblIntelHeader" type="Label" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/IntelPanel/IntelVBox"]
+theme_override_font_sizes/font_size = 16
+text = "Current Run Status"
+
+[node name="LblOverview" type="Label" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/IntelPanel/IntelVBox"]
+autowrap_mode = 2
+text = "City overview"
+
+[node name="ShowcaseHost" type="VBoxContainer" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/IntelPanel/IntelVBox"]
+size_flags_horizontal = 3
+
+[node name="LblVehicleSummary" type="Label" parent="Panel/VBox/BodyTabs/OverviewTab/OverviewScroll/OverviewContent/IntelPanel/IntelVBox"]
+autowrap_mode = 2
+text = "Vehicle summary"
+
+[node name="TravelTab" type="VBoxContainer" parent="Panel/VBox/BodyTabs"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="TravelScroll" type="ScrollContainer" parent="Panel/VBox/BodyTabs/TravelTab"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="TravelContent" type="VBoxContainer" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="TravelPanel" type="PanelContainer" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent"]
+size_flags_horizontal = 3
+
+[node name="TravelVBox" type="VBoxContainer" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LblTravelHeader" type="Label" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox"]
+theme_override_font_sizes/font_size = 16
+text = "Travel Routes"
+
+[node name="LblTravelSummary" type="Label" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox"]
+autowrap_mode = 2
+text = "Highway routes out of town. Fuel up before you roll - the roads between cities belong to the raiders."
+
+[node name="TravelRows" type="VBoxContainer" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="DetroitCard" type="PanelContainer" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows"]
+size_flags_horizontal = 3
+
+[node name="CardRow" type="HBoxContainer" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows/DetroitCard"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="CardVBox" type="VBoxContainer" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows/DetroitCard/CardRow"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LblDetroitTitle" type="Label" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows/DetroitCard/CardRow/CardVBox"]
+theme_override_font_sizes/font_size = 16
+text = "Detroit"
+
+[node name="LblDetroitTagline" type="Label" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows/DetroitCard/CardRow/CardVBox"]
+autowrap_mode = 2
+text = "Primary home hub"
+
+[node name="LblDetroitRouteDetail" type="Label" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows/DetroitCard/CardRow/CardVBox"]
+autowrap_mode = 2
+text = "Garage, workshop, arena, and respawn services online."
+
+[node name="BtnDetroit" type="Button" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows/DetroitCard/CardRow"]
+custom_minimum_size = Vector2(160, 40)
+text = "Travel"
+
+[node name="ClevelandCard" type="PanelContainer" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows"]
+size_flags_horizontal = 3
+
+[node name="CardRow" type="HBoxContainer" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows/ClevelandCard"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="CardVBox" type="VBoxContainer" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows/ClevelandCard/CardRow"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LblClevelandTitle" type="Label" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows/ClevelandCard/CardRow/CardVBox"]
+theme_override_font_sizes/font_size = 16
 text = "Cleveland"
 
-[node name="Spacer1" type="Control" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 8)
+[node name="LblClevelandTagline" type="Label" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows/ClevelandCard/CardRow/CardVBox"]
+autowrap_mode = 2
+text = "Industrial route stop"
 
-[node name="BtnGarage" type="Button" parent="Panel/VBox"]
-text = "Garage"
+[node name="LblClevelandRouteDetail" type="Label" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows/ClevelandCard/CardRow/CardVBox"]
+autowrap_mode = 2
+text = "Alternate city node with the same core service loop."
 
-[node name="BtnWorkshop" type="Button" parent="Panel/VBox"]
-text = "Workshop / Loadout"
+[node name="BtnCleveland" type="Button" parent="Panel/VBox/BodyTabs/TravelTab/TravelScroll/TravelContent/TravelPanel/TravelVBox/TravelRows/ClevelandCard/CardRow"]
+custom_minimum_size = Vector2(160, 40)
+text = "Travel"
 
-[node name="BtnArena" type="Button" parent="Panel/VBox"]
-text = "Arena"
+[node name="OpsTab" type="VBoxContainer" parent="Panel/VBox/BodyTabs"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="BtnCreateStarter" type="Button" parent="Panel/VBox"]
-text = "Create Starter Vehicle (Compact)"
+[node name="OpsScroll" type="ScrollContainer" parent="Panel/VBox/BodyTabs/OpsTab"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+horizontal_scroll_mode = 0
 
-[node name="BtnSave" type="Button" parent="Panel/VBox"]
-text = "Save Now"
+[node name="OpsContent" type="VBoxContainer" parent="Panel/VBox/BodyTabs/OpsTab/OpsScroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
 
-[node name="Spacer2" type="Control" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 8)
+[node name="OperationsPanel" type="PanelContainer" parent="Panel/VBox/BodyTabs/OpsTab/OpsScroll/OpsContent"]
+size_flags_horizontal = 3
 
-[node name="BtnExit" type="Button" parent="Panel/VBox"]
-text = "Exit"
+[node name="OperationsVBox" type="VBoxContainer" parent="Panel/VBox/BodyTabs/OpsTab/OpsScroll/OpsContent/OperationsPanel"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LblOperationsHeader" type="Label" parent="Panel/VBox/BodyTabs/OpsTab/OpsScroll/OpsContent/OperationsPanel/OperationsVBox"]
+theme_override_font_sizes/font_size = 16
+text = "Operations"
+
+[node name="LblOperationsSummary" type="Label" parent="Panel/VBox/BodyTabs/OpsTab/OpsScroll/OpsContent/OperationsPanel/OperationsVBox"]
+autowrap_mode = 2
+text = "Operations summary"
+
+[node name="ActionGrid" type="GridContainer" parent="Panel/VBox/BodyTabs/OpsTab/OpsScroll/OpsContent/OperationsPanel/OperationsVBox"]
+columns = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+
+[node name="BtnSave" type="Button" parent="Panel/VBox/BodyTabs/OpsTab/OpsScroll/OpsContent/OperationsPanel/OperationsVBox/ActionGrid"]
+custom_minimum_size = Vector2(0, 42)
+size_flags_horizontal = 3
+text = "Save Run"
+
+[node name="BtnExit" type="Button" parent="Panel/VBox/BodyTabs/OpsTab/OpsScroll/OpsContent/OperationsPanel/OperationsVBox/ActionGrid"]
+custom_minimum_size = Vector2(0, 42)
+size_flags_horizontal = 3
+text = "Exit Game"

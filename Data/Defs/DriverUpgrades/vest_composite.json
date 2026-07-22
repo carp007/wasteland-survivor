@@ -1,0 +1,8 @@
+{
+  "Id": "drv_vest_composite",
+  "DisplayName": "Composite Vest",
+  "Kind": "Armor",
+  "ArmorPoints": 65,
+  "PriceUsd": 450,
+  "Flavor": "Layered ceramic-polymer plates over kevlar backing. Standard issue for couriers who plan on arriving."
+}

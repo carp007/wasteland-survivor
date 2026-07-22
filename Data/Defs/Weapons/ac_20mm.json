@@ -1,0 +1,16 @@
+{
+  "Id": "wpn_ac_20mm",
+  "DisplayName": "20mm Autocannon",
+  "WeaponType": "MG",
+  "FireMode": "DumbFire",
+  "ProjectileSpeed": 85,
+  "BaseDamage": 9,
+  "SplashRadius": null,
+  "CooldownMs": 280,
+  "MassKg": 120,
+  "AmmoTypeIds": [
+    "ammo_ac_20mm",
+    "ammo_ac_20mm_he"
+  ],
+  "PriceUsd": 3800
+}

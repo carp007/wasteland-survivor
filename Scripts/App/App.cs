@@ -40,7 +40,9 @@ public partial class App : Node
 
 	public override void _Ready()
 	{
-		ApplyStartupWindowMode();
+		ScreenshotHarness.ParseArgs();
+		if (!ScreenshotHarness.Active)
+			ApplyStartupWindowMode();
 		Boot();
 	}
 
@@ -107,7 +109,9 @@ public partial class App : Node
 			// Give Godot one frame to finish initializing the window.
 			await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
-			DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
+			// User setting: start fullscreen (default) or honor windowed preference from Settings.
+			if (GameSettingsStore.Load().StartFullscreen)
+				DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
 
 			// Wait a frame so the display server applies the mode and reports the correct size.
 			await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -184,6 +188,8 @@ public partial class App : Node
 			var console = new GameConsole();
 			Services.AddSingleton(console);
 			AudioBusUtil.EnsureBuses();
+			GameSettingsStore.Load();
+			GameSettingsStore.ApplyAudio();
 			console.Debug($"Boot: starting (v{GetVersionString()})");
 
 			var loader = new DefLoader();
@@ -194,10 +200,29 @@ public partial class App : Node
 			console.Debug(
 				$"Defs loaded: Vehicles={result.VehicleCount} Weapons={result.WeaponCount} Ammo={result.AmmoCount} " +
 				$"Engines={result.EngineCount} Computers={result.ComputerCount} Armors={result.ArmorCount} " +
-				$"({result.ErrorCount} errors, {result.WarningCount} warnings)");
+				$"Cities={result.CityCount} ({result.ErrorCount} errors, {result.WarningCount} warnings)");
 
-			// Load (or create) save game
-			var saveStore = new SaveGameStore();
+			// Load (or create) save game.
+			// Screenshot mode runs against a throwaway sandbox save: captures must start from a
+			// deterministic default loadout and must NEVER consume ammo / persist encounters into the
+			// player's real savegame.json.
+			SaveGameStore saveStore;
+			if (ScreenshotHarness.Active)
+			{
+				const string sandboxPath = "user://savegame.screenshot.json";
+				try
+				{
+					var abs = ProjectSettings.GlobalizePath(sandboxPath);
+					if (System.IO.File.Exists(abs))
+						System.IO.File.Delete(abs);
+				}
+				catch { /* stale sandbox is acceptable */ }
+				saveStore = new SaveGameStore(sandboxPath);
+			}
+			else
+			{
+				saveStore = new SaveGameStore();
+			}
 			var save = saveStore.LoadOrCreateDefault();
 			var session = new GameSession(saveStore, save);
 			Services.AddSingleton(session);

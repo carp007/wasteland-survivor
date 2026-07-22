@@ -9,17 +9,14 @@
 2) Project Settings → **Run** → Main Scene
 - `res://Scenes/Main.tscn`
 
-## Packaging rules (important)
+## Godot constraints
 - Do **not** commit/ship `.godot/`.
-- For downloadable zips, also exclude: `Assets/` and `.git/`.
-- If you replace the project by unzipping over an existing folder, prefer deleting the target folder first.
-  - If you must unzip over an existing folder, be careful of stale `.cs` files that can cause duplicate-type compile errors.
 
 
 ## IDE / solution
 - Open `Wasteland Survivor.sln` to see both projects:
   - `Wasteland Survivor` (main game)
-  - `WastelandSurvivor.UiKit` (shared UI/dialog toolkit)
+  - `GameUiKit` (shared UI/dialog toolkit)
 
 ## Smoke tests
 - City shell opens

@@ -4,7 +4,9 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wasteland Survivor", "Wasteland Survivor.csproj", "{1042FCB4-BF52-41CB-B99E-8810C0EDEAAF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WastelandSurvivor.UiKit", "UiKit/WastelandSurvivor.UiKit.csproj", "{CA5812D1-3E5F-4419-85DF-397E2FED771C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameUiKit", "UiKit/GameUiKit.csproj", "{CA5812D1-3E5F-4419-85DF-397E2FED771C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GamePawnKit", "PawnKit/GamePawnKit.csproj", "{4D3D5A0A-6A8C-4DA0-AC5A-1C7FBA1E51D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +22,10 @@ Global
 		{CA5812D1-3E5F-4419-85DF-397E2FED771C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA5812D1-3E5F-4419-85DF-397E2FED771C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA5812D1-3E5F-4419-85DF-397E2FED771C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D3D5A0A-6A8C-4DA0-AC5A-1C7FBA1E51D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D3D5A0A-6A8C-4DA0-AC5A-1C7FBA1E51D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D3D5A0A-6A8C-4DA0-AC5A-1C7FBA1E51D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D3D5A0A-6A8C-4DA0-AC5A-1C7FBA1E51D4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

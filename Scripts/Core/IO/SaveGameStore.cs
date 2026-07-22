@@ -59,7 +59,14 @@ public sealed class SaveGameStore
 		}
 	}
 
-	private static SaveGameState CreateDefault()
+	private static SaveGameState CreateDefault() => CreateDefaultState();
+
+	/// <summary>
+	/// The canonical fresh-start save (also used by the title screen's NEW GAME flow). Ships at the
+	/// original save version on purpose: normal load-time migration then walks it forward, so new
+	/// games and migrated saves always take the same code path.
+	/// </summary>
+	public static SaveGameState CreateDefaultState()
 	{
 		return new SaveGameState
 		{

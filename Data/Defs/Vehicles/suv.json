@@ -1,0 +1,62 @@
+{
+  "Id": "veh_suv",
+  "DisplayName": "SUV",
+  "Class": "Suv",
+  "PriceUsd": 8900,
+  "ArmorType": "Composite",
+  "VisualModelPath": "res://Assets/Models/Vehicles/KenneyCarKit/suv.glb",
+  "VisualTargetLength": 4.4,
+  "BaseMassKg": 2100,
+  "StorageCapacityUnits": 16,
+  "FuelCapacityUnits": 95,
+  "TireCount": 4,
+  "SpareTireIncluded": true,
+  "BaseArmorBySection": {
+    "Front": 15,
+    "Rear": 13,
+    "Left": 13,
+    "Right": 13,
+    "Top": 11,
+    "Undercarriage": 11
+  },
+  "BaseTireArmor": 8,
+  "BaseHpBySection": {
+    "Front": 30,
+    "Rear": 28,
+    "Left": 28,
+    "Right": 28,
+    "Top": 24,
+    "Undercarriage": 24
+  },
+  "BaseTireHp": 16,
+  "MountPoints": [
+    {
+      "MountId": "F1",
+      "MountLocation": "Front",
+      "ArcDegrees": 10,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "T1",
+      "MountLocation": "Top",
+      "ArcDegrees": 120,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "R1",
+      "MountLocation": "Rear",
+      "ArcDegrees": 10,
+      "CanAutoAim": true,
+      "MaxWeaponSize": 1
+    },
+    {
+      "MountId": "B1",
+      "MountLocation": "Rear",
+      "ArcDegrees": 0,
+      "CanAutoAim": false,
+      "MaxWeaponSize": 1
+    }
+  ]
+}

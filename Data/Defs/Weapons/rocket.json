@@ -10,5 +10,6 @@
   "MassKg": 70,
   "AmmoTypeIds": [
     "ammo_rocket_std"
-  ]
+  ],
+  "PriceUsd": 1500
 }

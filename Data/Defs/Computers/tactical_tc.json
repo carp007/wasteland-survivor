@@ -1,0 +1,8 @@
+{
+  "Id": "tc_tactical",
+  "DisplayName": "Tactical Targeting Array",
+  "MaxActiveWeaponGroups": 4,
+  "AutoAimSlots": 3,
+  "LockRange": 95,
+  "PriceUsd": 6800
+}

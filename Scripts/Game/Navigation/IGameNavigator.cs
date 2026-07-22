@@ -17,4 +17,7 @@ public interface IGameNavigator
 	void ToGarage(Node from);
 	void ToWorkshop(Node from);
 	void ToArena(Node from);
+	void ToStore(Node from);
+	void ToDriverStore(Node from);
+	void ToCasino(Node from);
 }

@@ -4,11 +4,12 @@
   "WeaponType": "Missile",
   "FireMode": "LockOptional",
   "ProjectileSpeed": 55,
-  "BaseDamage": 16,
-  "SplashRadius": 2.0,
-  "CooldownMs": 900,
+  "BaseDamage": 30,
+  "SplashRadius": 2.4,
+  "CooldownMs": 2200,
   "MassKg": 95,
   "AmmoTypeIds": [
     "ammo_missile_std"
-  ]
+  ],
+  "PriceUsd": 2400
 }

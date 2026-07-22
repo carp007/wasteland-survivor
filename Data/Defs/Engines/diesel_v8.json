@@ -1,0 +1,15 @@
+{
+  "Id": "eng_diesel_v8",
+  "DisplayName": "Diesel V8",
+  "FuelType": "Diesel",
+  "PowerKw": 250,
+  "TorqueNm": 900,
+  "Efficiency": 0.88,
+  "AllowedVehicleClasses": [
+    "LightTruck",
+    "Suv",
+    "HeavyTruck",
+    "SemiTruck"
+  ],
+  "PriceUsd": 4800
+}

@@ -7,6 +7,9 @@
   "Efficiency": 1.05,
   "AllowedVehicleClasses": [
     "Sedan",
-    "LightTruck"
-  ]
+    "LightTruck",
+    "Suv",
+    "HeavyTruck"
+  ],
+  "PriceUsd": 2300
 }

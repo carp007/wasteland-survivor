@@ -29,6 +29,7 @@ public sealed record VehicleInstanceState
 {
     public string InstanceId { get; init; } = Guid.NewGuid().ToString("N");
     public string DefinitionId { get; init; } = "";
+    public string CustomName { get; init; } = "";
 
     public Dictionary<ArmorSection, int> CurrentArmorBySection { get; init; } = new();
     public int[] CurrentTireArmor { get; init; } = Array.Empty<int>();
@@ -56,4 +57,12 @@ public sealed record VehicleInstanceState
     public Dictionary<string, InstalledWeaponState> InstalledWeaponsByMountId { get; init; } = new();
 
     public TowingState Towing { get; init; } = new();
+
+    /// <summary>
+    /// Overworld hitch chain link: instance id of the unit hitched directly behind this one
+    /// (spec: chained towing — truck → trailer → salvaged vehicle). V1 sets this on the active
+    /// vehicle to point at an owned trailer; a trailer's own link is reserved for a towed vehicle
+    /// later. Null = nothing on the hitch. Absent in old saves → defaults to null (save-compatible).
+    /// </summary>
+    public string? HitchedTrailerInstanceId { get; init; } = null;
 }

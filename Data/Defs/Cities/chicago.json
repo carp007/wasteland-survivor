@@ -1,0 +1,18 @@
+{
+  "Id": "chicago",
+  "DisplayName": "Chicago",
+  "MapX": 0.10,
+  "MapY": 0.52,
+  "HasStore": true,
+  "HasGarage": true,
+  "ArenaMaxTier": 4,
+  "HasCloneFacility": true,
+  "HasCasino": true,
+  "FuelPriceMultiplier": 1.0,
+  "Flavor": "The western metropolis. The Lakeside Colosseum draws duellists from three states — and the syndicates that bankroll them.",
+  "BackdropPath": "res://Assets/Images/City/Chicago.png",
+  "Roads": [
+    { "ToCityId": "fort_wayne", "DistanceKm": 250, "AmbushChance": 0.5, "AmbushTierMin": 2, "AmbushTierMax": 3, "HasFuelStation": true, "FuelPriceMultiplier": 0.9, "FuelStationName": "Route 30 Station" },
+    { "ToCityId": "saginaw", "DistanceKm": 400, "AmbushChance": 0.6, "AmbushTierMin": 2, "AmbushTierMax": 3, "HasFuelStation": true, "FuelPriceMultiplier": 0.95, "FuelStationName": "Pine Barrens Fuel Depot" }
+  ]
+}

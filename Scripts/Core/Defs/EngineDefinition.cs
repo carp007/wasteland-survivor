@@ -20,4 +20,7 @@ public sealed record EngineDefinition : IHasId
     public float Efficiency { get; init; } = 1.0f;
 
     public VehicleClass[] AllowedVehicleClasses { get; init; } = System.Array.Empty<VehicleClass>();
+
+    /// <summary>Store price (USD). 0 = not sold in stores.</summary>
+    public int PriceUsd { get; init; } = 0;
 }

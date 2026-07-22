@@ -80,7 +80,14 @@ public partial class ConsoleOverlay : Control
 		_panel.OffsetTop = 0;
 		_panel.OffsetBottom = 0;
 
-		var bg = new StyleBoxFlat { BgColor = new Color(0f, 0f, 0f, 0.28f) };
+		var bg = new StyleBoxFlat
+		{
+			BgColor = new Color(0.035f, 0.045f, 0.06f, 0.92f),
+			BorderColor = new Color(1f, 1f, 1f, 0.08f),
+			BorderWidthTop = 1,
+			CornerRadiusTopLeft = 8,
+			CornerRadiusTopRight = 8,
+		};
 		_panel.AddThemeStyleboxOverride("panel", bg);
 
 		var pad = new MarginContainer
@@ -472,9 +479,11 @@ public partial class ConsoleOverlay : Control
 			{
 				_console.Input($"> {cmd}");
 				_console.Status("Commands:");
-				_console.Status("  help    - list commands");
-				_console.Status("  clear   - clear console output");
-				_console.Status("  version - show current build id");
+				_console.Status("  help             - list commands");
+				_console.Status("  clear            - clear console output");
+				_console.Status("  version          - show current build id");
+				_console.Status("  money add <amt>  - add money to player balance");
+				_console.Status("  money <amt>      - shorthand for money add <amt>");
 				return true;
 			}
 			case "clear":
@@ -491,6 +500,12 @@ public partial class ConsoleOverlay : Control
 				var v = ReadVersionLine();
 				_console.Status(v.Length == 0 ? "(version unknown)" : v);
 				return true;
+			}
+			case "money":
+			case "cash":
+			{
+				_console.Input($"> {cmd}");
+				return ExecuteMoneyCommand(parts);
 			}
 			default:
 				return false;
@@ -519,6 +534,54 @@ public partial class ConsoleOverlay : Control
 		{
 			return "";
 		}
+	}
+
+	private bool ExecuteMoneyCommand(string[] parts)
+	{
+		if (_console == null)
+			return true;
+
+		var rawAmount = parts.Length switch
+		{
+			2 when !string.Equals(parts[1], "add", StringComparison.OrdinalIgnoreCase) => parts[1],
+			>= 3 when string.Equals(parts[1], "add", StringComparison.OrdinalIgnoreCase) => parts[2],
+			_ => "",
+		};
+
+		if (rawAmount.Length == 0)
+		{
+			_console.Error("usage: money add <amount>");
+			return true;
+		}
+
+		if (!TryParsePositiveUsd(rawAmount, out var amountUsd))
+		{
+			_console.Error("amount must be a positive whole number");
+			return true;
+		}
+
+		var app = App.Instance;
+		if (app?.Services.TryGet<GameSession>(out var session) != true || session == null)
+		{
+			_console.Error("game session unavailable");
+			return true;
+		}
+
+		if (!session.TryAddMoney(amountUsd, out var newBalance, out var error))
+		{
+			_console.Error(error.Length == 0 ? "failed to add money" : error);
+			return true;
+		}
+
+		_console.Status($"Player money balance: ${newBalance}");
+		return true;
+	}
+
+	private static bool TryParsePositiveUsd(string raw, out int amountUsd)
+	{
+		amountUsd = 0;
+		var cleaned = (raw ?? "").Trim().Replace("$", "").Replace(",", "");
+		return cleaned.Length > 0 && int.TryParse(cleaned, out amountUsd) && amountUsd > 0;
 	}
 
 	private static string FormatLine(GameConsoleLine line)

@@ -1,0 +1,8 @@
+{
+  "Id": "drv_cyber_reflex_splice",
+  "DisplayName": "Reflex Splice",
+  "Kind": "Cybernetic",
+  "HpBonus": 20,
+  "PriceUsd": 2400,
+  "Flavor": "Synthetic nerve trunks grafted along the spine. You flinch before the shrapnel lands — and the graft carries over to every clone after this one."
+}

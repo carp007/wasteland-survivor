@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------------------------------
-// Wasteland Survivor
+// UiKit
 // File: Scripts/Framework/SceneBinding/SceneBinder.cs
 // Purpose: Typed node binding helper for Godot scenes. Centralizes GetNode/GetNodeOrNull patterns and
 //          produces consistent, high-signal error messages when a scene tree doesn't match code.
@@ -16,7 +16,7 @@
 using System;
 using Godot;
 
-namespace WastelandSurvivor.Framework.SceneBinding;
+namespace GameUiKit.SceneBinding;
 
 /// <summary>
 /// Typed helper for resolving nodes by path with consistent error reporting.

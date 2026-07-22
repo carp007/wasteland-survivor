@@ -1,0 +1,18 @@
+{
+  "Id": "pw_hunting_rifle",
+  "DisplayName": "Prairie Wolf .308",
+  "WeaponClass": "Rifle",
+  "BaseDamage": 16,
+  "PelletsPerShot": 1,
+  "CooldownMs": 1500,
+  "RangeMeters": 55,
+  "SpreadRadians": 0.012,
+  "VehicleDamageMultiplier": 0.4,
+  "AmmoId": "pammo_308",
+  "AmmoCapacity": 40,
+  "AmmoPricePer10Usd": 25,
+  "StartingAmmo": 20,
+  "MassKg": 4.2,
+  "PriceUsd": 1400,
+  "Flavor": "Pre-war bolt gun with a cracked scope and a perfect action. One round, placed politely, through a driver who thought his hull was the argument."
+}

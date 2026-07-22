@@ -8,5 +8,6 @@
   "AllowedVehicleClasses": [
     "Compact",
     "Sedan"
-  ]
+  ],
+  "PriceUsd": 1200
 }

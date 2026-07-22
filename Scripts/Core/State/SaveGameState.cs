@@ -19,10 +19,26 @@ public sealed record SaveGameState
     public PlayerProfileState Player { get; init; } = new();
 
     public EncounterState? CurrentEncounter { get; init; }
+
+    // In-progress arena tournament (spec: arenas host AutoDuel-style tournaments, not just bouts).
+    public TournamentState? ActiveTournament { get; init; }
+
     public List<VehicleInstanceState> Vehicles { get; init; } = new();
+
+    // Player vehicles captured by AI victors after a defeat (spec: AI salvages/tows like a player;
+    // the player can intercept and reclaim). Instances stay in Vehicles; ownership is suspended.
+    public List<CapturedVehicleState> CapturedVehicles { get; init; } = new();
 
     // CityId -> list of vehicle instance ids stored there
     public Dictionary<string, List<string>> CityStorage { get; init; } = new();
 
     public Dictionary<string, bool> WorldFlags { get; init; } = new();
+
+    // Active freight-hauling contract (spec: cargo/logistics). Null = none. Additive nullable
+    // field — old saves deserialize cleanly.
+    public FreightContractState? ActiveFreightContract { get; init; } = null;
+
+    // Active WANTED-board bounty (spec: expandable quest systems). Null = none. Additive nullable
+    // field — old saves deserialize cleanly.
+    public BountyContractState? ActiveBountyContract { get; init; } = null;
 }

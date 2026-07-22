@@ -4,11 +4,13 @@
   "WeaponType": "MG",
   "FireMode": "DumbFire",
   "ProjectileSpeed": 75,
-  "BaseDamage": 16,
+  "BaseDamage": 5,
   "SplashRadius": null,
-  "CooldownMs": 1000,
+  "CooldownMs": 150,
   "MassKg": 32,
   "AmmoTypeIds": [
-    "ammo_mg_50cal"
-  ]
+    "ammo_mg_50cal",
+    "ammo_mg_50cal_ap"
+  ],
+  "PriceUsd": 950
 }

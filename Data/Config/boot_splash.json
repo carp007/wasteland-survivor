@@ -10,11 +10,6 @@
       "path": "res://Assets/Images/studio.png",
       "seconds": 3.5,
       "openSound": ""
-    },
-    {
-      "path": "res://Assets/Images/title.png",
-      "seconds": 2.5,
-      "openSound": ""
     }
   ]
 }

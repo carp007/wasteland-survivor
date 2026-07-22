@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------------------------------
-// Wasteland Survivor
+// UiKit
 // File: Scripts/Framework/UI/ModalHost.cs
 // Purpose: Fullscreen modal host used to display dialogs/overlays above the current UI.
 //          Implemented as a small, reusable Control that supports stacking and Escape-to-close.
@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace WastelandSurvivor.Framework.UI;
+namespace GameUiKit.UI;
 
 /// <summary>
 /// Fullscreen modal host.
@@ -18,7 +18,8 @@ namespace WastelandSurvivor.Framework.UI;
 /// - Register <see cref="ModalService"/> in AppRoot so UI scripts can open dialogs via <see cref="IModalService"/>.
 /// 
 /// Notes:
-/// - ModalHost runs <see cref="Node.ProcessModeEnum.WhenPaused"/> so it remains interactive while the game is paused.
+/// - ModalHost runs <see cref="Node.ProcessModeEnum.Always"/> so it remains interactive while the game is paused
+///   and also during normal gameplay.
 /// - Supports stacking (top modal is visible; previous is hidden).
 /// </summary>
 public partial class ModalHost : Control
@@ -37,11 +38,12 @@ public partial class ModalHost : Control
 
 	public override void _Ready()
 	{
-		// Ensure modals can be used while the game is paused (e.g., PauseMenuOverlay).
-		ProcessMode = Node.ProcessModeEnum.WhenPaused;
+		// Ensure modals can be used both during gameplay and while the game is paused.
+		ProcessMode = Node.ProcessModeEnum.Always;
 		MouseFilter = MouseFilterEnum.Stop;
-		FocusMode = FocusModeEnum.All;
-		SetProcessUnhandledInput(true);
+		// Avoid stealing GUI focus by default; dialogs can opt-in via AutoFocus.
+		FocusMode = FocusModeEnum.None;
+		SetProcessInput(true);
 
 		// Fullscreen anchors.
 		AnchorLeft = 0;
@@ -63,7 +65,7 @@ public partial class ModalHost : Control
 		Visible = _stack.Count > 0;
 	}
 
-	public override void _UnhandledInput(InputEvent @event)
+	public override void _Input(InputEvent @event)
 	{
 		if (!Visible) return;
 		if (_stack.Count == 0) return;
@@ -108,8 +110,8 @@ public partial class ModalHost : Control
 		root.OffsetRight = 0;
 		root.OffsetBottom = 0;
 
-		// Ensure the modal content remains interactive while paused.
-		content.ProcessMode = Node.ProcessModeEnum.WhenPaused;
+		// Ensure the modal content remains interactive both paused and unpaused.
+		content.ProcessMode = Node.ProcessModeEnum.Always;
 		content.MouseFilter = MouseFilterEnum.Stop;
 		content.FocusMode = FocusModeEnum.All;
 		root.AddChild(content);

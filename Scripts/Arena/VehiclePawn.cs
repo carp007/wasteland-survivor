@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Godot;
+using GamePawnKit.Pawns;
 using WastelandSurvivor.Core.Defs;
 using WastelandSurvivor.Core.IO;
 using WastelandSurvivor.Core.State;
@@ -20,7 +21,7 @@ namespace WastelandSurvivor.Game.Arena;
 /// Minimal 3D vehicle pawn for the early 2.5D transition.
 /// Kinematic-ish car movement on the XZ plane (Y up), using CharacterBody3D.
 /// </summary>
-public partial class VehiclePawn : CharacterBody3D, IVehicleAudioTelemetry
+public partial class VehiclePawn : VehiclePawnBase, IVehicleAudioTelemetry
 {
 
 	// -------------------------------------------------------------------------------------------------
@@ -38,7 +39,7 @@ public partial class VehiclePawn : CharacterBody3D, IVehicleAudioTelemetry
 	[Export] public string PassengerCarPackBodyNodeName = "Compact Body";
 	[Export] public string PassengerCarPackWheelRootPrefix = "Wheel_C"; // Wheel_C, Wheel_C001, Wheel_C002, Wheel_C003
 	[Export] public int PassengerCarPackPlayerVariantIndex = 1; // Body 1 for player
-	[Export] public int PassengerCarPackEnemyVariantIndex = 0;  // Body 0 for enemy
+	[Export] public int PassengerCarPackEnemyVariantIndex = 2;  // Body 2 (dark red) reads hostile
 	[Export] public float PassengerCarPackTargetLength = 3.25f; // roughly matches proxy length
 	[Export] public float PassengerCarPackMinVisibleLength = 0.5f; // if model imports tiny, we autoscale
 	[Export] public bool PassengerCarPackAutoAlignYaw = true; // attempts to align model long axis to vehicle forward (-Z)
@@ -47,42 +48,44 @@ public partial class VehiclePawn : CharacterBody3D, IVehicleAudioTelemetry
 	[Export] public Vector3 PassengerCarPackRotationDegrees = Vector3.Zero; // tweak if imported forward axis is off
 	[Export] public Vector3 PassengerCarPackExtraScale = Vector3.One; // extra user scale multiplier
 
-	[Export] public float MaxForwardSpeed = 18.0f;
-	[Export] public float MaxReverseSpeed = 8.0f;
-	[Export] public float Accel = 16.0f;
-	[Export] public float AccelNearMaxFactor = 0.35f;
-	[Export] public float AccelSpeedFalloffExponent = 1.6f;
-
-	// Realism tuning (bicycle model + friction). Keep defaults gentle for early gameplay.
-	[Export] public float WheelbaseMeters = 2.6f;
-	[Export] public float CoastDecel = 3.5f;
-	[Export] public float BrakeDecel = 58.0f;
-	[Export] public float LateralFriction = 26.0f;
-	[Export] public float LinearDrag = 0.06f;
-	[Export] public float QuadraticDrag = 0.0012f;
-
-	[Export] public float FrontWheelMaxSteerDeg = 28f;
-	[Export] public float FrontWheelSteerLerp = 14f;
-
 	[Export] public Color BodyColor = new(0.85f, 0.85f, 0.85f);
 
-	public float ThrottleInput { get; set; } = 0f; // -1..1
-	public float SteerInput { get; set; } = 0f;    // -1..1
+	/// <summary>
+	/// Hostile faction treatment (round 11 N-4): enemy combatants get a subtle constant red
+	/// edge/skirt emission on the hull, a luma floor under dark preset paints, and a hostile-red
+	/// underglow — so an enemy chassis reads at 1x between the light pools instead of leaving the
+	/// yellow target brackets to carry the entire hostile read. Set by the arena spawner BEFORE
+	/// ApplyVisualPreset/ConfigureLoadout; false for the player, trailers, towed rigs and wrecks.
+	/// </summary>
+	public bool HostileIdentity { get; set; }
 
-	public Vector3 AimWorldPosition { get; set; }
-
+	// Weapon fire cooldown.
+	// NOTE: This remains WastelandSurvivor-specific (firing logic lives in ArenaRealtimeView).
+	// It was temporarily dropped during the VehiclePawnBase extraction; keep it here to preserve behavior.
 	public float FireCooldownSeconds { get; set; } = 0.22f;
 	public float FireCooldownRemaining { get; set; } = 0f;
 
-	// Runtime-derived performance (weight + damage). These are recomputed automatically.
-	public float TotalMassKg { get; private set; } = 0f;
-	public float EffectiveMaxForwardSpeed { get; private set; } = 0f;
-	public float EffectiveMaxReverseSpeed { get; private set; } = 0f;
-	public float TractionGrip { get; private set; } = 1f;
-	public float SteerGrip { get; private set; } = 1f;
-	public float DriveGrip { get; private set; } = 1f;
+	// Per-weapon-slot cooldowns: holding fire group 1 must not starve groups 2/3 (mines/missiles).
+	private readonly System.Collections.Generic.Dictionary<int, float> _slotCooldowns = new();
+
+	public float GetSlotCooldown(int slot)
+		=> _slotCooldowns.TryGetValue(slot, out var v) ? v : 0f;
+
+	public void SetSlotCooldown(int slot, float seconds)
+		=> _slotCooldowns[slot] = Mathf.Max(0f, seconds);
+
+	// Optional per-pawn model override (enemy tier visual identity from ArenaEnemyBuildPreset).
+	// When set it wins over VehicleDefinition.VisualModelPath. See ApplyVisualPreset().
+	public string? VisualModelPathOverride { get; set; }
+
 	private Node3D? _visualRoot;
 	private bool _usingPassengerCarPackVisual;
+	// Per-class model driven by VehicleDefinition.VisualModelPath (Kenney Car Kit et al.).
+	private bool _usingDefModelVisual;
+	private string? _activeDefModelPath;
+	// Target length the active def model was scaled against; a rebuild is needed when the def
+	// arrives after the model was built (override models can build before ConfigureLoadout).
+	private float _activeDefModelTargetLen;
 	private readonly List<MeshInstance3D> _bodyMeshes = new();
 	private Node3D? _hitboxes;
 
@@ -94,6 +97,7 @@ public partial class VehiclePawn : CharacterBody3D, IVehicleAudioTelemetry
 
 	// Audio
 	private VehicleEngineAudio? _engineAudio;
+	private VehicleContactAudio? _contactAudio;
 
 	// Wheels (visual steering)
 	private Node3D? _wheelFlPivot;
@@ -120,29 +124,31 @@ public partial class VehiclePawn : CharacterBody3D, IVehicleAudioTelemetry
 		public Node3D Pivot = null!;
 		public float? MinYawDeg;
 		public float? MaxYawDeg;
+		/// <summary>Vehicle-local yaw of the mount's neutral (mount-forward) bearing.</summary>
+		public float NeutralYawDeg;
 	}
+
+	/// <summary>
+	/// Turret mounts whose weapon sits beyond the installed targeting computer's control-group
+	/// capacity (master spec): they stop auto-tracking and lock to their neutral bearing, behaving
+	/// like fixed mounts. Recomputed whenever the loadout/runtime state is (re)configured.
+	/// </summary>
+	private readonly HashSet<string> _computerLockedMountIds = new(StringComparer.OrdinalIgnoreCase);
 
 	public override void _Ready()
 	{
-		// Ensure vehicle-vs-vehicle collisions are enabled even if editor defaults change.
-		CollisionLayer = 1u;
-		CollisionMask = 1u;
-		SafeMargin = 0.05f;
-		AddToGroup("vehicle_pawn");
-		// Be explicit: ensure physics processing is enabled.
-		SetPhysicsProcess(true);
+		base._Ready();
+
 		EnsureVisualAndCollision();
 		ApplyBodyColor();
+		EnsureIdentityVisuals();
 		EnsureHitboxes();
 		// Default mounts so a pawn is usable even before ConfigureLoadout() is called.
 		EnsureMountsFallback();
 		_arenaWorldCached = FindArenaWorld();
 
-		// Sensible initial values before defs are configured.
-		EffectiveMaxForwardSpeed = MaxForwardSpeed;
-		EffectiveMaxReverseSpeed = MaxReverseSpeed;
-
 		EnsureEngineAudio();
+		EnsureContactAudio();
 	}
 
 	/// <summary>
@@ -152,6 +158,17 @@ public partial class VehiclePawn : CharacterBody3D, IVehicleAudioTelemetry
 	public void SetRuntimeState(VehicleInstanceState runtime)
 	{
 		_vehicleRuntime = runtime;
+		// If the pawn was handed a different vehicle definition (ex: the player claims the enemy
+		// vehicle mid-encounter), re-run the loadout so the per-class visual/mounts follow the def.
+		if (_defs != null && _vehicleDef != null
+			&& !string.IsNullOrWhiteSpace(runtime.DefinitionId)
+			&& !string.Equals(_vehicleDef.Id, runtime.DefinitionId, StringComparison.OrdinalIgnoreCase)
+			&& _defs.Vehicles.ContainsKey(runtime.DefinitionId))
+		{
+			ConfigureLoadout(_defs, runtime);
+			return;
+		}
+		RefreshComputerControlLocks();
 		ApplyEngineAudioArchetype();
 	}
 
@@ -171,12 +188,71 @@ public partial class VehiclePawn : CharacterBody3D, IVehicleAudioTelemetry
 			vdef = defs.Vehicles.Values.FirstOrDefault();
 		_vehicleDef = vdef;
 
+		// Swap in the per-class model from the definition (no-op when unset or when the pawn is
+		// still off-tree; _Ready()/EnsureVisualAndCollision() honors the def path in that case).
+		EnsureDefModelVisual();
+
 		if (_vehicleDef != null)
 			EnsureMountPoints(_vehicleDef);
 		AttachWeaponVisuals();
+		RefreshComputerControlLocks();
 		ApplyBodyColor();
+		EnsureIdentityVisuals();
 		ApplyEngineAudioArchetype();
 	}
+
+	/// <summary>
+	/// Master-spec fixed-angle fallback: weapons beyond the installed computer's control-group
+	/// capacity keep firing but lose tracking — their turret mounts lock to the neutral bearing.
+	/// Applies identically to player and AI pawns (both run through this class).
+	/// </summary>
+	private void RefreshComputerControlLocks()
+	{
+		_computerLockedMountIds.Clear();
+		if (_defs == null || _vehicleRuntime == null)
+			return;
+
+		foreach (var mountId in _vehicleRuntime.InstalledWeaponsByMountId.Keys)
+		{
+			if (!_turretsByMountId.ContainsKey(mountId))
+				continue;
+			if (!ArenaWeaponLoadoutResolver.IsWeaponComputerControlled(_defs, _vehicleRuntime, mountId, out _))
+				_computerLockedMountIds.Add(mountId);
+		}
+	}
+
+	/// <summary>
+	/// Preset-driven visual identity (per-tier enemy skins): optional model path override and
+	/// body color ("#rrggbb"). Empty/invalid values leave the def model / current BodyColor
+	/// untouched. Preferably called before ConfigureLoadout(); safe afterwards too (rebuilds
+	/// the visual in place).
+	/// </summary>
+	public void ApplyVisualPreset(string? visualModelPathOverride, string? bodyColorHex)
+	{
+		if (!string.IsNullOrWhiteSpace(visualModelPathOverride))
+			VisualModelPathOverride = visualModelPathOverride;
+
+		if (!string.IsNullOrWhiteSpace(bodyColorHex) && Color.HtmlIsValid(bodyColorHex))
+			BodyColor = Color.FromHtml(bodyColorHex);
+
+		// Live-apply when the pawn already built its visuals; pre-_Ready the stored values are
+		// honored by EnsureVisualAndCollision()/ConfigureLoadout().
+		if (IsInsideTree() && _visualRoot != null)
+		{
+			EnsureDefModelVisual();
+			ApplyBodyColor();
+			EnsureIdentityVisuals();
+		}
+	}
+
+	/// <summary>Model path for the def-model visual: per-pawn override wins over the definition.</summary>
+	private string? ResolveVisualModelPath()
+		=> !string.IsNullOrWhiteSpace(VisualModelPathOverride) ? VisualModelPathOverride : _vehicleDef?.VisualModelPath;
+
+	private float CurrentDefModelTargetLength()
+		=> _vehicleDef != null && _vehicleDef.VisualTargetLength > 0.01f
+			? _vehicleDef.VisualTargetLength
+			: PassengerCarPackTargetLength;
 
 	
 
@@ -212,6 +288,32 @@ private void ApplyEngineAudioArchetype()
 	_engineAudio.SetArchetype(archetype);
 }
 
+private void EnsureContactAudio()
+{
+	if (_contactAudio != null && GodotObject.IsInstanceValid(_contactAudio)) return;
+	var node = new VehicleContactAudio { Name = "ContactAudio" };
+	// Child sits at the pawn origin; its pooled 3D players inherit the vehicle position.
+	AddChild(node);
+	_contactAudio = node;
+}
+
+/// <summary>
+/// Detects hard contacts after MoveAndSlide: when slide collisions removed enough velocity this
+/// tick (ram/wall crash), plays a tiered crash one-shot. Low-delta wall scrapes stay silent, and
+/// per-tick throttle/brake/drag changes (&lt;~1 m/s at 60 Hz) sit well under the light threshold.
+/// </summary>
+private void NotifyCrashAudioAfterMove(Vector3 preMoveVelocity)
+{
+	if (_contactAudio == null || !GodotObject.IsInstanceValid(_contactAudio)) return;
+	// Death/possession changes zero Velocity without calling MoveAndSlide (stale slide data).
+	if (IsDead) return;
+	if (GetSlideCollisionCount() <= 0) return;
+
+	var speedLoss = (preMoveVelocity - Velocity).Length();
+	if (speedLoss < VehicleContactAudio.LightImpactSpeedLoss) return;
+	_contactAudio.NotifyImpact(speedLoss);
+}
+
 private string ComputeEngineArchetypeId()
 {
 	// Prefer the installed engine's fuel type when available; otherwise fall back to vehicle class.
@@ -220,7 +322,10 @@ private string ComputeEngineArchetypeId()
 		if (_defs.Engines.TryGetValue(_vehicleRuntime.InstalledEngineId!, out var eng))
 		{
 			if (eng.FuelType == FuelType.Diesel) return "diesel_truck";
-			if (eng.FuelType == FuelType.Electric) return "i4_compact"; // placeholder (no EV loops yet)
+			if (eng.FuelType == FuelType.Electric) return "ev"; // staged CC0 whine set (5 RPM layers)
+			// Gas follows displacement, not chassis: a Gas V6 in a light truck must not sound diesel.
+			if (eng.FuelType == FuelType.Gas)
+				return eng.PowerKw >= 100f ? "v8_muscle" : "i4_compact";
 
 		}
 
@@ -232,6 +337,8 @@ private string ComputeEngineArchetypeId()
 		{
 			VehicleClass.Compact => "i4_compact",
 			VehicleClass.LightTruck => "diesel_truck",
+			VehicleClass.HeavyTruck => "diesel_truck",
+			VehicleClass.SemiTruck => "diesel_truck",
 			_ => "v8_muscle",
 		};
 	}
@@ -268,7 +375,41 @@ private void EnsureVisualAndCollision()
 			legacy.QueueFree();
 
 		_usingPassengerCarPackVisual = false;
-		if (UsePassengerCarPackVisual)
+		_usingDefModelVisual = false;
+
+		// Per-class model from the vehicle definition (or the per-pawn override) takes precedence
+		// when configured (set via ConfigureLoadout()/ApplyVisualPreset(); may already be known
+		// when _Ready runs, ex: HUD preview pawns).
+		var defModelPath = ResolveVisualModelPath();
+		if (!string.IsNullOrWhiteSpace(defModelPath))
+		{
+			var existingDefModel = _visualRoot.GetNodeOrNull<Node>("DefVehicleModel");
+			if (existingDefModel != null && GodotObject.IsInstanceValid(existingDefModel)
+				&& string.Equals(_activeDefModelPath, defModelPath, StringComparison.OrdinalIgnoreCase)
+				&& Mathf.IsEqualApprox(_activeDefModelTargetLen, CurrentDefModelTargetLength()))
+			{
+				_usingDefModelVisual = true;
+			}
+			else if (TryBuildDefModelVisual(_visualRoot, defModelPath!))
+			{
+				_usingDefModelVisual = true;
+				_activeDefModelPath = defModelPath;
+			}
+		}
+
+		// Trailers have no kit model — and the generic passenger-car fallback rendered them as a
+		// CAR riding the hitch (wrong fiction in every haul/garage beat). Dedicated flatbed proxy.
+		if (!_usingDefModelVisual && _vehicleDef?.Class == VehicleClass.Trailer)
+		{
+			if (_visualRoot.GetNodeOrNull<Node>("TrailerProxy") == null)
+			{
+				ClearChildren(_visualRoot);
+				BuildProxyTrailerVisual(_visualRoot, _vehicleDef.TireCount);
+			}
+			return;
+		}
+
+		if (!_usingDefModelVisual && UsePassengerCarPackVisual)
 		{
 			// If the model isn't already present, rebuild visuals.
 			var existing = _visualRoot.GetNodeOrNull<Node>("PassengerCarModel");
@@ -288,118 +429,246 @@ private void EnsureVisualAndCollision()
 			BuildProxyVehicleVisual(_visualRoot);
 	}
 
+	/// <summary>
+	/// Procedural flatbed trailer: plank deck + side rails + A-frame drawbar with coupler +
+	/// axle-mounted wheels (single axle for 2 tires, tandem for 4). The 4-tire cargo variant
+	/// carries a strapped crate; the utility variant carries a flat spare tire + toolbox so the
+	/// deck isn't an empty slab. Rust-industrial palette, ignores team tint.
+	/// Top-face read matters most: the sacred near-top-down camera only ever sees the deck plane,
+	/// so the read comes from crosswise plank tone alternation, dark wear runners, a red/white
+	/// hazard bar at the rear, and fender tabs marking the axles — not from side detail.
+	/// </summary>
+	private static void BuildProxyTrailerVisual(Node3D parent, int tireCount)
+	{
+		var root = new Node3D { Name = "TrailerProxy" };
+		parent.AddChild(root);
+
+		// Dark non-specular steel: the old metallic 0.55 frame caught the arena keys as bright
+		// white specular sticks at gameplay zoom (rails read as disconnected white posts).
+		var steel = new StandardMaterial3D
+		{
+			AlbedoColor = new Color(0.135f, 0.14f, 0.155f),
+			Roughness = 0.68f,
+			Metallic = 0.30f,
+		};
+		var rubber = new StandardMaterial3D
+		{
+			AlbedoColor = new Color(0.085f, 0.088f, 0.092f),
+			Roughness = 0.96f,
+		};
+		// Weathered wood tones for the plank alternation (kept desaturated so the arena warm
+		// keys don't push the deck to milk-chocolate).
+		var woodTones = new[]
+		{
+			new Color(0.335f, 0.295f, 0.235f),
+			new Color(0.265f, 0.235f, 0.185f),
+			new Color(0.305f, 0.26f, 0.20f),
+			new Color(0.225f, 0.20f, 0.16f),
+		};
+		var woodMats = new StandardMaterial3D[woodTones.Length];
+		for (int i = 0; i < woodTones.Length; i++)
+			woodMats[i] = new StandardMaterial3D { AlbedoColor = woodTones[i], Roughness = 0.94f, Metallic = 0.02f };
+		var wearMat = new StandardMaterial3D
+		{
+			AlbedoColor = new Color(0.135f, 0.12f, 0.10f),
+			Roughness = 0.90f,
+		};
+		var hazardRed = new StandardMaterial3D { AlbedoColor = new Color(0.58f, 0.13f, 0.10f), Roughness = 0.62f };
+		var hazardWhite = new StandardMaterial3D { AlbedoColor = new Color(0.68f, 0.66f, 0.60f), Roughness = 0.62f };
+
+		void AddBox(string name, Vector3 size, Vector3 pos, Material mat, Vector3? rotDeg = null)
+		{
+			var mesh = new MeshInstance3D
+			{
+				Name = name,
+				Mesh = new BoxMesh { Size = size },
+				Position = pos,
+				RotationDegrees = rotDeg ?? Vector3.Zero,
+			};
+			mesh.SetSurfaceOverrideMaterial(0, mat);
+			root.AddChild(mesh);
+		}
+
+		var tandem = tireCount >= 4;
+		var deckLen = tandem ? 3.2f : 2.5f;
+		var deckZ0 = -deckLen * 0.5f;
+
+		// Structural deck base (mostly hidden under the planks; keeps gaps from showing floor).
+		AddBox("Deck", new Vector3(1.85f, 0.08f, deckLen), new Vector3(0f, 0.55f, 0f), woodMats[3]);
+
+		// Crosswise planks with deterministic tone alternation — the parallel "ladder" lines are
+		// the strongest top-down "this is a flatbed deck" cue.
+		const float plankPitch = 0.25f;
+		const float plankGap = 0.022f;
+		var plankCount = Math.Max(6, (int)MathF.Round(deckLen / plankPitch));
+		for (int i = 0; i < plankCount; i++)
+		{
+			var z = deckZ0 + (i + 0.5f) * (deckLen / plankCount);
+			// Non-repeating-looking but deterministic tone pick.
+			var mat = woodMats[(i * 5 + (i / 3)) % woodTones.Length];
+			AddBox($"Plank_{i}", new Vector3(1.79f, 0.045f, deckLen / plankCount - plankGap),
+				new Vector3(0f, 0.605f, z), mat);
+		}
+
+		// Two dark lengthwise wear runners (cargo/boot scuff lines) breaking the plank rhythm.
+		foreach (var sx in new[] { -1f, 1f })
+			AddBox($"WearRunner_{sx}", new Vector3(0.15f, 0.012f, deckLen * 0.94f),
+				new Vector3(sx * 0.50f, 0.632f, 0f), wearMat);
+
+		// Perimeter rails + corner/mid stake posts (posts read as dark dots punctuating the
+		// outline from above).
+		AddBox("RailL", new Vector3(0.08f, 0.26f, deckLen), new Vector3(-0.92f, 0.72f, 0f), steel);
+		AddBox("RailR", new Vector3(0.08f, 0.26f, deckLen), new Vector3(0.92f, 0.72f, 0f), steel);
+		AddBox("RailF", new Vector3(1.85f, 0.26f, 0.08f), new Vector3(0f, 0.72f, deckZ0), steel);
+		AddBox("RailB", new Vector3(1.85f, 0.26f, 0.08f), new Vector3(0f, 0.72f, -deckZ0), steel);
+		var stakeZs = tandem
+			? new[] { deckZ0 + 0.10f, deckZ0 + deckLen * 0.5f, -deckZ0 - 0.10f }
+			: new[] { deckZ0 + 0.10f, -deckZ0 - 0.10f };
+		foreach (var sz in stakeZs)
+			foreach (var sx in new[] { -0.92f, 0.92f })
+				AddBox($"Stake_{sx}_{sz:0.0}", new Vector3(0.11f, 0.42f, 0.11f), new Vector3(sx, 0.78f, sz), steel);
+
+		// Rear hazard bar: alternating red/white segments along the tail rail — the classic
+		// "you are following a trailer" cue, and it marks the rear at any yaw.
+		const int hazardSegs = 7;
+		for (int i = 0; i < hazardSegs; i++)
+		{
+			var segW = 1.72f / hazardSegs;
+			var x = -0.86f + (i + 0.5f) * segW;
+			AddBox($"Hazard_{i}", new Vector3(segW - 0.02f, 0.10f, 0.10f),
+				new Vector3(x, 0.87f, -deckZ0), (i % 2 == 0) ? hazardRed : hazardWhite);
+		}
+
+		// A-frame drawbar to the coupler (forward is -Z).
+		var couplerZ = deckZ0 - 0.85f;
+		AddBox("DrawbarL", new Vector3(0.08f, 0.08f, 1.05f), new Vector3(-0.38f, 0.52f, deckZ0 - 0.42f), steel, new Vector3(0f, -22f, 0f));
+		AddBox("DrawbarR", new Vector3(0.08f, 0.08f, 1.05f), new Vector3(0.38f, 0.52f, deckZ0 - 0.42f), steel, new Vector3(0f, 22f, 0f));
+		var coupler = new MeshInstance3D
+		{
+			Name = "Coupler",
+			Mesh = new CylinderMesh { TopRadius = 0.09f, BottomRadius = 0.09f, Height = 0.16f, RadialSegments = 10 },
+			Position = new Vector3(0f, 0.52f, couplerZ),
+		};
+		coupler.SetSurfaceOverrideMaterial(0, steel);
+		root.AddChild(coupler);
+
+		// Axles + wheels + fender tabs (fenders sit above the wheel tops, so from the top-down
+		// camera the axle positions read as dark side tabs breaking the deck outline).
+		var axleZs = tandem ? new[] { 0.35f, 0.95f } : new[] { 0.25f };
+		foreach (var az in axleZs)
+		{
+			var axle = new MeshInstance3D
+			{
+				Name = $"Axle_{az:0.0}",
+				Mesh = new CylinderMesh { TopRadius = 0.05f, BottomRadius = 0.05f, Height = 1.9f, RadialSegments = 8 },
+				Position = new Vector3(0f, 0.33f, az),
+				RotationDegrees = new Vector3(0f, 0f, 90f),
+			};
+			axle.SetSurfaceOverrideMaterial(0, steel);
+			root.AddChild(axle);
+
+			foreach (var sx in new[] { -1f, 1f })
+			{
+				var wheel = new MeshInstance3D
+				{
+					Name = $"TrailerWheel_{sx}_{az:0.0}",
+					Mesh = new CylinderMesh { TopRadius = 0.33f, BottomRadius = 0.33f, Height = 0.22f, RadialSegments = 14 },
+					Position = new Vector3(sx * 0.98f, 0.33f, az),
+					RotationDegrees = new Vector3(0f, 0f, 90f),
+				};
+				wheel.SetSurfaceOverrideMaterial(0, rubber);
+				root.AddChild(wheel);
+			}
+		}
+		var fenderLen = tandem ? 1.55f : 0.90f;
+		var fenderZ = tandem ? (axleZs[0] + axleZs[1]) * 0.5f : axleZs[0];
+		// Dull dark galvanized — a specular fender top face outshines the whole deck under the
+		// arena keys at the near-top-down camera.
+		var fenderMat = new StandardMaterial3D
+		{
+			AlbedoColor = new Color(0.155f, 0.16f, 0.165f),
+			Roughness = 0.88f,
+			Metallic = 0.05f,
+		};
+		foreach (var sx in new[] { -1f, 1f })
+			AddBox($"Fender_{sx}", new Vector3(0.30f, 0.045f, fenderLen),
+				new Vector3(sx * 0.99f, 0.70f, fenderZ), fenderMat);
+
+		if (tandem)
+		{
+			// Cargo crate on the tandem hauler — a loaded trailer should read as loaded. Straps in
+			// near-black webbing (the old steel-toned straps vanished against the crate).
+			AddBox("Crate", new Vector3(1.30f, 0.60f, 1.60f), new Vector3(0f, 0.92f, 0.30f), new StandardMaterial3D
+			{
+				AlbedoColor = new Color(0.33f, 0.34f, 0.26f),
+				Roughness = 0.92f,
+			});
+			var strapMat = new StandardMaterial3D { AlbedoColor = new Color(0.09f, 0.09f, 0.10f), Roughness = 0.88f };
+			AddBox("StrapA", new Vector3(1.36f, 0.64f, 0.06f), new Vector3(0f, 0.92f, -0.10f), strapMat);
+			AddBox("StrapB", new Vector3(1.36f, 0.64f, 0.06f), new Vector3(0f, 0.92f, 0.72f), strapMat);
+		}
+		else
+		{
+			// Utility deck cargo: a flat-lying spare tire (instant top-down ring read) + toolbox.
+			var spare = new MeshInstance3D
+			{
+				Name = "SpareTire",
+				Mesh = new TorusMesh { InnerRadius = 0.10f, OuterRadius = 0.27f, Rings = 20, RingSegments = 8 },
+				Position = new Vector3(-0.36f, 0.665f, deckZ0 + 0.52f),
+			};
+			spare.SetSurfaceOverrideMaterial(0, rubber);
+			root.AddChild(spare);
+			var hub = new MeshInstance3D
+			{
+				Name = "SpareHub",
+				Mesh = new CylinderMesh { TopRadius = 0.10f, BottomRadius = 0.10f, Height = 0.06f, RadialSegments = 10 },
+				Position = new Vector3(-0.36f, 0.665f, deckZ0 + 0.52f),
+			};
+			hub.SetSurfaceOverrideMaterial(0, new StandardMaterial3D
+			{
+				AlbedoColor = new Color(0.38f, 0.37f, 0.34f),
+				Roughness = 0.55f,
+				Metallic = 0.25f,
+			});
+			root.AddChild(hub);
+			AddBox("Toolbox", new Vector3(0.52f, 0.20f, 0.32f), new Vector3(0.42f, 0.73f, deckZ0 + 0.50f),
+				new StandardMaterial3D { AlbedoColor = new Color(0.30f, 0.16f, 0.09f), Roughness = 0.78f });
+			AddBox("ToolboxLid", new Vector3(0.54f, 0.03f, 0.34f), new Vector3(0.42f, 0.845f, deckZ0 + 0.50f),
+				new StandardMaterial3D { AlbedoColor = new Color(0.36f, 0.20f, 0.11f), Roughness = 0.70f });
+		}
+	}
+
+	// Transient "slippery surface" timer (seconds). While > 0 the per-frame grip computation in
+	// UpdateRuntimeDerivedStats applies an oil-slick slip on top of the tire-condition grip. The arena
+	// refreshes this each frame the vehicle is over an active oil slick (see ArenaRealtimeView.UpdateOilSlicks).
+	private float _oilSlipRemaining;
+
+	/// <summary>Apply (or refresh) an oil-slick slip for at least <paramref name="seconds"/> seconds.</summary>
+	public void ApplyOilSlick(float seconds)
+	{
+		if (seconds <= 0f) return;
+		_oilSlipRemaining = MathF.Max(_oilSlipRemaining, seconds);
+	}
+
+	/// <summary>True while the vehicle is sliding on an oil slick (drives HUD/AI/VFX hints).</summary>
+	public bool IsOnOilSlick => _oilSlipRemaining > 0f;
+
 	public override void _PhysicsProcess(double delta)
 	{
 		var dt = (float)delta;
 		FireCooldownRemaining = Mathf.Max(0f, FireCooldownRemaining - dt);
-
-		// Keep movement strictly on the XZ plane.
-		Velocity = new Vector3(Velocity.X, 0f, Velocity.Z);
-
-		UpdateRuntimeDerivedStats();
-
-		var forward = -GlobalTransform.Basis.Z;
-		forward.Y = 0f;
-		forward = forward.Normalized();
-		var right = GlobalTransform.Basis.X;
-		right.Y = 0f;
-		right = right.Normalized();
-
-		// Decompose current velocity.
-		var v = Velocity;
-		var vFwd = v.Dot(forward);
-		var vLat = v.Dot(right);
-
-		var throttle = Mathf.Clamp(ThrottleInput, -1f, 1f);
-		var steerInput = Mathf.Clamp(SteerInput, -1f, 1f);
-
-		// --- Steering (bicycle model) ---
-		// At very low speeds, yaw rate naturally approaches 0 (no "spin in place").
-		var maxSteerRad = Mathf.DegToRad(FrontWheelMaxSteerDeg) * Mathf.Clamp(SteerGrip, 0.25f, 1f);
-		// Match the rest of the project input conventions (A=left, D=right).
-		// Godot forward is -Z, so we negate steer here to keep steering intuitive.
-		var steerRad = -steerInput * maxSteerRad;
-		var wheelbase = MathF.Max(0.5f, WheelbaseMeters);
-		var yawRate = 0f;
-		if (MathF.Abs(steerRad) > 0.0001f)
-			yawRate = (vFwd / wheelbase) * MathF.Tan(steerRad);
-		Rotation = new Vector3(0f, Rotation.Y + yawRate * dt, 0f);
-
-		// Refresh basis after rotation.
-		forward = -GlobalTransform.Basis.Z;
-		forward.Y = 0f;
-		forward = forward.Normalized();
-		right = GlobalTransform.Basis.X;
-		right.Y = 0f;
-		right = right.Normalized();
-
-		// Re-decompose velocity using the updated basis.
-		vFwd = v.Dot(forward);
-		vLat = v.Dot(right);
-
-		// --- Longitudinal acceleration / braking ---
-		// Weight + rear-tire condition reduces effective acceleration.
-		var accel = Accel * Mathf.Clamp(DriveGrip, 0.25f, 1f) * ComputeMassAccelFactor();
-		var brake = BrakeDecel * Mathf.Clamp(DriveGrip, 0.25f, 1f);
-		var coast = CoastDecel;
-
-		if (MathF.Abs(throttle) > 0.01f)
+		if (_slotCooldowns.Count > 0)
 		{
-			// If trying to reverse direction, brake hard first.
-			if (MathF.Sign(throttle) != MathF.Sign(vFwd) && MathF.Abs(vFwd) > 0.6f)
-			{
-				vFwd = Mathf.MoveToward(vFwd, 0f, brake * dt);
-			}
-			else
-			{
-				// Ease acceleration as we approach top speed so we don't hit max too quickly.
-				var maxFwdLocal = EffectiveMaxForwardSpeed > 0.01f ? EffectiveMaxForwardSpeed : MaxForwardSpeed;
-				var maxRevLocal = EffectiveMaxReverseSpeed > 0.01f ? EffectiveMaxReverseSpeed : MaxReverseSpeed;
-				var desiredMax = throttle >= 0f ? maxFwdLocal : maxRevLocal;
-				var spd01 = desiredMax > 0.01f ? Mathf.Clamp(MathF.Abs(vFwd) / desiredMax, 0f, 1f) : 0f;
-				var accelFactor = Mathf.Lerp(1f, Mathf.Clamp(AccelNearMaxFactor, 0.05f, 1f), MathF.Pow(spd01, MathF.Max(0.5f, AccelSpeedFalloffExponent)));
-				vFwd += throttle * accel * accelFactor * dt;
-			}
+			foreach (var key in System.Linq.Enumerable.ToArray(_slotCooldowns.Keys))
+				_slotCooldowns[key] = Mathf.Max(0f, _slotCooldowns[key] - dt);
 		}
-		else
-		{
-			// Coasting (rolling resistance).
-			vFwd = Mathf.MoveToward(vFwd, 0f, coast * dt);
-		}
+		// Decay the oil-slip timer before movement so this frame's grip reflects the current surface.
+		_oilSlipRemaining = MathF.Max(0f, _oilSlipRemaining - dt);
 
-		// --- Lateral grip (side-slip damping) ---
-		var latFric = LateralFriction * Mathf.Clamp(TractionGrip, 0.2f, 1f);
-		vLat = Mathf.MoveToward(vLat, 0f, latFric * dt);
-
-		// Recompose velocity.
-		v = forward * vFwd + right * vLat;
-
-		// --- Drag (keeps top speed sane + adds weighty feel) ---
-		var speed = v.Length();
-		if (speed > 0.001f)
-		{
-			var dragLin = LinearDrag;
-			var dragQuad = QuadraticDrag;
-			var drag = (dragLin + dragQuad * speed * speed) * dt;
-			v *= MathF.Max(0f, 1f - drag);
-		}
-
-		// --- Speed clamp (weight + tire condition affect top speed) ---
-		var maxFwd = EffectiveMaxForwardSpeed;
-		var maxRev = EffectiveMaxReverseSpeed;
-		// If traction is poor (blown tires), cap speed further.
-		var tractionSpeedFactor = Mathf.Lerp(0.55f, 1f, Mathf.Clamp(TractionGrip, 0f, 1f));
-		maxFwd *= tractionSpeedFactor;
-		maxRev *= tractionSpeedFactor;
-
-		// Clamp forward and reverse along forward direction.
-		vFwd = v.Dot(forward);
-		vLat = v.Dot(right);
-		vFwd = Mathf.Clamp(vFwd, -maxRev, maxFwd);
-		v = forward * vFwd + right * vLat;
-
-		Velocity = v;
-		MoveAndSlide();
+		// Capture the pre-step velocity so we can measure how much speed slide collisions removed.
+		var preMoveVelocity = Velocity;
+		var step = StepVehicleMovement(dt);
+		NotifyCrashAudioAfterMove(preMoveVelocity);
 
 		ResolveVehicleOverlap();
 
@@ -409,11 +678,13 @@ private void EnsureVisualAndCollision()
 
 		// Blown tire visuals (sparks + smoke + simple skid marks).
 		var vNow = Velocity;
-		var vF = vNow.Dot(forward);
-		var vL = vNow.Dot(right);
+		var vF = vNow.Dot(step.Forward);
+		var vL = vNow.Dot(step.Right);
 		UpdateTireVfx(dt, vF, vL);
+		// Skid-loop audio follows the same lateral-slip decomposition the tire VFX uses.
+		_contactAudio?.UpdateContact(dt, vF, vL);
 
-		UpdateFrontWheelSteer(dt, steerRad);
+		UpdateFrontWheelSteer(dt, step.SteerRad);
 		UpdateTurrets();
 	}
 
@@ -494,13 +765,11 @@ private void EnsureVisualAndCollision()
 		return origin + basis * local;
 	}
 
-
-
-// --- IVehicleAudioTelemetry (engine audio driver) ---
-public float GetSpeedMps() => Velocity.Length();
+	// --- IVehicleAudioTelemetry ---
+	// Telemetry methods (speed/throttle/brake) are now provided by VehiclePawnBase via GamePawnKit.Pawns.IVehicleTelemetry.
+	// VehiclePawn continues to implement IVehicleAudioTelemetry for the current Wasteland Survivor audio stack.
 
 	// --- HUD helpers (RPM + gear display) ---
-	public float GetForwardSpeedSignedMps() => GetForwardSpeedMps();
 
 	public float GetEngineRpm01ForHud()
 	{
@@ -518,7 +787,7 @@ public float GetSpeedMps() => Velocity.Length();
 	public string GetEngineGearDisplayForHud()
 	{
 		// Treat reverse as "R" when backing up (or when the player is commanding reverse from a stop).
-		var vFwd = GetForwardSpeedMps();
+		var vFwd = GetForwardSpeedSignedMps();
 		if (vFwd < -0.6f) return "R";
 		if (MathF.Abs(vFwd) < 0.6f && ThrottleInput < -0.4f) return "R";
 		return GetEngineGearForHud().ToString();
@@ -531,42 +800,15 @@ public float GetSpeedMps() => Velocity.Length();
 		var rpm01 = GetEngineRpm01ForHud();
 		return Mathf.RoundToInt(Mathf.Lerp(900f, 6500f, rpm01));
 	}
-
-public float GetMaxSpeedMps() => MathF.Max(0.01f, EffectiveMaxForwardSpeed > 0.01f ? EffectiveMaxForwardSpeed : MaxForwardSpeed);
-
-public float GetThrottle01()
-{
-	var throttle = Mathf.Clamp(ThrottleInput, -1f, 1f);
-	var vFwd = GetForwardSpeedMps();
-	// If nearly stopped, treat either direction as a rev.
-	if (MathF.Abs(vFwd) < 0.15f) return Mathf.Clamp(MathF.Abs(throttle), 0f, 1f);
-	// Forward acceleration.
-	if (vFwd > 0.15f && throttle > 0f) return throttle;
-	// Reverse acceleration.
-	if (vFwd < -0.15f && throttle < 0f) return -throttle;
-	return 0f;
-}
-
-public float GetBrake01()
-{
-	var throttle = Mathf.Clamp(ThrottleInput, -1f, 1f);
-	var vFwd = GetForwardSpeedMps();
-	// Braking when input opposes motion.
-	if (vFwd > 0.15f && throttle < 0f) return Mathf.Clamp(-throttle, 0f, 1f);
-	if (vFwd < -0.15f && throttle > 0f) return Mathf.Clamp(throttle, 0f, 1f);
-	return 0f;
-}
-
-private float GetForwardSpeedMps()
-{
-	var forward = -GlobalTransform.Basis.Z;
-	forward.Y = 0f;
-	forward = forward.Normalized();
-	return Velocity.Dot(forward);
-}
-
 private void ApplyBodyColor()
 	{
+		// Per-class def models get a dedicated body tint pass (shared flat colormap texture).
+		if (_usingDefModelVisual)
+		{
+			ApplyDefModelTint(null);
+			return;
+		}
+
 		// Passenger car pack uses textured materials; do not override.
 		if (_usingPassengerCarPackVisual) return;
 
@@ -711,51 +953,9 @@ private void ApplyBodyColor()
 			if (ResourceLoader.Exists(p))
 				return p;
 
-		// 3) Last resort: scan for a scene.gltf named like the pack.
-		try
-		{
-			var found = FindFirstFileRecursive("res://Assets", "scene.gltf");
-			if (!string.IsNullOrWhiteSpace(found))
-				return found;
-		}
-		catch
-		{
-			// ignore
-		}
-
-		return null;
-	}
-
-	private static string? FindFirstFileRecursive(string rootResPath, string fileName)
-	{
-		var dir = DirAccess.Open(rootResPath);
-		if (dir == null) return null;
-		dir.ListDirBegin();
-		while (true)
-		{
-			var name = dir.GetNext();
-			if (string.IsNullOrEmpty(name)) break;
-			if (name == "." || name == "..") continue;
-			var full = rootResPath.TrimEnd('/') + "/" + name;
-			if (dir.CurrentIsDir())
-			{
-				var sub = FindFirstFileRecursive(full, fileName);
-				if (!string.IsNullOrWhiteSpace(sub))
-				{
-					dir.ListDirEnd();
-					return sub;
-				}
-			}
-			else
-			{
-				if (string.Equals(name, fileName, StringComparison.OrdinalIgnoreCase))
-				{
-					dir.ListDirEnd();
-					return full;
-				}
-			}
-		}
-		dir.ListDirEnd();
+		// NOTE: A previous "last resort" here recursively scanned res://Assets for any scene.gltf,
+		// which could silently bind an arbitrary mesh as the car. Removed on purpose: when the pack
+		// isn't found we fail here and the caller falls back to the procedural proxy visual.
 		return null;
 	}
 
@@ -782,7 +982,7 @@ private void ApplyBodyColor()
 		}
 	}
 
-	private void AutoScaleAndCenterPassengerCar(Node3D model)
+	private void AutoScaleAndCenterPassengerCar(Node3D model, float forcedTargetLength = 0f)
 	{
 		// IMPORTANT:
 		// Measure bounds in the coordinate space of the model's *parent* (the VehiclePawn's "Visual" node),
@@ -795,8 +995,20 @@ private void ApplyBodyColor()
 		var len = MathF.Max(aabb.Size.X, aabb.Size.Z);
 		if (len < 0.0001f) return;
 
+		if (forcedTargetLength > 0.01f)
+		{
+			// Def-model path: always normalize to the requested length (Kenney kit models are
+			// authored around ~2m; per-class defs request their real-ish footprint).
+			if (MathF.Abs(len - forcedTargetLength) > 0.01f)
+			{
+				var scaleFactor = Mathf.Clamp(forcedTargetLength / len, 0.05f, 50000f);
+				model.Scale *= new Vector3(scaleFactor, scaleFactor, scaleFactor);
+				if (!TryComputeAabbInSpace(model, parentSpace, out aabb))
+					return;
+			}
+		}
 		// If the model is tiny, scale it up to match our proxy length.
-		if (len < PassengerCarPackMinVisibleLength)
+		else if (len < PassengerCarPackMinVisibleLength)
 		{
 			var target = MathF.Max(0.5f, PassengerCarPackTargetLength);
 			var scaleFactor = target / len;
@@ -1108,10 +1320,14 @@ private void ApplyBodyColor()
 	{
 		variantIndex = Mathf.Clamp(variantIndex, 0, 9);
 		var mats = CollectMaterialsByName(model);
+		if (PassengerCarPackDebugAlignment)
+			GD.Print($"[VehiclePawn] VariantSwap: want={variantIndex} playerGroup={IsInGroup("player_vehicle")} mats=[{string.Join(", ", mats.Keys)}]");
 		if (mats.Count == 0) return;
 
-		// Swap materials on all visible nodes (body + wheels).
-		var pattern = new Regex(@"^(Body|Glass|Optics|Wheel|Wheek)_(\d+)$", RegexOptions.IgnoreCase);
+		// Swap materials on all visible nodes (body + wheels). The visible default mesh uses BARE
+		// material names ("Body", "Glass", "Wheel") — only the hidden variant meshes carry "_N"
+		// suffixes — so the pattern must match both or the swap never touches what's on screen.
+		var pattern = new Regex(@"^(Body|Glass|Optics|Wheel|Wheek)(?:_(\d+))?$", RegexOptions.IgnoreCase);
 		var stack = new Stack<Node>();
 		stack.Push(model);
 		while (stack.Count > 0)
@@ -1125,7 +1341,9 @@ private void ApplyBodyColor()
 
 			if (n is not MeshInstance3D mi) continue;
 			if (mi.Mesh == null) continue;
-			if (!mi.IsVisibleInTree()) continue;
+			// Playbook trap: IsVisibleInTree() is false while the model is configured off-tree, which
+			// silently skipped every variant swap (the enemy never got its paint). Use Visible instead.
+			if (!mi.Visible) continue;
 
 			var surfaces = mi.Mesh.GetSurfaceCount();
 			for (var s = 0; s < surfaces; s++)
@@ -1221,6 +1439,354 @@ private void ApplyBodyColor()
 		_wheelFrPivot = front[1].node;
 		_wheelRlPivot = rear[0].node;
 		_wheelRrPivot = rear[1].node;
+	}
+
+	// --- Per-class def model visuals (VehicleDefinition.VisualModelPath, ex: Kenney Car Kit GLBs) ---
+
+	/// <summary>
+	/// Builds (or rebuilds) the per-class visual model when the vehicle definition specifies one.
+	/// No-op when the definition has no VisualModelPath, or when the pawn is off-tree — in that case
+	/// _Ready()/EnsureVisualAndCollision() builds it once transforms are valid.
+	/// On build failure the previously built visual (car pack or proxy) is left untouched.
+	/// </summary>
+	private void EnsureDefModelVisual()
+	{
+		var path = ResolveVisualModelPath();
+
+		// Trailers have no kit model; if _Ready built the generic car before the def was known
+		// (ConfigureLoadout order), swap in the flatbed proxy now.
+		if (string.IsNullOrWhiteSpace(path)
+			&& _vehicleDef?.Class == VehicleClass.Trailer
+			&& _visualRoot != null
+			&& _visualRoot.GetNodeOrNull<Node>("TrailerProxy") == null)
+		{
+			ClearChildren(_visualRoot);
+			_usingPassengerCarPackVisual = false;
+			_usingDefModelVisual = false;
+			BuildProxyTrailerVisual(_visualRoot, _vehicleDef.TireCount);
+			return;
+		}
+
+		if (string.IsNullOrWhiteSpace(path)) return;
+		// AABB/yaw normalization needs valid global transforms; HUD preview pawns are configured
+		// before their viewport enters the tree, so defer to _Ready() in that case.
+		if (!IsInsideTree() || _visualRoot == null) return;
+
+		if (_usingDefModelVisual
+			&& string.Equals(_activeDefModelPath, path, StringComparison.OrdinalIgnoreCase)
+			&& Mathf.IsEqualApprox(_activeDefModelTargetLen, CurrentDefModelTargetLength())
+			&& _visualRoot.GetNodeOrNull<Node>("DefVehicleModel") is Node existing
+			&& GodotObject.IsInstanceValid(existing))
+			return;
+
+		if (TryBuildDefModelVisual(_visualRoot, path!))
+		{
+			_usingDefModelVisual = true;
+			_activeDefModelPath = path;
+		}
+	}
+
+	/// <summary>
+	/// Instantiates the definition's model scene, yaw-aligns it (front wheels forward = -Z),
+	/// scales it to the def's target length, centers it on the pawn origin, binds wheel pivots
+	/// and applies the body tint. Only clears the previous visual after the scene instantiated OK.
+	/// </summary>
+	private bool TryBuildDefModelVisual(Node3D parent, string scenePath)
+	{
+		if (!ResourceLoader.Exists(scenePath))
+		{
+			GD.PushWarning($"[VehiclePawn] Def vehicle model not found: {scenePath}");
+			return false;
+		}
+
+		PackedScene? ps = null;
+		try
+		{
+			ps = GD.Load<PackedScene>(scenePath);
+		}
+		catch (Exception ex)
+		{
+			GD.PushWarning($"[VehiclePawn] Failed to load def vehicle model '{scenePath}': {ex.Message}");
+			return false;
+		}
+		if (ps == null)
+		{
+			GD.PushWarning($"[VehiclePawn] Def vehicle model load returned null: {scenePath}");
+			return false;
+		}
+
+		Node? inst;
+		try
+		{
+			inst = ps.Instantiate();
+		}
+		catch (Exception ex)
+		{
+			GD.PushWarning($"[VehiclePawn] Failed to instantiate def vehicle model '{scenePath}': {ex.Message}");
+			return false;
+		}
+		if (inst is not Node3D model)
+		{
+			inst?.QueueFree();
+			GD.PushWarning($"[VehiclePawn] Def vehicle model root is not Node3D: {scenePath}");
+			return false;
+		}
+
+		// Only now discard the previous visual (pack/proxy) — keeps a working fallback on failure above.
+		ClearChildren(parent);
+
+		model.Name = "DefVehicleModel";
+		model.Position = Vector3.Zero;
+		model.RotationDegrees = Vector3.Zero;
+		model.Scale = Vector3.One;
+		parent.AddChild(model);
+		model.ForceUpdateTransform();
+
+		// Deterministic yaw alignment from the kit's named wheel nodes (front wheels sit at +Z in
+		// the glTF export, our forward is -Z). Falls back to the PCA-based pack helper if names miss.
+		if (!TryYawAlignDefModelByWheelNames(model))
+			AutoYawAlignPassengerCar(model);
+
+		var targetLen = CurrentDefModelTargetLength();
+		AutoScaleAndCenterPassengerCar(model, targetLen);
+		_activeDefModelTargetLen = targetLen;
+
+		BindDefModelWheels(model);
+		ApplyDefModelTint(model);
+
+		_bodyMeshes.Clear();
+		_usingPassengerCarPackVisual = false;
+		return true;
+	}
+
+	/// <summary>
+	/// Yaw-aligns the model so the side with the front wheels points along the pawn's forward (-Z).
+	/// Uses the Kenney Car Kit wheel node names (wheel-front-left etc.); returns false if not found.
+	/// </summary>
+	private bool TryYawAlignDefModelByWheelNames(Node3D model)
+	{
+		var fl = FindDescendantByName(model, "wheel-front-left");
+		var fr = FindDescendantByName(model, "wheel-front-right");
+		var bl = FindDescendantByName(model, "wheel-back-left");
+		var br = FindDescendantByName(model, "wheel-back-right");
+		if (fl == null || fr == null || bl == null || br == null)
+			return false;
+
+		var space = model.GetParent() as Node3D ?? model;
+		var inv = space.GlobalTransform.AffineInverse();
+		Vector3 PosIn(Node3D n) => (inv * n.GlobalTransform).Origin;
+
+		var frontMid = (PosIn(fl) + PosIn(fr)) * 0.5f;
+		var backMid = (PosIn(bl) + PosIn(br)) * 0.5f;
+		var fwd = frontMid - backMid;
+		var fwdXz = new Vector2(fwd.X, fwd.Z);
+		if (fwdXz.LengthSquared() < 0.000001f)
+			return false;
+
+		// Yaw that maps the model's front direction onto -Z (see AutoYawAlignPassengerCar notes).
+		var yaw = MathF.Atan2(fwdXz.X, -fwdXz.Y);
+		model.RotateY(yaw);
+		if (PassengerCarPackDebugAlignment)
+			GD.Print($"[VehiclePawn] DefModel yaw-align by wheel names: fwdXZ=({fwdXz.X:0.###},{fwdXz.Y:0.###}) yawDeg={Mathf.RadToDeg(yaw):0.##}");
+		return true;
+	}
+
+	private static Node3D? FindDescendantByName(Node root, string name)
+	{
+		var stack = new Stack<Node>();
+		stack.Push(root);
+		while (stack.Count > 0)
+		{
+			var n = stack.Pop();
+			foreach (var childObj in n.GetChildren())
+				if (childObj is Node child)
+					stack.Push(child);
+			if (n is Node3D n3 && string.Equals(n.Name.ToString(), name, StringComparison.OrdinalIgnoreCase))
+				return n3;
+		}
+		return null;
+	}
+
+	/// <summary>
+	/// Binds the def model's named wheel nodes as steer/VFX pivots. Each wheel is re-parented under
+	/// a fresh pivot at its axle position because UpdateFrontWheelSteer() writes RotationDegrees
+	/// absolutely (which would destroy any baked wheel orientation).
+	/// </summary>
+	private void BindDefModelWheels(Node3D model)
+	{
+		_wheelFlPivot = WrapDefWheelInPivot(FindDescendantByName(model, "wheel-front-left"));
+		_wheelFrPivot = WrapDefWheelInPivot(FindDescendantByName(model, "wheel-front-right"));
+		_wheelRlPivot = WrapDefWheelInPivot(FindDescendantByName(model, "wheel-back-left"));
+		_wheelRrPivot = WrapDefWheelInPivot(FindDescendantByName(model, "wheel-back-right"));
+	}
+
+	private static Node3D? WrapDefWheelInPivot(Node3D? wheel)
+	{
+		if (wheel == null) return null;
+		if (wheel.GetParent() is not Node3D parent) return wheel;
+
+		var pivot = new Node3D { Name = $"{wheel.Name}_Pivot", Position = wheel.Position };
+		parent.RemoveChild(wheel);
+		parent.AddChild(pivot);
+		pivot.AddChild(wheel);
+		wheel.Position = Vector3.Zero; // keep any baked rotation/scale; pivot owns the axle offset
+		return pivot;
+	}
+
+	/// <summary>
+	/// Body tint for def models. The Kenney kit shares one flat "colormap" texture across body,
+	/// glass and wheels, so a multiplicative texture tint would produce muddy/ambiguous team colors
+	/// (yellow x blue = olive). Instead the body meshes get a duplicated flat material in BodyColor
+	/// (player yellow vs enemy dark red stays unambiguous); wheels keep the original textured look.
+	/// Re-runs cheaply when BodyColor changes (updates the already-duplicated override materials).
+	/// </summary>
+	private void ApplyDefModelTint(Node3D? model)
+	{
+		if (model == null || !GodotObject.IsInstanceValid(model))
+		{
+			if (_visualRoot == null) return;
+			model = _visualRoot.GetNodeOrNull<Node3D>("DefVehicleModel");
+			if (model == null || !GodotObject.IsInstanceValid(model)) return;
+		}
+
+		var archetype = VehicleHullDetailer.ResolveArchetype(ResolveVisualModelPath());
+		foreach (var mi in CollectDefModelBodyMeshes(model))
+		{
+			if (mi.Mesh == null) continue;
+			var surfaces = mi.Mesh.GetSurfaceCount();
+			for (var s = 0; s < surfaces; s++)
+			{
+				if (mi.GetSurfaceOverrideMaterial(s) is ShaderMaterial priorHull && priorHull.HasMeta("ws_body_tint"))
+				{
+					VehicleHullDetailer.UpdateBodyColor(priorHull, BodyColor);
+					continue;
+				}
+				if (mi.GetSurfaceOverrideMaterial(s) is StandardMaterial3D prior && prior.HasMeta("ws_body_tint"))
+				{
+					prior.AlbedoColor = BodyColor;
+					continue;
+				}
+
+				mi.SetSurfaceOverrideMaterial(s, BuildHullDetailMaterial(mi, archetype));
+			}
+		}
+	}
+
+	/// <summary>
+	/// Builds the top-projected hull detail material for one body mesh. The projection axes map
+	/// mesh-local space onto canonical car space (u across the width, v front->rear), derived from
+	/// the pawn's forward/right transformed back through the mesh's parent chain — this survives
+	/// the model-level yaw alignment without assuming which way the kit exported the car.
+	/// </summary>
+	private ShaderMaterial BuildHullDetailMaterial(MeshInstance3D mi, string archetype)
+	{
+		// mesh-local <- pawn transform accumulated up the parent chain (valid off-tree too).
+		var toPawn = Transform3D.Identity;
+		Node? cur = mi;
+		while (cur != null && cur != this)
+		{
+			if (cur is Node3D n3) toPawn = n3.Transform * toPawn;
+			cur = cur.GetParent();
+		}
+		var invBasis = toPawn.Basis.Inverse();
+
+		var axisV = SnapToDominantXzAxis(invBasis * Vector3.Back);   // v grows toward the rear
+		var axisU = SnapToDominantXzAxis(invBasis * Vector3.Right);  // u grows to the right
+
+		var aabb = mi.GetAabb();
+		var (uMin, uMax) = ProjectAabb(aabb, axisU);
+		var (vMin, vMax) = ProjectAabb(aabb, axisV);
+
+		return VehicleHullDetailer.BuildHullMaterial(
+			BodyColor, archetype,
+			axisU, axisV,
+			new Vector2(uMin, vMin),
+			new Vector2(MathF.Max(uMax - uMin, 0.001f), MathF.Max(vMax - vMin, 0.001f)),
+			aabb.Position.Y, aabb.End.Y,
+			hostile: HostileIdentity);
+	}
+
+	private static Vector3 SnapToDominantXzAxis(Vector3 v)
+	{
+		return MathF.Abs(v.X) >= MathF.Abs(v.Z)
+			? new Vector3(MathF.Sign(v.X) >= 0 ? 1f : -1f, 0f, 0f)
+			: new Vector3(0f, 0f, MathF.Sign(v.Z) >= 0 ? 1f : -1f);
+	}
+
+	private static (float min, float max) ProjectAabb(Aabb aabb, Vector3 axis)
+	{
+		var min = float.MaxValue;
+		var max = float.MinValue;
+		for (var i = 0; i < 8; i++)
+		{
+			var p = aabb.GetEndpoint(i);
+			var d = p.Dot(axis);
+			if (d < min) min = d;
+			if (d > max) max = d;
+		}
+		return (min, max);
+	}
+
+	/// <summary>
+	/// Body meshes for the tint pass: nodes named like "body" outside any wheel subtree; if none
+	/// match, falls back to the largest non-wheel/non-glass mesh by local AABB volume.
+	/// </summary>
+	private static List<MeshInstance3D> CollectDefModelBodyMeshes(Node3D model)
+	{
+		var all = new List<MeshInstance3D>();
+		var stack = new Stack<Node>();
+		stack.Push(model);
+		while (stack.Count > 0)
+		{
+			var n = stack.Pop();
+			foreach (var childObj in n.GetChildren())
+				if (childObj is Node child)
+					stack.Push(child);
+			if (n is MeshInstance3D mi && mi.Mesh != null)
+				all.Add(mi);
+		}
+
+		bool IsWheelish(Node n)
+		{
+			Node? cur = n;
+			while (cur != null && cur != model)
+			{
+				if (cur.Name.ToString().StartsWith("wheel", StringComparison.OrdinalIgnoreCase))
+					return true;
+				cur = cur.GetParent();
+			}
+			return false;
+		}
+
+		bool IsGlassish(Node n)
+		{
+			var nm = n.Name.ToString();
+			return nm.Contains("glass", StringComparison.OrdinalIgnoreCase)
+				|| nm.Contains("window", StringComparison.OrdinalIgnoreCase);
+		}
+
+		var named = all
+			.Where(m => !IsWheelish(m) && m.Name.ToString().Contains("body", StringComparison.OrdinalIgnoreCase))
+			.ToList();
+		if (named.Count > 0) return named;
+
+		MeshInstance3D? best = null;
+		var bestVol = -1f;
+		foreach (var m in all)
+		{
+			if (IsWheelish(m) || IsGlassish(m)) continue;
+			var size = m.GetAabb().Size;
+			var vol = size.X * size.Y * size.Z;
+			if (vol > bestVol)
+			{
+				bestVol = vol;
+				best = m;
+			}
+		}
+
+		var result = new List<MeshInstance3D>();
+		if (best != null) result.Add(best);
+		return result;
 	}
 
 	private void BuildProxyVehicleVisual(Node3D parent)
@@ -1325,9 +1891,13 @@ private void ApplyBodyColor()
 				_blownTires[i] = true;
 				// One-time burst when the tire first blows.
 				ArenaVfx.SpawnSparks(_arenaWorldCached, GetWheelWorld(i) + new Vector3(0f, 0.06f, 0f), count: 6);
+				// Persistent flat-tire pad + rubber chips so a destroyed tire reads from the RTS camera.
+				BuildBlownTireDebris(i);
 			}
 			if (!blown)
 			{
+				if (_blownTires[i])
+					RemoveBlownTireDebris(i);
 				_blownTires[i] = false;
 				continue;
 			}
@@ -1375,6 +1945,272 @@ private void ApplyBodyColor()
 		});
 	}
 
+	// --- Top-down identity VFX (contact shadow, facing wedge) ---
+	// The fixed RTS camera sits ~37m out at ~51.6 deg; these cheap always-on accents keep vehicles
+	// readable against the arena floor:
+	// - a soft elliptical contact shadow grounds the chassis instantly,
+	// - a small emissive windshield wedge on the hood line makes facing readable at a glance.
+	// (Emissive side underglow strips used to live here too; play-testing read them as meaningless
+	// colored lines on the ground beside every car, so they were removed — hull detail + shadow +
+	// the target indicator carry the silhouette.)
+	// All nodes live under a pawn-level "IdentityVfx" root (NOT under "Visual", which gets cleared
+	// whenever the def model rebuilds).
+	private Node3D? _identityRoot;
+	private MeshInstance3D? _contactShadow;
+	private MeshInstance3D? _facingWedge;
+	private bool _identityDestroyed;
+	private float _visualTopLocalY = 0.95f;
+
+	// Blown-tire debris (flat-tire pad + rubber chips), one persistent node per wheel.
+	private Node3D? _tireDebrisRoot;
+	private readonly Node3D?[] _tireDebris = new Node3D?[4];
+
+	// Shared soft radial-falloff blob (white with alpha; AlbedoColor supplies the tint).
+	private static ImageTexture? _softBlobTexture;
+
+	/// <summary>Footprint scale relative to the 3.25 m reference chassis (drives shadow/decal sizing).</summary>
+	public float VisualFootprintScale => CurrentDefModelTargetLength() / 3.25f;
+
+	/// <summary>
+	/// Ground-plane bounding-circle radius of the hull in meters (pawn origin to a hull corner),
+	/// derived from the def's visual length and the reference chassis aspect (1.8 m wide : 3.25 m
+	/// long). Blast/proximity math uses this so explosions measure against the SURFACE of the
+	/// vehicle instead of its center point (a 2.4 m blast next to a 3.2 m hull is a contact hit,
+	/// not a half-damage near miss).
+	/// </summary>
+	public float HullBoundingRadius
+	{
+		get
+		{
+			var length = CurrentDefModelTargetLength();
+			var halfLength = length * 0.5f;
+			var halfWidth = length * (0.9f / 3.25f);
+			return MathF.Sqrt(halfLength * halfLength + halfWidth * halfWidth);
+		}
+	}
+
+	/// <summary>Top of the visual hull in pawn-local space (estimated until the model is measured).</summary>
+	public float VisualTopLocalY => _visualTopLocalY;
+
+	/// <summary>
+	/// Wrecks go dark: hides the emissive identity accents (underglow + facing wedge) but keeps the
+	/// grounding contact shadow. Called by <see cref="VehicleDamageVfx.MarkDestroyed"/> because the
+	/// charring pass there only touches the "Visual" subtree.
+	/// </summary>
+	public void SetIdentityDestroyed()
+	{
+		_identityDestroyed = true;
+		if (_facingWedge != null && GodotObject.IsInstanceValid(_facingWedge))
+			_facingWedge.Visible = false;
+	}
+
+	private void EnsureIdentityVisuals()
+	{
+		if (_identityRoot == null || !GodotObject.IsInstanceValid(_identityRoot))
+		{
+			_identityRoot = new Node3D { Name = "IdentityVfx" };
+			AddChild(_identityRoot);
+
+			// 1) Contact shadow: flat dark blob just above the floor (pawn origin is at world y=0.4).
+			var shadowMat = new StandardMaterial3D
+			{
+				ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+				Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+				AlbedoColor = new Color(0f, 0f, 0f, 0.50f),
+				AlbedoTexture = GetSoftBlobTexture(),
+			};
+			_contactShadow = new MeshInstance3D
+			{
+				Name = "ContactShadow",
+				Mesh = new QuadMesh { Size = new Vector2(1f, 1f) },
+				RotationDegrees = new Vector3(-90f, 0f, 0f),
+				Position = new Vector3(0f, -0.375f, 0f),
+				CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+			};
+			_contactShadow.SetSurfaceOverrideMaterial(0, shadowMat);
+			_identityRoot.AddChild(_contactShadow);
+
+			// 2) Facing wedge: low flat windshield-glass triangle pointing at the nose.
+			// PrismMesh apex is +Y; rotating -90 deg about X points the apex along -Z (forward).
+			var wedgeColor = new Color(0.72f, 0.93f, 1.0f);
+			var wedgeMat = new StandardMaterial3D
+			{
+				ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+				AlbedoColor = wedgeColor,
+				EmissionEnabled = true,
+				Emission = wedgeColor,
+				EmissionEnergyMultiplier = 1.5f,
+			};
+			_facingWedge = new MeshInstance3D
+			{
+				Name = "FacingWedge",
+				Mesh = new PrismMesh { Size = Vector3.One },
+				RotationDegrees = new Vector3(-90f, 0f, 0f),
+				CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+			};
+			_facingWedge.SetSurfaceOverrideMaterial(0, wedgeMat);
+			_identityRoot.AddChild(_facingWedge);
+		}
+
+		RefreshIdentityVisuals();
+	}
+
+	/// <summary>
+	/// Re-fits the identity accents to the current visual: measures the built model's AABB when the
+	/// pawn is in-tree (def models vary per class), otherwise falls back to footprint-scaled
+	/// estimates. Safe to call repeatedly (runs on _Ready/ConfigureLoadout/ApplyVisualPreset).
+	/// </summary>
+	private void RefreshIdentityVisuals()
+	{
+		if (_identityRoot == null || !GodotObject.IsInstanceValid(_identityRoot))
+			return;
+
+		var s = Mathf.Clamp(VisualFootprintScale, 0.6f, 1.8f);
+		var halfW = 0.93f * s;
+		var len = 3.25f * s;
+		var topY = 0.95f;
+		if (IsInsideTree() && _visualRoot != null && GodotObject.IsInstanceValid(_visualRoot)
+			&& TryComputeAabbInSpace(_visualRoot, _visualRoot, out var aabb)
+			&& aabb.Size.X > 0.2f && aabb.Size.Z > 0.5f)
+		{
+			halfW = Mathf.Clamp(aabb.Size.X * 0.5f, 0.55f, 1.6f);
+			len = Mathf.Clamp(aabb.Size.Z, 2.0f, 6.0f);
+			topY = Mathf.Clamp(aabb.End.Y, 0.50f, 1.6f);
+		}
+		_visualTopLocalY = topY;
+
+		if (_contactShadow != null && GodotObject.IsInstanceValid(_contactShadow))
+			_contactShadow.Scale = new Vector3(halfW * 2f + 0.9f, len + 1.0f, 1f);
+
+		// Trailers are cargo, not combatants: the emissive combat-identity accents read as a
+		// phantom "windshield" wedge over the coupler at gameplay zoom. Keep only the grounding
+		// contact shadow for trailer pawns.
+		var isTrailer = _vehicleDef?.Class == VehicleClass.Trailer;
+
+		if (_facingWedge != null && GodotObject.IsInstanceValid(_facingWedge))
+		{
+			// Hood/windshield line: slightly above the measured roof so it never clips per-class
+			// models; local scale (width, forward length, thickness) maps through the -90 X rotation.
+			_facingWedge.Position = new Vector3(0f, topY + 0.05f, -len * 0.28f);
+			_facingWedge.Scale = new Vector3(0.60f * s, 0.55f * s, 0.06f);
+			_facingWedge.Visible = !_identityDestroyed && !isTrailer;
+		}
+	}
+
+	private static ImageTexture GetSoftBlobTexture()
+	{
+		if (_softBlobTexture != null)
+			return _softBlobTexture;
+		const int n = 64;
+		var img = Image.CreateEmpty(n, n, false, Image.Format.Rgba8);
+		for (var y = 0; y < n; y++)
+		{
+			for (var x = 0; x < n; x++)
+			{
+				var dx = (x + 0.5f) / n * 2f - 1f;
+				var dy = (y + 0.5f) / n * 2f - 1f;
+				var d = MathF.Sqrt(dx * dx + dy * dy);
+				var a = Mathf.Clamp(1f - d, 0f, 1f);
+				a = a * a * (3f - 2f * a); // smoothstep falloff, soft edge
+				img.SetPixel(x, y, new Color(1f, 1f, 1f, a));
+			}
+		}
+		_softBlobTexture = ImageTexture.CreateFromImage(img);
+		return _softBlobTexture;
+	}
+
+	/// <summary>
+	/// Deterministic per-pawn seed. string.GetHashCode is randomized per process, so use a plain
+	/// char-sum: debris layouts stay identical across runs (screenshot-verification determinism).
+	/// </summary>
+	private int StablePawnSeed()
+	{
+		var name = Name.ToString();
+		var h = 17;
+		foreach (var c in name)
+			h = unchecked(h * 31 + c);
+		return h;
+	}
+
+	private void EnsureTireDebrisRoot()
+	{
+		if (_tireDebrisRoot != null && GodotObject.IsInstanceValid(_tireDebrisRoot))
+			return;
+		_tireDebrisRoot = new Node3D { Name = "TireDebris" };
+		AddChild(_tireDebrisRoot);
+	}
+
+	/// <summary>
+	/// Persistent blown-tire read: a dark flat-tire pad where the tire meets the ground plus a few
+	/// shredded-rubber chips around the rim. All flat ground-level quads (no floating billboards),
+	/// attached to the pawn so they track the wheel; placement is seeded on pawn name + wheel index.
+	/// </summary>
+	private void BuildBlownTireDebris(int tireIndex)
+	{
+		if (tireIndex < 0 || tireIndex >= _tireDebris.Length)
+			return;
+		var existing = _tireDebris[tireIndex];
+		if (existing != null && GodotObject.IsInstanceValid(existing))
+			return;
+		EnsureTireDebrisRoot();
+
+		var local = ToLocal(GetWheelWorld(tireIndex));
+		var root = new Node3D { Name = $"TireDebris{tireIndex}", Position = new Vector3(local.X, 0f, local.Z) };
+		_tireDebrisRoot!.AddChild(root);
+		_tireDebris[tireIndex] = root;
+
+		var rubber = new StandardMaterial3D
+		{
+			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+			Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+			AlbedoColor = new Color(0.05f, 0.05f, 0.055f, 0.85f),
+			AlbedoTexture = GetSoftBlobTexture(),
+		};
+
+		// Flat-tire pad: squashed dark blob under the wheel (world y ~0.028; above skid marks).
+		var pad = new MeshInstance3D
+		{
+			Name = "FlatPad",
+			Mesh = new QuadMesh { Size = new Vector2(1f, 1f) },
+			RotationDegrees = new Vector3(-90f, 0f, 0f),
+			Position = new Vector3(0f, -0.372f, 0.03f),
+			Scale = new Vector3(0.50f, 0.62f, 1f),
+			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+		};
+		pad.SetSurfaceOverrideMaterial(0, rubber);
+		root.AddChild(pad);
+
+		var rnd = new Random(unchecked(StablePawnSeed() * 31 + tireIndex * 101));
+		for (var k = 0; k < 3; k++)
+		{
+			var ang = (float)(rnd.NextDouble() * Math.Tau);
+			var dist = 0.22f + (float)rnd.NextDouble() * 0.22f;
+			var sz = 0.08f + (float)rnd.NextDouble() * 0.08f;
+			var chip = new MeshInstance3D
+			{
+				Name = $"Chip{k}",
+				Mesh = new QuadMesh { Size = new Vector2(1f, 1f) },
+				// Flat on the ground; yaw varies per chip. Staggered y avoids z-fighting the pad.
+				RotationDegrees = new Vector3(-90f, (float)(rnd.NextDouble() * 180.0), 0f),
+				Position = new Vector3(MathF.Cos(ang) * dist, -0.369f + k * 0.002f, MathF.Sin(ang) * dist),
+				Scale = new Vector3(sz, sz * (0.6f + (float)rnd.NextDouble() * 0.5f), 1f),
+				CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+			};
+			chip.SetSurfaceOverrideMaterial(0, rubber);
+			root.AddChild(chip);
+		}
+	}
+
+	private void RemoveBlownTireDebris(int tireIndex)
+	{
+		if (tireIndex < 0 || tireIndex >= _tireDebris.Length)
+			return;
+		var node = _tireDebris[tireIndex];
+		if (node != null && GodotObject.IsInstanceValid(node))
+			node.QueueFree();
+		_tireDebris[tireIndex] = null;
+	}
+
 	private void EnsureMountsFallback()
 	{
 		// If we haven't been configured from defs yet, create a minimal mount set.
@@ -1413,7 +2249,18 @@ private void ApplyBodyColor()
 
 			if (m.Kind == WeaponMountKind.Turret || m.ArcDegrees >= 180f || m.CanAutoAim)
 			{
-				CreateTurretMount(m.MountId, pos, m.YawMinDegrees, m.YawMaxDegrees);
+				// Limited-arc mounts (spec): 0 < ArcDegrees < 180 restricts tracking to the mount
+				// facing +/- Arc/2 (vehicle-local). 0 or >= 180 stays an unrestricted turret.
+				// Explicit def Yaw{Min,Max}Degrees remain the fine-grain override when present.
+				var minYaw = m.YawMinDegrees;
+				var maxYaw = m.YawMaxDegrees;
+				if (m.ArcDegrees > 0f && m.ArcDegrees < 180f)
+				{
+					var halfArc = m.ArcDegrees * 0.5f;
+					minYaw ??= yawDeg - halfArc;
+					maxYaw ??= yawDeg + halfArc;
+				}
+				CreateTurretMount(m.MountId, pos, minYaw, maxYaw, yawDeg);
 			}
 			else
 			{
@@ -1457,7 +2304,7 @@ private void ApplyBodyColor()
 		_mountById[mountId] = marker;
 	}
 
-	private void CreateTurretMount(string mountId, Vector3 pos, float? yawMinDeg, float? yawMaxDeg)
+	private void CreateTurretMount(string mountId, Vector3 pos, float? yawMinDeg, float? yawMaxDeg, float neutralYawDeg = 0f)
 	{
 		if (_mountsRoot == null) return;
 		var pivot = new Node3D { Name = $"TurretPivot_{mountId}", Position = pos };
@@ -1465,7 +2312,7 @@ private void ApplyBodyColor()
 		var marker = new Marker3D { Name = $"Mount_{mountId}" };
 		pivot.AddChild(marker);
 		_mountById[mountId] = marker;
-		_turretsByMountId[mountId] = new TurretInfo { Pivot = pivot, MinYawDeg = yawMinDeg, MaxYawDeg = yawMaxDeg };
+		_turretsByMountId[mountId] = new TurretInfo { Pivot = pivot, MinYawDeg = yawMinDeg, MaxYawDeg = yawMaxDeg, NeutralYawDeg = neutralYawDeg };
 	}
 
 	private void AttachWeaponVisuals()
@@ -1538,6 +2385,9 @@ if (_vehicleDef != null)
 			if (wMount != null)
 				weapon.Transform = wMount.Transform.AffineInverse();
 
+			// The transform snap above wipes root scale — re-apply the config's slimming factors.
+			WeaponVisualFactory.ApplyCrossAxisScale(weapon);
+
 			DisableWeaponCollision(weapon);
 
 			var muzzle = weapon.GetNodeOrNull<Marker3D>("Muzzle");
@@ -1600,13 +2450,22 @@ if (_vehicleDef != null)
 	{
 		if (_turretsByMountId.Count == 0) return;
 		var aim = AimWorldPosition;
-		if (aim == Vector3.Zero)
-			return;
 
 		foreach (var kv in _turretsByMountId)
 		{
 			var info = kv.Value;
 			if (info.Pivot == null || !GodotObject.IsInstanceValid(info.Pivot))
+				continue;
+
+			// Fixed-angle fallback (master spec): a weapon beyond the computer's control groups
+			// loses auto-tracking — its mount locks to the neutral bearing like a fixed gun.
+			if (_computerLockedMountIds.Contains(kv.Key))
+			{
+				info.Pivot.RotationDegrees = new Vector3(0f, info.NeutralYawDeg, 0f);
+				continue;
+			}
+
+			if (aim == Vector3.Zero)
 				continue;
 
 			var pivotPos = info.Pivot.GlobalPosition;
@@ -1620,14 +2479,33 @@ if (_vehicleDef != null)
 			var localYaw = Mathf.Wrap(desiredYawGlobal - GlobalRotation.Y, -Mathf.Pi, Mathf.Pi);
 			var localYawDeg = Mathf.RadToDeg(localYaw);
 
-			if (info.MinYawDeg.HasValue) localYawDeg = MathF.Max(info.MinYawDeg.Value, localYawDeg);
-			if (info.MaxYawDeg.HasValue) localYawDeg = MathF.Min(info.MaxYawDeg.Value, localYawDeg);
+			if (info.MinYawDeg.HasValue && info.MaxYawDeg.HasValue)
+			{
+				// Wrap-aware clamp: rear/side arcs (e.g. 180 +/- 5) must snap to the nearest arc
+				// edge, not across the +/-180 wrap seam. No-op for full turrets (-180..180).
+				var center = (info.MinYawDeg.Value + info.MaxYawDeg.Value) * 0.5f;
+				var halfRange = (info.MaxYawDeg.Value - info.MinYawDeg.Value) * 0.5f;
+				var rel = Mathf.Wrap(localYawDeg - center, -180f, 180f);
+				localYawDeg = center + Mathf.Clamp(rel, -halfRange, halfRange);
+			}
+			else
+			{
+				if (info.MinYawDeg.HasValue) localYawDeg = MathF.Max(info.MinYawDeg.Value, localYawDeg);
+				if (info.MaxYawDeg.HasValue) localYawDeg = MathF.Min(info.MaxYawDeg.Value, localYawDeg);
+			}
 
 			info.Pivot.RotationDegrees = new Vector3(0f, localYawDeg, 0f);
 		}
 	}
 
-	private void UpdateRuntimeDerivedStats()
+	/// <summary>
+	/// Mass hitched to this pawn that the instance's own breakdown can't see (the overworld tow
+	/// chain in-arena — spec: you defend what you haul, and it weighs you down in the fight).
+	/// Set by the arena view at spawn; 0 for fresh pawns.
+	/// </summary>
+	public float ExternalTowedMassKg { get; set; }
+
+	protected override void UpdateRuntimeDerivedStats()
 	{
 		// Defaults
 		EffectiveMaxForwardSpeed = MaxForwardSpeed;
@@ -1640,11 +2518,13 @@ if (_vehicleDef != null)
 		if (_vehicleDef == null || _vehicleRuntime == null || _defs == null)
 			return;
 
-		TotalMassKg = VehicleMassMath.ComputeTotalMassKg(_vehicleDef, _vehicleRuntime, _defs);
-		var baseMass = MathF.Max(1f, _vehicleDef.BaseMassKg);
-		var totalMass = MathF.Max(baseMass, TotalMassKg);
-		var massFactor = Mathf.Clamp(baseMass / totalMass, 0.45f, 1.15f);
-		var speedFactor = Mathf.Clamp(MathF.Pow(massFactor, 0.25f), 0.65f, 1.15f);
+		TotalMassKg = VehicleMassMath.ComputeTotalMassKg(_vehicleDef, _vehicleRuntime, _defs) + MathF.Max(0f, ExternalTowedMassKg);
+		// Power-to-weight: the installed engine's output caps how much mass it can actually move.
+		var enginePowerKw = _vehicleRuntime.InstalledEngineId != null
+			&& _defs.Engines.TryGetValue(_vehicleRuntime.InstalledEngineId, out var engineDef)
+				? engineDef.PowerKw
+				: 0f;
+		var speedFactor = VehicleMassMath.ComputeSpeedFactor(_vehicleDef.BaseMassKg, TotalMassKg, enginePowerKw);
 		EffectiveMaxForwardSpeed = MaxForwardSpeed * speedFactor;
 		EffectiveMaxReverseSpeed = MaxReverseSpeed * speedFactor;
 
@@ -1673,9 +2553,19 @@ if (_vehicleDef != null)
 		// Extra penalty: if both front tires are essentially gone, steering becomes *much* harder.
 		if (fl <= 0.05f && fr <= 0.05f)
 			SteerGrip = Mathf.Clamp(SteerGrip * 0.35f, 0.08f, 1f);
+
+		// Oil slick: drape a slippery surface over whatever tire-based grip we computed. Use Min so oil
+		// only ever *reduces* grip. Low traction => the car keeps sliding (less lateral friction); poor
+		// drive grip => it can't simply power/brake straight out; vague steering => loose direction.
+		if (_oilSlipRemaining > 0f)
+		{
+			TractionGrip = MathF.Min(TractionGrip, 0.22f);
+			DriveGrip = MathF.Min(DriveGrip, 0.30f);
+			SteerGrip = MathF.Min(SteerGrip, 0.38f);
+		}
 	}
 
-	private float ComputeMassAccelFactor()
+	protected override float ComputeMassAccelFactor()
 	{
 		if (_vehicleDef == null) return 1f;
 		var baseMass = MathF.Max(1f, _vehicleDef.BaseMassKg);
@@ -1684,32 +2574,6 @@ if (_vehicleDef != null)
 		return Mathf.Clamp(MathF.Pow(massFactor, 1.0f), 0.45f, 1.15f);
 	}
 
-	private void ResolveVehicleOverlap()
-	{
-		// CharacterBody vs CharacterBody collisions can sometimes feel "soft".
-		// This is a lightweight fallback to keep cars from clipping through each other.
-		var tree = GetTree();
-		if (tree == null) return;
-		var nodes = tree.GetNodesInGroup("vehicle_pawn");
-		if (nodes == null || nodes.Count == 0) return;
-
-		const float minDist = 2.15f;
-		var selfPos = GlobalPosition;
-		foreach (var n in nodes)
-		{
-			if (n is not VehiclePawn other) continue;
-			if (other == this) continue;
-			if (!GodotObject.IsInstanceValid(other)) continue;
-			var op = other.GlobalPosition;
-			var d = new Vector3(selfPos.X - op.X, 0f, selfPos.Z - op.Z);
-			var dist = d.Length();
-			if (dist <= 0.001f || dist >= minDist) continue;
-			var dir = d / dist;
-			var push = (minDist - dist) * 0.55f;
-			selfPos += dir * push;
-		}
-		GlobalPosition = new Vector3(selfPos.X, GlobalPosition.Y, selfPos.Z);
-	}
 
 	private ArenaWorld? FindArenaWorld()
 	{

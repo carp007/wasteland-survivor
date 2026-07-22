@@ -1,0 +1,17 @@
+{
+  "Id": "pittsburgh",
+  "DisplayName": "Pittsburgh",
+  "MapX": 0.90,
+  "MapY": 0.80,
+  "HasStore": true,
+  "HasGarage": true,
+  "ArenaMaxTier": 5,
+  "HasCloneFacility": true,
+  "FuelPriceMultiplier": 1.05,
+  "Flavor": "Steel city of the east. The Crucible arena runs the heaviest brackets outside Detroit, fed by the mills' endless armor plate.",
+  "BackdropPath": "",
+  "Roads": [
+    { "ToCityId": "cleveland", "DistanceKm": 215, "AmbushChance": 0.5, "AmbushTierMin": 2, "AmbushTierMax": 3, "HasFuelStation": true, "FuelPriceMultiplier": 0.9, "FuelStationName": "Turnpike 76 Station" },
+    { "ToCityId": "erie", "DistanceKm": 205, "AmbushChance": 0.55, "AmbushTierMin": 2, "AmbushTierMax": 3, "Closed": true, "ClosedReason": "The Wolf Creek span on Route 79 collapsed — barricades up on both approaches until the bridge crews finish." }
+  ]
+}

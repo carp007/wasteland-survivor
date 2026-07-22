@@ -28,6 +28,12 @@ public static class WeaponVisualFactory
 			var node = TryCreateModelWeaponVisual(mountId, weaponId, cfg.ScenePath!);
 			if (node != null)
 			{
+				// Cross-axis slimming is applied at the ROOT (its -Z is the aligned barrel axis, so
+				// X/Y are always "across/above the barrel"), but the pawn overwrites the root
+				// transform when snapping the mount point — so stash the factors in meta and let
+				// ApplyCrossAxisScale() re-apply them after that snap.
+				node.SetMeta("weapon_visual_width_scale", cfg.WidthScale > 0.05f ? cfg.WidthScale : 1.0f);
+				node.SetMeta("weapon_visual_height_scale", cfg.HeightScale > 0.05f ? cfg.HeightScale : 1.0f);
 				// Persist settings for later alignment.
 				node.SetMeta("weapon_visual_weapon_id", weaponId);
 				node.SetMeta("weapon_visual_scene_path", cfg.ScenePath ?? "");
@@ -43,6 +49,20 @@ public static class WeaponVisualFactory
 
 		// Fallback.
 		return CreateBoxWeaponVisual(mountId, weaponId);
+	}
+
+	/// <summary>
+	/// Re-applies the config's cross-axis (width/height) slimming to the weapon root. Call AFTER
+	/// any code that assigns the root's Transform wholesale (mount-point snapping), which would
+	/// otherwise wipe the scale back to identity.
+	/// </summary>
+	public static void ApplyCrossAxisScale(Node3D weaponRoot)
+	{
+		if (weaponRoot == null || !GodotObject.IsInstanceValid(weaponRoot)) return;
+		var w = weaponRoot.HasMeta("weapon_visual_width_scale") ? weaponRoot.GetMeta("weapon_visual_width_scale").AsSingle() : 1.0f;
+		var h = weaponRoot.HasMeta("weapon_visual_height_scale") ? weaponRoot.GetMeta("weapon_visual_height_scale").AsSingle() : 1.0f;
+		if (MathF.Abs(w - 1f) < 0.001f && MathF.Abs(h - 1f) < 0.001f) return;
+		weaponRoot.Scale = new Vector3(w, h, 1f);
 	}
 
 	public static bool TryAutoAlignWeaponVisual(Node3D weaponRoot)
@@ -225,12 +245,48 @@ public static class WeaponVisualFactory
 			model.Name = "Model";
 			visual.AddChild(model);
 
+			// The Blaster Kit ships in toy colormap colors (mint/orange/white) that read as plastic
+			// toys bolted to the hull from the RTS camera. Repaint every surface into a hardware
+			// palette (gunmetal with slight per-part variation) so mounted weapons read as weapons.
+			RepaintAsHardware(model);
+
 			root.SetMeta("weapon_id", weaponId);
 			return root;
 		}
 		catch
 		{
 			return null;
+		}
+	}
+
+	private static void RepaintAsHardware(Node3D model)
+	{
+		var stack = new Stack<Node>();
+		stack.Push(model);
+		while (stack.Count > 0)
+		{
+			var n = stack.Pop();
+			foreach (var childObj in n.GetChildren())
+			{
+				if (childObj is Node child)
+					stack.Push(child);
+			}
+
+			if (n is not MeshInstance3D mi || mi.Mesh == null) continue;
+			var surfaces = mi.Mesh.GetSurfaceCount();
+			for (var s = 0; s < surfaces; s++)
+			{
+				// Per-part shade variation (receiver vs barrel vs magazine) so the weapon
+				// silhouette still articulates without the toy colors.
+				var seed = (mi.Name.ToString().GetHashCode() ^ (s * 397)) & 0x7fffffff;
+				var shade = 0.105f + (seed % 1000) / 1000f * 0.055f;
+				mi.SetSurfaceOverrideMaterial(s, new StandardMaterial3D
+				{
+					AlbedoColor = new Color(shade, shade * 1.04f, shade * 1.12f),
+					Roughness = 0.38f + (seed % 613) / 613f * 0.18f,
+					Metallic = 0.72f,
+				});
+			}
 		}
 	}
 
@@ -241,21 +297,42 @@ public static class WeaponVisualFactory
 		var mount = new Marker3D { Name = "MountPoint" };
 		root.AddChild(mount);
 
-		// Weapon mesh (proxy).
-		var mesh = new MeshInstance3D
+		// Weapon proxy: dark gunmetal receiver + barrel so it reads as hardware instead of a glued-on
+		// white box from the gameplay camera.
+		var gunmetal = new StandardMaterial3D
+		{
+			AlbedoColor = new Color(0.12f, 0.13f, 0.15f),
+			Roughness = 0.42f,
+			Metallic = 0.78f
+		};
+
+		var receiver = new MeshInstance3D
 		{
 			Name = "Mesh",
-			Mesh = new BoxMesh { Size = new Vector3(0.38f, 0.20f, 0.85f) },
-			Position = new Vector3(0f, 0.12f, -0.35f)
+			Mesh = new BoxMesh { Size = new Vector3(0.26f, 0.16f, 0.50f) },
+			Position = new Vector3(0f, 0.10f, -0.12f)
 		};
-		var mat = new StandardMaterial3D
+		receiver.SetSurfaceOverrideMaterial(0, gunmetal);
+		root.AddChild(receiver);
+
+		var barrel = new MeshInstance3D
 		{
-			AlbedoColor = new Color(0.55f, 0.55f, 0.60f),
-			Roughness = 0.55f,
-			Metallic = 0.25f
+			Name = "Barrel",
+			Mesh = new CylinderMesh { TopRadius = 0.040f, BottomRadius = 0.048f, Height = 0.58f, RadialSegments = 10 },
+			Position = new Vector3(0f, 0.14f, -0.55f),
+			RotationDegrees = new Vector3(-90f, 0f, 0f)
 		};
-		mesh.SetSurfaceOverrideMaterial(0, mat);
-		root.AddChild(mesh);
+		barrel.SetSurfaceOverrideMaterial(0, gunmetal);
+		root.AddChild(barrel);
+
+		var brake = new MeshInstance3D
+		{
+			Name = "MuzzleBrake",
+			Mesh = new BoxMesh { Size = new Vector3(0.10f, 0.10f, 0.12f) },
+			Position = new Vector3(0f, 0.14f, -0.80f)
+		};
+		brake.SetSurfaceOverrideMaterial(0, gunmetal);
+		root.AddChild(brake);
 
 		// Muzzle marker (used for tracer origin + aim direction).
 		var muzzle = new Marker3D { Name = "Muzzle", Position = new Vector3(0f, 0.15f, -0.82f) };
@@ -317,13 +394,30 @@ public static class WeaponVisualFactory
 		foreach (var mi in meshes)
 		{
 			if (mi.Mesh == null) continue;
+
+			// mesh -> weaponRoot via accumulated LOCAL transforms. GlobalTransform/ToLocal need
+			// the nodes inside the scene tree, but weapon visuals are assembled off-tree — the
+			// old path spammed "get_global_transform: node not inside tree" into every arena log
+			// (hundreds per run) while silently returning garbage-identity transforms.
+			var toRoot = Transform3D.Identity;
+			Node? cur = mi;
+			var reached = false;
+			while (cur != null)
+			{
+				if (cur == weaponRoot)
+				{
+					reached = true;
+					break;
+				}
+				if (cur is Node3D n3)
+					toRoot = n3.Transform * toRoot;
+				cur = cur.GetParent();
+			}
+			if (!reached) continue; // not under the weapon root; skip rather than misplace
+
 			var aabb = mi.GetAabb();
 			foreach (var c in GetAabbCorners(aabb))
-			{
-				var gp = mi.GlobalTransform * c;
-				var lp = weaponRoot.ToLocal(gp);
-				pts.Add(lp);
-			}
+				pts.Add(toRoot * c);
 		}
 		return pts;
 	}
@@ -445,6 +539,13 @@ public static class WeaponVisualFactory
 
 	private static void ForceUpdateTransformsRecursive(Node node)
 	{
+		// Off-tree there is nothing to flush — ForceUpdateTransform() logs a native
+		// "!is_inside_tree()" error per node, and global transforms are recomputed when the
+		// node enters the tree anyway. Alignment math stays correct off-tree because it reads
+		// accumulated LOCAL transforms (GatherMeshPointsInLocalSpace).
+		if (!node.IsInsideTree())
+			return;
+
 		if (node is Node3D n3d)
 			n3d.ForceUpdateTransform();
 
@@ -456,54 +557,61 @@ public static class WeaponVisualFactory
 	}
 }
 
-public sealed class WeaponVisualConfigStore
+public sealed class WeaponVisualConfigStore : JsonConfigStore<WeaponVisualConfigRoot>
 {
+	private const string ConfigFilePath = "res://Data/Config/weapon_visuals.json";
+
 	public static WeaponVisualConfigStore Instance { get; } = new();
 
-	private bool _loaded;
-	private Dictionary<string, WeaponVisualConfig> _byWeaponId = new(StringComparer.OrdinalIgnoreCase);
-
-	public string ConfigPath { get; set; } = "res://Data/Config/weapon_visuals.json";
+	private WeaponVisualConfigStore() : base(ConfigFilePath)
+	{
+	}
 
 	public WeaponVisualConfig? Get(string weaponId)
 	{
-		EnsureLoaded();
-		return _byWeaponId.TryGetValue(weaponId, out var cfg) ? cfg : null;
+		var root = base.Get();
+		return root.Weapons.TryGetValue(weaponId, out var cfg) ? cfg : null;
 	}
 
-	private void EnsureLoaded()
+	protected override WeaponVisualConfigRoot CreateDefault() => new();
+
+	protected override WeaponVisualConfigRoot Normalize(WeaponVisualConfigRoot config)
 	{
-		if (_loaded) return;
-		_loaded = true;
-
-		try
+		var normalized = new Dictionary<string, WeaponVisualConfig>(StringComparer.OrdinalIgnoreCase);
+		if (config.Weapons != null)
 		{
-			if (!FileAccess.FileExists(ConfigPath))
-				return;
-
-			var json = FileAccess.GetFileAsString(ConfigPath);
-			var root = JsonUtil.Deserialize<WeaponVisualConfigRoot>(json);
-			if (root?.Weapons == null) return;
-
-			_byWeaponId = new Dictionary<string, WeaponVisualConfig>(root.Weapons, StringComparer.OrdinalIgnoreCase);
+			foreach (var kv in config.Weapons)
+			{
+				if (string.IsNullOrWhiteSpace(kv.Key) || kv.Value == null)
+					continue;
+				normalized[kv.Key] = kv.Value;
+			}
 		}
-		catch (Exception ex)
-		{
-			GD.PrintErr($"[WeaponVisualConfigStore] Failed to load {ConfigPath}: {ex.Message}");
-		}
-	}
 
-	private sealed class WeaponVisualConfigRoot
-	{
-		public Dictionary<string, WeaponVisualConfig> Weapons { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+		config.Weapons = normalized;
+		return config;
 	}
 }
+
+public sealed class WeaponVisualConfigRoot
+{
+	public Dictionary<string, WeaponVisualConfig> Weapons { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+}
+
 
 public sealed class WeaponVisualConfig
 {
 	public string? ScenePath { get; set; }
 	public float Scale { get; set; } = 1.0f;
 	public float DesiredLength { get; set; } = 0.0f;
+	/// <summary>
+	/// Cross-axis slimming applied at the weapon root (barrel axis keeps DesiredLength).
+	/// The Blaster Kit models are chunky sci-fi props; real vehicle guns are long and THIN, so
+	/// sub-1.0 values here are what make mounts read proportional on the toy-scale hulls.
+	/// Applied on the root (post-alignment axes), so width is always across the barrel.
+	/// </summary>
+	public float WidthScale { get; set; } = 1.0f;
+	public float HeightScale { get; set; } = 1.0f;
 	public bool AutoAlignYaw { get; set; } = true;
 	public bool DebugAlignment { get; set; } = false;
 	public string? MountPointNodeName { get; set; }

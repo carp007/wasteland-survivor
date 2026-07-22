@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://Scripts/UI/VehicleStatusHud.cs" id="1"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/ValueBar.tscn" id="2"]
+[ext_resource type="Script" path="res://Scripts/UI/VehiclePreviewCanvas.cs" id="3"]
 
 [node name="VehicleStatusHud" type="PanelContainer"]
 modulate = Color(1, 1, 1, 0.9)
@@ -11,9 +12,9 @@ anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 0.0
 offset_left = -440.0
-offset_top = 62.0
+offset_top = 88.0
 offset_right = -20.0
-offset_bottom = 620.0
+offset_bottom = 646.0
 
 # Keep the right edge aligned with other right-side HUD panels, but keep this panel
 # a bit narrower so it doesn't dominate the playfield.
@@ -91,22 +92,12 @@ custom_minimum_size = Vector2(140, 160)
 [node name="Center" type="CenterContainer" parent="VBox/MidRow/CenterBox"]
 layout_mode = 2
 
-[node name="VehiclePreview" type="SubViewportContainer" parent="VBox/MidRow/CenterBox/Center"]
+[node name="VehiclePreviewHost" type="Control" parent="VBox/MidRow/CenterBox/Center"]
 custom_minimum_size = Vector2(120, 140)
-stretch = true
-
-[node name="Viewport" type="SubViewport" parent="VBox/MidRow/CenterBox/Center/VehiclePreview"]
-size = Vector2i(120, 140)
-transparent_bg = true
-render_target_update_mode = 3
-
-[node name="PreviewRoot" type="Node3D" parent="VBox/MidRow/CenterBox/Center/VehiclePreview/Viewport"]
-
-[node name="Camera" type="Camera3D" parent="VBox/MidRow/CenterBox/Center/VehiclePreview/Viewport/PreviewRoot"]
-
-[node name="Light" type="DirectionalLight3D" parent="VBox/MidRow/CenterBox/Center/VehiclePreview/Viewport/PreviewRoot"]
-
-[node name="VehicleMesh" type="MeshInstance3D" parent="VBox/MidRow/CenterBox/Center/VehiclePreview/Viewport/PreviewRoot"]
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("3")
 
 [node name="RightBox" type="VBoxContainer" parent="VBox/MidRow"]
 layout_mode = 2
@@ -319,8 +310,8 @@ text = "Speed"
 theme_override_font_sizes/font_size = 12
 
 [node name="SpeedBar" parent="VBox/BottomVBox/SpeedBox/SpeedRow" instance=ExtResource("2")]
-custom_minimum_size = Vector2(190, 14)
-size_flags_horizontal = 3
+custom_minimum_size = Vector2(150, 14)
+size_flags_horizontal = 0
 
 [node name="RpmRow" type="HBoxContainer" parent="VBox/BottomVBox/SpeedBox"]
 layout_mode = 2
@@ -332,8 +323,8 @@ text = "RPM"
 theme_override_font_sizes/font_size = 12
 
 [node name="RpmBar" parent="VBox/BottomVBox/SpeedBox/RpmRow" instance=ExtResource("2")]
-custom_minimum_size = Vector2(190, 14)
-size_flags_horizontal = 3
+custom_minimum_size = Vector2(150, 14)
+size_flags_horizontal = 0
 
 [node name="RpmBottomSpacer" type="Control" parent="VBox/BottomVBox/SpeedBox"]
 custom_minimum_size = Vector2(0, 6)

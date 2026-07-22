@@ -1,0 +1,17 @@
+{
+  "Id": "fort_wayne",
+  "DisplayName": "Fort Wayne",
+  "MapX": 0.32,
+  "MapY": 0.68,
+  "HasStore": true,
+  "HasGarage": true,
+  "ArenaMaxTier": 3,
+  "HasCloneFacility": false,
+  "FuelPriceMultiplier": 0.95,
+  "Flavor": "A walled trade fort on the western corridor. Its dirt-floor arena, The Fort, is famous for scrappy mid-tier brawls.",
+  "BackdropPath": "",
+  "Roads": [
+    { "ToCityId": "toledo", "DistanceKm": 150, "AmbushChance": 0.4, "AmbushTierMin": 1, "AmbushTierMax": 2 },
+    { "ToCityId": "chicago", "DistanceKm": 250, "AmbushChance": 0.5, "AmbushTierMin": 2, "AmbushTierMax": 3, "HasFuelStation": true, "FuelPriceMultiplier": 0.9, "FuelStationName": "Route 30 Station" }
+  ]
+}

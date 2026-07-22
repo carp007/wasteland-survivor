@@ -6,7 +6,8 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using WastelandSurvivor.Framework.SceneBinding;
+using GameUiKit.SceneBinding;
+using GameUiKit.UI;
 
 namespace WastelandSurvivor.Game.UI;
 
@@ -20,7 +21,7 @@ public partial class BootSplashView : Control
 {
 	public event Action? Completed;
 
-	[Export] public string ConfigPath { get; set; } = "res://Data/Config/boot_splash.json";
+	[Export] public string ConfigPath { get; set; } = BootSplashConfigStore.DefaultConfigPath;
 	[Export] public float DefaultSecondsPerItem { get; set; } = 2.5f;
 	[Export] public float FadeInSeconds { get; set; } = 0.20f;
 	[Export] public float FadeOutSeconds { get; set; } = 0.20f;
@@ -46,23 +47,7 @@ public partial class BootSplashView : Control
 		_sfx = b.Opt<AudioStreamPlayer>("Sfx");
 	}
 	
-	private sealed class SplashConfig
-	{
-		public List<SplashItem> items { get; set; } = new();
-		public float? defaultSeconds { get; set; }
-		public float? fadeInSeconds { get; set; }
-		public float? fadeOutSeconds { get; set; }
-		public float? gapSeconds { get; set; }
-		public string? background { get; set; }
-		public string? defaultOpenSound { get; set; }
-	}
 
-	private sealed class SplashItem
-	{
-		public string path { get; set; } = "";
-		public float? seconds { get; set; }
-		public string? openSound { get; set; }
-	}
 
 	public override void _Ready()
 	{
@@ -73,8 +58,11 @@ public partial class BootSplashView : Control
 		EnsureBound();
 
 		_bg.Color = BackgroundColor;
+		FullscreenTextureRectUtil.ConfigureCover(_image);
 		_image.Modulate = new Color(1, 1, 1, 0);
 		if (_sfx != null) _sfx.Bus = "SFX";
+
+		BuildMusicCreditLine();
 
 		// Run next frame so we are definitely in the tree.
 		CallDeferred(nameof(Run));
@@ -85,6 +73,31 @@ public partial class BootSplashView : Control
 		if (_running) return;
 		_running = true;
 		_ = RunSequenceAsync();
+	}
+
+	/// <summary>
+	/// CC BY 4.0 attribution for the Kevin MacLeod music tracks (required in-game credit; see
+	/// Docs/Audio/ATTRIBUTION_AND_LICENSES.md). Rendered as a small muted line pinned to the bottom
+	/// of the screen for the duration of the splash sequence, above the splash images.
+	/// </summary>
+	private void BuildMusicCreditLine()
+	{
+		var color = GameUiTheme.TextMutedColor;
+		color.A = 0.85f;
+
+		var credit = new Label
+		{
+			Name = "MusicCredit",
+			Text = "Music: Kevin MacLeod (incompetech.com) — CC BY 4.0",
+			HorizontalAlignment = HorizontalAlignment.Center,
+			MouseFilter = MouseFilterEnum.Ignore,
+		};
+		credit.AddThemeFontSizeOverride("font_size", 12);
+		credit.AddThemeColorOverride("font_color", color);
+		AddChild(credit);
+		credit.SetAnchorsPreset(LayoutPreset.BottomWide);
+		credit.OffsetTop = -34f;
+		credit.OffsetBottom = -14f;
 	}
 
 	public override void _UnhandledInput(InputEvent @event)
@@ -109,7 +122,7 @@ public partial class BootSplashView : Control
 		var cfg = LoadConfig();
 		ApplyConfigOverrides(cfg);
 
-		var items = cfg.items;
+		var items = cfg.Items;
 		if (items.Count == 0)
 		{
 			Finish();
@@ -121,15 +134,15 @@ public partial class BootSplashView : Control
 			if (_skipRequested) break;
 			var item = items[i];
 
-			if (!TrySetTexture(item.path))
+			if (!TrySetTexture(item.Path))
 				continue; // skip missing textures
 
-			TryPlayOpenSound(item.openSound ?? cfg.defaultOpenSound);
+			TryPlayOpenSound(item.OpenSound ?? cfg.DefaultOpenSound);
 
 			await FadeToAsync(1f, FadeInSeconds);
 			if (_skipRequested) break;
 
-			var seconds = item.seconds ?? DefaultSecondsPerItem;
+			var seconds = item.Seconds ?? DefaultSecondsPerItem;
 			if (seconds > 0)
 				await ToSignal(GetTree().CreateTimer(seconds), SceneTreeTimer.SignalName.Timeout);
 
@@ -148,86 +161,22 @@ public partial class BootSplashView : Control
 		Finish();
 	}
 
-	private SplashConfig LoadConfig()
+	private BootSplashConfig LoadConfig()
 	{
-		try
-		{
-			if (!FileAccess.FileExists(ConfigPath))
-				return DefaultConfig();
-
-			var f = FileAccess.Open(ConfigPath, FileAccess.ModeFlags.Read);
-			if (f == null) return DefaultConfig();
-			var json = f.GetAsText();
-			var parsed = Json.ParseString(json);
-			if (parsed.VariantType != Variant.Type.Dictionary)
-				return DefaultConfig();
-
-			var dict = parsed.AsGodotDictionary();
-			var cfg = new SplashConfig();
-
-			if (dict.TryGetValue("defaultSeconds", out var dSec) && (dSec.VariantType == Variant.Type.Float || dSec.VariantType == Variant.Type.Int))
-				cfg.defaultSeconds = (float)dSec;
-			if (dict.TryGetValue("fadeInSeconds", out var fi) && (fi.VariantType == Variant.Type.Float || fi.VariantType == Variant.Type.Int))
-				cfg.fadeInSeconds = (float)fi;
-			if (dict.TryGetValue("fadeOutSeconds", out var fo) && (fo.VariantType == Variant.Type.Float || fo.VariantType == Variant.Type.Int))
-				cfg.fadeOutSeconds = (float)fo;
-			if (dict.TryGetValue("gapSeconds", out var gap) && (gap.VariantType == Variant.Type.Float || gap.VariantType == Variant.Type.Int))
-				cfg.gapSeconds = (float)gap;
-			if (dict.TryGetValue("background", out var bg) && bg.VariantType == Variant.Type.String)
-				cfg.background = (string)bg;
-			if (dict.TryGetValue("defaultOpenSound", out var ds) && ds.VariantType == Variant.Type.String)
-				cfg.defaultOpenSound = (string)ds;
-
-			if (dict.TryGetValue("items", out var itemsVar) && itemsVar.VariantType == Variant.Type.Array)
-			{
-				var arr = itemsVar.AsGodotArray();
-				foreach (var v in arr)
-				{
-					if (v.VariantType != Variant.Type.Dictionary) continue;
-					var it = v.AsGodotDictionary();
-					var item = new SplashItem();
-					if (it.TryGetValue("path", out var p) && p.VariantType == Variant.Type.String)
-						item.path = (string)p;
-					if (it.TryGetValue("seconds", out var s) && (s.VariantType == Variant.Type.Float || s.VariantType == Variant.Type.Int))
-						item.seconds = (float)s;
-					if (it.TryGetValue("openSound", out var os) && os.VariantType == Variant.Type.String)
-						item.openSound = (string)os;
-					if (!string.IsNullOrWhiteSpace(item.path))
-						cfg.items.Add(item);
-				}
-			}
-
-			return cfg.items.Count == 0 ? DefaultConfig() : cfg;
-		}
-		catch (Exception ex)
-		{
-			GD.PrintErr($"BootSplashView: Failed to load config '{ConfigPath}': {ex.Message}");
-			return DefaultConfig();
-		}
+		return new BootSplashConfigStore(ConfigPath).Get();
 	}
 
-	private SplashConfig DefaultConfig()
+	private void ApplyConfigOverrides(BootSplashConfig cfg)
 	{
-		return new SplashConfig
-		{
-			items = new List<SplashItem>
-			{
-				new SplashItem { path = "res://Assets/Images/title.png", seconds = DefaultSecondsPerItem }
-			}
-		};
-	}
-
-	private void ApplyConfigOverrides(SplashConfig cfg)
-	{
-		if (cfg.defaultSeconds.HasValue) DefaultSecondsPerItem = cfg.defaultSeconds.Value;
-		if (cfg.fadeInSeconds.HasValue) FadeInSeconds = cfg.fadeInSeconds.Value;
-		if (cfg.fadeOutSeconds.HasValue) FadeOutSeconds = cfg.fadeOutSeconds.Value;
-		if (cfg.gapSeconds.HasValue) InterItemGapSeconds = cfg.gapSeconds.Value;
-		if (!string.IsNullOrWhiteSpace(cfg.background))
+		if (cfg.DefaultSeconds.HasValue) DefaultSecondsPerItem = cfg.DefaultSeconds.Value;
+		if (cfg.FadeInSeconds.HasValue) FadeInSeconds = cfg.FadeInSeconds.Value;
+		if (cfg.FadeOutSeconds.HasValue) FadeOutSeconds = cfg.FadeOutSeconds.Value;
+		if (cfg.GapSeconds.HasValue) InterItemGapSeconds = cfg.GapSeconds.Value;
+		if (!string.IsNullOrWhiteSpace(cfg.Background))
 		{
 			try
 			{
-				BackgroundColor = new Color(cfg.background);
+				BackgroundColor = new Color(cfg.Background);
 				if (_bg != null) _bg.Color = BackgroundColor;
 			}
 			catch { /* ignore */ }
@@ -242,6 +191,8 @@ public partial class BootSplashView : Control
 			GD.PrintErr($"BootSplashView: Missing splash texture: {path}");
 			return false;
 		}
+
+		FullscreenTextureRectUtil.ConfigureCover(_image);
 
 		var tex = GD.Load<Texture2D>(path);
 		if (tex == null)

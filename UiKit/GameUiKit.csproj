@@ -2,7 +2,8 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
-    <RootNamespace>WastelandSurvivor</RootNamespace>
+    <RootNamespace>GameUiKit</RootNamespace>
+    <AssemblyName>GameUiKit</AssemblyName>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

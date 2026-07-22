@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+
+  <g transform="translate(8 8)">
+    <g transform="rotate(-18 28 72)">
+      <rect x="18" y="26" width="20" height="54" rx="10" fill="#556375" stroke="#B6C5D3" stroke-width="4"/>
+      <path d="M18 34h20" stroke="#68C9E9" stroke-width="4" opacity="0.7"/>
+      <path d="M18 62h20" stroke="#68C9E9" stroke-width="4" opacity="0.5"/>
+      <path d="M20 18h16l4 10H16z" fill="#D8B56A"/>
+    </g>
+    <g transform="rotate(-4 56 68)">
+      <rect x="46" y="20" width="20" height="60" rx="10" fill="#7E8FA3" stroke="#B6C5D3" stroke-width="4"/>
+      <path d="M46 30h20" stroke="#68C9E9" stroke-width="4" opacity="0.7"/>
+      <path d="M46 58h20" stroke="#68C9E9" stroke-width="4" opacity="0.5"/>
+      <path d="M48 12h16l4 10H44z" fill="#F0D9A0"/>
+    </g>
+    <g transform="rotate(12 84 74)">
+      <rect x="74" y="28" width="20" height="52" rx="10" fill="#556375" stroke="#B6C5D3" stroke-width="4"/>
+      <path d="M74 38h20" stroke="#68C9E9" stroke-width="4" opacity="0.7"/>
+      <path d="M74 64h20" stroke="#68C9E9" stroke-width="4" opacity="0.5"/>
+      <path d="M76 20h16l4 10H72z" fill="#D8B56A"/>
+    </g>
+  </g>
+
+</svg>

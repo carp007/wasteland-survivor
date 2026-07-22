@@ -28,7 +28,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-stretch_mode = 5
+expand_mode = 1
+stretch_mode = 6
 
 [node name="Sfx" type="AudioStreamPlayer" parent="."]
 bus = "SFX"

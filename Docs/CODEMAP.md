@@ -76,8 +76,10 @@ If you're brand new to the project, read in this order:
 - Audio bus layout helpers + the layered engine audio node.
 
 ### `UiKit/` (shared UI/dialog toolkit project)
-- `UiKit/WastelandSurvivor.UiKit.csproj`: reusable UI toolkit project referenced by the main game.
+- `UiKit/GameUiKit.csproj`: reusable UI toolkit project referenced by the main game.
 - `UiKit/Scripts/Framework/SceneBinding/SceneBinder.cs`: typed `GetNode` helper with better error messages.
+- `UiKit/Scripts/Framework/SceneBinding/BindAttribute.cs` + `SceneAutoBinder.cs`: optional attribute-driven bindings that reduce `EnsureBound()` boilerplate in UI scripts.
+- `UiKit/Scripts/Framework/SceneBinding/AutoBoundControl.cs` + `AutoBoundNode.cs`: optional base classes that auto-apply `SceneAutoBinder` in `_Ready()`.
 - `UiKit/Scripts/Framework/UI/ScreenRouter.cs`: centralized screen navigation (replace/push/pop) for Control-based UI scenes.
 - `UiKit/Scripts/Framework/UI/UiNav.cs`: tiny helper that prefers `ScreenRouter` (when supplied) and falls back to legacy parent-swap navigation.
 - `UiKit/Scripts/Framework/UI/ModalHost.cs` + `IModalService.cs`: reusable modal/dialog hosting (dim background + stacked modals).
@@ -101,6 +103,7 @@ These are tuning/config files that aren’t “content defs”, e.g.:
 - `weapon_visuals.json` (optional weapon model + SFX paths)
 
 Most configs have a small “config store” class near the system that uses them.
+Most config stores should now prefer the shared `Scripts/Core/IO/JsonConfigStore.cs` base so caching / reload / fallback behavior stays consistent.
 
 ---
 
@@ -143,6 +146,6 @@ Avoid mutating lists/dictionaries in-place (clone first).
 ### Avoid direct node dependencies in “systems”
 `Scripts/Game/Systems/*` should ideally not depend on Godot nodes so we can reuse them later.
 
-### Assets are not shipped in AI zips
-AI-delivered zips exclude `Assets/`. Any doc that references assets should include expected paths and setup instructions.
+### Assets configuration
+Any doc that references assets should include expected paths and setup instructions.
 See `Docs/Assets/*`.

@@ -1,0 +1,27 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  GameUiKit -> C:\Source\Games\GoDot\wasteland-survivor\UiKit\.godot\mono\temp\bin\Debug\GameUiKit.dll
+  GamePawnKit -> C:\Source\Games\GoDot\wasteland-survivor\PawnKit\.godot\mono\temp\bin\Debug\GamePawnKit.dll
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1282,74): error CS1003: Syntax error, ']' expected [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1282,51): error CS1073: Unexpected token ';' [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1282,57): error CS1056: Unexpected character '\' [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1294,34): error CS1003: Syntax error, ',' expected [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1294,50): error CS1003: Syntax error, ',' expected [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1294,50): error CS1010: Newline in constant [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1294,67): error CS1026: ) expected [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1294,67): error CS1002: ; expected [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+
+Build FAILED.
+
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1282,74): error CS1003: Syntax error, ']' expected [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1282,51): error CS1073: Unexpected token ';' [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1282,57): error CS1056: Unexpected character '\' [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1294,34): error CS1003: Syntax error, ',' expected [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1294,50): error CS1003: Syntax error, ',' expected [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1294,50): error CS1010: Newline in constant [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1294,67): error CS1026: ) expected [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+C:\Source\Games\GoDot\wasteland-survivor\Scripts\UI\ArenaRealtimeView.cs(1294,67): error CS1002: ; expected [C:\Source\Games\GoDot\wasteland-survivor\Wasteland Survivor.csproj]
+    0 Warning(s)
+    8 Error(s)
+
+Time Elapsed 00:00:04.42

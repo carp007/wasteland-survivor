@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------------------------------
-// Wasteland Survivor
+// UiKit
 // File: Scripts/Framework/UI/ScreenRouter.cs
 // Purpose: Small reusable UI navigation helper. Centralizes screen instantiation and disposal so menu flows
 //          are consistent and easier to evolve (future: push/pop, overlays, transitions).
@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace WastelandSurvivor.Framework.UI;
+namespace GameUiKit.UI;
 
 /// <summary>
 /// Centralizes UI navigation for Control-based “screens” under a single host (typically a CanvasLayer).

@@ -1,0 +1,9 @@
+{
+  "Id": "ammo_smoke_std",
+  "DisplayName": "Smoke Canister",
+  "AmmoKind": "Smoke",
+  "UnitMassKg": 12.0,
+  "DamageMultiplier": 1.0,
+  "TrackingStrength": 0.0,
+  "ArmorPenetrationTag": ""
+}

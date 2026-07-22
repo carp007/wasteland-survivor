@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------------------------------
-// Wasteland Survivor
+// UiKit
 // File: Scripts/Framework/UI/DialogCard.cs
 // Purpose: Reusable modal “card” layout used by ModalService (title + body + buttons/content area).
 //          Designed to be portable to future Godot/C# projects: project-specific styling is injected
@@ -8,7 +8,7 @@
 using System;
 using Godot;
 
-namespace WastelandSurvivor.Framework.UI;
+namespace GameUiKit.UI;
 
 /// <summary>
 /// A small, code-only dialog shell: centered panel with a title, body text, and a footer area for

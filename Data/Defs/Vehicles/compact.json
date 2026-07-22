@@ -2,8 +2,13 @@
   "Id": "veh_compact",
   "DisplayName": "Compact",
   "Class": "Compact",
+  "PriceUsd": 2200,
+  "ArmorType": "Steel",
+  "VisualModelPath": "res://Assets/Models/Vehicles/KenneyCarKit/hatchback-sports.glb",
+  "VisualTargetLength": 3.0,
   "BaseMassKg": 1050,
   "StorageCapacityUnits": 8,
+  "FuelCapacityUnits": 45,
   "TireCount": 4,
   "SpareTireIncluded": true,
   "BaseArmorBySection": {
@@ -49,9 +54,5 @@
 	  "CanAutoAim": false,
 	  "MaxWeaponSize": 1
 	}
-  ],
-  "AllowedEngineClasses": [
-	"Compact",
-    "Sedan"
   ]
 }

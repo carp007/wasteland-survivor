@@ -119,3 +119,6 @@ Assets/**/*.avi.import
 # Assets/**/*.gltf
 # Assets/**/*.obj
 # Assets/**/*.dae
+# AI screenshot harness output
+.shots/
+

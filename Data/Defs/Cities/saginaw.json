@@ -1,0 +1,17 @@
+{
+  "Id": "saginaw",
+  "DisplayName": "Saginaw",
+  "MapX": 0.54,
+  "MapY": 0.22,
+  "HasStore": true,
+  "HasGarage": true,
+  "ArenaMaxTier": 1,
+  "HasCloneFacility": false,
+  "FuelPriceMultiplier": 1.2,
+  "Flavor": "Northern frontier outpost. Last reliable garage before the pine barrens; the wilderness route west is long and lawless.",
+  "BackdropPath": "",
+  "Roads": [
+    { "ToCityId": "detroit", "DistanceKm": 160, "AmbushChance": 0.35, "AmbushTierMin": 1, "AmbushTierMax": 2 },
+    { "ToCityId": "chicago", "DistanceKm": 400, "AmbushChance": 0.6, "AmbushTierMin": 2, "AmbushTierMax": 3, "HasFuelStation": true, "FuelPriceMultiplier": 0.95, "FuelStationName": "Pine Barrens Fuel Depot" }
+  ]
+}

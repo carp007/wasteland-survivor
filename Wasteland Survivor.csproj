@@ -20,11 +20,14 @@
     <!-- Support both / and \\ separators for globbing across platforms/tooling -->
     <Compile Remove="UiKit/**" />
     <Compile Remove="UiKit\\**" />
+    <Compile Remove="PawnKit/**" />
+    <Compile Remove="PawnKit\\**" />
     <Compile Remove=".godot/**" />
     <Compile Remove=".godot\\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="UiKit/WastelandSurvivor.UiKit.csproj" />
+    <ProjectReference Include="UiKit/GameUiKit.csproj" />
+    <ProjectReference Include="PawnKit/GamePawnKit.csproj" />
   </ItemGroup>
 </Project>

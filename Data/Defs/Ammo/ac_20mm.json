@@ -1,0 +1,10 @@
+{
+  "Id": "ammo_ac_20mm",
+  "DisplayName": "20mm Shells",
+  "AmmoKind": "Ballistic",
+  "UnitMassKg": 0.26,
+  "DamageMultiplier": 1.5,
+  "TrackingStrength": 0.0,
+  "ArmorPenetrationTag": "AP",
+  "UnitPriceUsd": 5
+}

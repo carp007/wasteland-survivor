@@ -10,5 +10,9 @@
   "MassKg": 80,
   "AmmoTypeIds": [
     "ammo_mine_std"
-  ]
+  ],
+  "AllowedMountLocations": [
+    "Rear"
+  ],
+  "PriceUsd": 750
 }
